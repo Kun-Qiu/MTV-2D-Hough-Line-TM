@@ -102,9 +102,9 @@ dt_img = cv2.imread(dt_img_loc, cv2.IMREAD_GRAYSCALE)
 dt_adaptive_thresh, dt_skeleton = skeletonize_img(image=dt_img)
 
 grid_object_skel    = GridStruct(pos_lines=pos_lines, neg_lines=neg_lines, img=skeleton, img2=dt_skeleton,
-                              temp_scale=0.7, window_scale=1.2, search_scale=3)
+                              temp_scale=0.7, window_scale=1.2, search_scale=1.5)
 grid_object_img     = GridStruct(pos_lines=pos_lines, neg_lines=neg_lines, img=image, img2=dt_img,
-                             temp_scale=0.7, window_scale=1.2, search_scale=3)
+                             temp_scale=0.7, window_scale=1.2, search_scale=1.5)
 # show_hough(image, dt_img, adaptive_thresh, skeleton, points_arr, grid_object_skel.grid, boolean=True)
 
 for i in range(grid_object_skel.shape[0] - 1):
@@ -153,7 +153,7 @@ for i in range(grid_object_skel.shape[0] - 1):
             ax[2].set_title('Search Region - Skeleton')
             ax[2].set_axis_off()
 
-            ax[3].imshow(template_img, cmap=cm.gray)
+            ax[3].imshow(search_region_img, cmap=cm.gray)
             ax[3].scatter([center_x], [center_y], c='red', s=5, label='Detected Center')
             ax[3].set_title('Search Region - Image')
             ax[3].set_axis_off()

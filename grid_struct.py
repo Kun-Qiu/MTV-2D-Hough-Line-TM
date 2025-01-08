@@ -1,5 +1,9 @@
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
+from scipy.fftpack import fft2, ifft2
+from image_utility import warp_image
 
 
 class GridStruct:
@@ -30,12 +34,42 @@ class GridStruct:
         self.template = np.empty(self.shape, dtype=object)
         self.search_patch = np.empty(self.shape, dtype=object)
         self.num_intersections = 0
+        self.dx, self.dy = self.phase_correlation()
 
         ### Immediately initialize and populate the data structure ###
         self.populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
         self.generate_template(scale=temp_scale)
         self.generate_search_patch(window_scale=window_scale,
                                    search_scale=search_scale)
+
+
+    def phase_correlation(self):
+        """
+        Estimate translational motion between two images using phase correlation. 
+        Orientate img2 with img1 --> +x = right, +y = down 
+
+        :param img1 :   First image
+        :param img2 :   Second image
+        :returns    :   tuple: (dx, dy), the estimated translation in x and y directions.
+        """
+        
+        # Ensure both images are grayscale and same size
+        if self.img.shape != self.img2.shape:
+            raise ValueError("Input images must have the same dimensions.")
+        
+        f1 = fft2(self.img)
+        f2 = fft2(self.img2)
+        
+        cross_power = (f1 * np.conj(f2)) / np.abs(f1 * np.conj(f2))
+        shift_map = np.abs(ifft2(cross_power))
+        max_idx = np.unravel_index(np.argmax(shift_map), shift_map.shape)
+        
+        shifts = np.array(max_idx, dtype=np.float32)
+        shifts[shifts > np.array(self.img.shape) // 2] -= np.array(self.img.shape)[shifts > np.array(self.img.shape) // 2]
+        
+        dy, dx = shifts[0], shifts[1]
+        
+        return dx, dy
 
 
     def _is_within_bounds(self, x, y):
@@ -138,7 +172,7 @@ class GridStruct:
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
 
 
-    def generate_search_patch(self, window_scale=1.2, search_scale=3):
+    def generate_search_patch(self, window_scale=1.2, search_scale=1.5):
         """
         Create search patches for the template matching algorithm by maximizing
         similarity between self.img and self.img2
@@ -180,9 +214,43 @@ class GridStruct:
                                                                                     bound_y)
                 
                 template = self.img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                search_region = self.img2[search_y_min:search_y_max, search_x_min:search_x_max]
+
+                warped_search_im = warp_image(self.img2, self.dy, self.dx)
+                search_region = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
                 
                 match_result = cv2.matchTemplate(search_region, template, cv2.TM_CCOEFF_NORMED)
+
+                fig, axes = plt.subplots(2, 3, figsize=(20, 6))
+                ax = axes.ravel()
+
+                ax[0].imshow(template, cmap=cm.gray)
+                ax[0].set_title('Template')
+                ax[0].set_axis_off()
+
+                ax[1].imshow(search_region, cmap=cm.jet)
+                ax[1].set_title('Search Region')
+                ax[1].set_axis_off()
+
+                ax[2].imshow(match_result, cmap=cm.gray)
+                ax[2].set_title('Cross Corrolation')
+                ax[2].set_axis_off()
+
+                ax[3].imshow(self.img, cmap=cm.gray)
+                ax[3].set_title('Source Image')
+                ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
+                            [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
+                            color='red', linewidth=2, label='temp Region')
+                ax[3].set_axis_off()
+
+                ax[4].imshow(warped_search_im, cmap=cm.gray)
+                ax[4].set_title('Warped Image')
+                ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
+                            [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
+                            color='red', linewidth=2, label='Search Region')
+                ax[4].set_axis_off()
+
+                plt.tight_layout()
+                plt.show()
                 
                 best_score = -float('inf')
                 best_center = None
@@ -201,11 +269,16 @@ class GridStruct:
 
                 # Store the best matching center and the region bounds
                 if best_center:
+
+                     # Subtract warped coordinates (dx, dy) back to the actual coordinate
+                    warped_x = best_center[0] - self.dx
+                    warped_y = best_center[1] - self.dy
+
                     self.search_patch[i, j] = np.array([
-                        best_center[0] - template.shape[1] // 2,
-                        best_center[1] - template.shape[0] // 2,
-                        best_center[0] + template.shape[1] // 2,
-                        best_center[1] + template.shape[0] // 2
+                        warped_x - template.shape[1] // 2,
+                        warped_y - template.shape[0] // 2,
+                        warped_x + template.shape[1] // 2,
+                        warped_y + template.shape[0] // 2
                     ])
 
 

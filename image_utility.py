@@ -33,3 +33,22 @@ def skeletonize_img(image, blur_window=(5,5)):
 
     adaptive_thresh[mask] = 0
     return adaptive_thresh, skeletonize(adaptive_thresh).astype(np.uint8)
+
+
+def warp_image(im, dy, dx):
+    """
+    Warp the image by translating dy and dx
+
+    :param im   :   Input image
+    :param dy   :   Y axis translation
+    :param dx   :   X axis translation
+
+    :return     :   Warped image
+    """
+    rows, cols = im.shape
+    M = np.float32([
+        [1, 0, dx],
+        [0, 1, dy]
+    ])
+    warped_im = cv2.warpAffine(im, M, (cols, rows))
+    return warped_im

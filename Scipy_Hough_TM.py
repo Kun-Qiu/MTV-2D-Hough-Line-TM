@@ -4,10 +4,11 @@ import numpy as np
 from matplotlib import cm
 from skimage.transform import hough_line, hough_line_peaks
 from grid_struct import GridStruct
-from image_utility import skeletonize_img
+from image_utility import skeletonize_img, stereo_transform
 
 
-def show_hough(image, dt_img, adaptive_thresh, skeleton, points, grid_struct, boolean=False):
+def show_hough(image, dt_img, adaptive_thresh, skeleton, points, 
+                grid_struct, grid_displace, boolean=False):
     # Show the images
     fig, axes = plt.subplots(2, 3, figsize=(20, 6))
     ax = axes.ravel()
@@ -47,21 +48,31 @@ def show_hough(image, dt_img, adaptive_thresh, skeleton, points, grid_struct, bo
             
     for i in range(grid_struct.shape[0]):
         for j in range(grid_struct.shape[1]):
-            x, y = grid_struct[i, j] 
-            ax[4].scatter(x, y, s=1, color='red')  # Plot the points on the 5th subplot (ax[4])
+            x, y = grid_struct[i, j]
+            ax[4].scatter(x, y, s=1, color='red')
+
+            # print(grid_displace)
+            if grid_displace[i,j] is None:
+                continue
+            
+            x_new, y_new = grid_displace[i, j]
+            ax[5].scatter(x_new, y_new, s=1, color='red')
 
     if boolean:
         plt.tight_layout()
         plt.show()
 
-image_location = "Experimental_Data/Source/frame_2.png"
+image_location = "Experimental_Data/Source/frame_1.png"
 # image_location = "Synthetic_Data/SNR_2/Set_0/Gaussian_Grid_Image_Set_0.png"
 image = cv2.imread(image_location, cv2.IMREAD_GRAYSCALE)
+image = stereo_transform(image)
+
 img_shape = np.shape(image)
 adaptive_thresh, skeleton = skeletonize_img(image=image)
 
 # Hough transform parameters
-tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=True)
+# tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360, endpoint=True)
+tested_angles = np.linspace(-np.pi / 2, np.pi / 2, 360 * 10, endpoint=True)
 h, theta, d = hough_line(skeleton, theta=tested_angles)
 height, width = image.shape[:2]
 
@@ -96,35 +107,35 @@ for _, angle, dist in zip(*hough_line_peaks(h, theta, d, threshold=threshold,
     points_arr.append(points_in_image)
 
 
-dt_img_loc = "Experimental_Data/Target/frame_2_2us.png"
-# dt_img_loc = "Synthetic_Data/SNR_2/Set_0/Rotational_Flow_Image_Set_0.png"
+dt_img_loc = "Experimental_Data/Target/frame_1_2us.png"
+# dt_img_loc = "Synthetic_Data/SNR_2/Set_0/Translational_Flow_Image_Set_0.png"
 dt_img = cv2.imread(dt_img_loc, cv2.IMREAD_GRAYSCALE)
+dt_img = stereo_transform(dt_img)
 dt_adaptive_thresh, dt_skeleton = skeletonize_img(image=dt_img)
 
 grid_object_skel    = GridStruct(pos_lines=pos_lines, neg_lines=neg_lines, img=skeleton, img2=dt_skeleton,
                               temp_scale=0.7, window_scale=1.2, search_scale=1.5)
 grid_object_img     = GridStruct(pos_lines=pos_lines, neg_lines=neg_lines, img=image, img2=dt_img,
                              temp_scale=0.7, window_scale=1.2, search_scale=1.5)
-# show_hough(image, dt_img, adaptive_thresh, skeleton, points_arr, grid_object_skel.grid, boolean=True)
 
-for i in range(grid_object_skel.shape[0] - 1):
-    for j in range(grid_object_skel.shape[1] - 1):
+grid_displace = np.empty(grid_object_skel.shape, dtype=object)
+# show_hough(image, dt_img, adaptive_thresh, skeleton, points_arr, 
+#            grid_object_skel.grid, grid_displace, boolean=True)
+
+for i in range(grid_object_skel.shape[0]):
+    for j in range(grid_object_skel.shape[1]):
         if grid_object_skel.template[i, j] is not None and grid_object_skel.search_patch[i, j] is not None:
             _ , _ , template_skel               = grid_object_skel.get_template(i, j)
             _ , _ , template_img                = grid_object_img.get_template(i, j)
             x_min, y_min, search_region_skel    = grid_object_skel.get_search(i, j)
             _ , _ , search_region_img           = grid_object_img.get_search(i, j)
 
-            # search_region_skel = dt_skeleton[int(y_min):int(y_max), int(x_min):int(x_max)]
-            # search_region_img = dt_img[int(y_min):int(y_max), int(x_min):int(x_max)]
-            # img_region = dt_img[int(y_min):int(y_max), int(x_min):int(x_max)]
             w, h = template_skel.shape[::-1]
 
-            # Apply template matching using TM_CCORR_NORMED
             method = cv2.TM_CCORR_NORMED
-            res1 = cv2.matchTemplate(search_region_skel, template_skel, method)
-            # res2 = cv2.matchTemplate(search_region_img, template_img, method)
-            res = res1
+            if search_region_skel.shape[0] < template_skel.shape[0] or search_region_skel.shape[1] < template_skel.shape[1]:
+                continue
+            res = cv2.matchTemplate(search_region_skel, template_skel, method)
 
             min_val, max_val, min_loc, max_loc = cv2.minMaxLoc(res)
 
@@ -135,6 +146,8 @@ for i in range(grid_object_skel.shape[0] - 1):
 
             absolute_x = x_min + center_x
             absolute_y = y_min + center_y
+
+            grid_displace[i, j] = np.array([absolute_x, absolute_y])
 
             # Show the images
             fig, axes = plt.subplots(2, 3, figsize=(20, 6))
@@ -178,3 +191,6 @@ for i in range(grid_object_skel.shape[0] - 1):
 
             plt.tight_layout()
             plt.show()
+
+# show_hough(image, dt_img, adaptive_thresh, skeleton, points_arr, 
+#            grid_object_skel.grid, grid_displace, boolean=True)

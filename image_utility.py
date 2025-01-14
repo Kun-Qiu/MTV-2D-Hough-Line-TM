@@ -19,9 +19,9 @@ def skeletonize_img(image, blur_window=(5,5)):
     _, ot = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     # Apply morphological operations to Eliminate Noises
-    kernel = np.ones((3, 3), np.uint8)
-    adaptive_thresh = cv2.erode(adaptive_thresh, kernel=kernel)
-    adaptive_thresh = cv2.dilate(adaptive_thresh, kernel=kernel)
+    # kernel = np.ones((3, 3), np.uint8)
+    # adaptive_thresh = cv2.erode(adaptive_thresh, kernel=kernel)
+    # adaptive_thresh = cv2.dilate(adaptive_thresh, kernel=kernel)
 
     # Create a gradient mask to isolate specific regions
     grad_x = cv2.Sobel(ot, cv2.CV_64F, 1, 0, ksize=5)
@@ -52,3 +52,41 @@ def warp_image(im, dy, dx):
     ])
     warped_im = cv2.warpAffine(im, M, (cols, rows))
     return warped_im
+
+def stereo_transform(im):
+    height, width = im.shape[:2]
+    src_pts = np.float32([
+        [0, 0],
+        [width, 0],
+        [width, height],
+        [0, height]
+    ])
+
+    dst_pts = np.float32([
+        [0, height * 0.2],          # Top-left corner (moved upward slightly)
+        [width, 0],                 # Top-right corner (kept at top edge)
+        [width, height],            # Bottom-right corner (kept at bottom edge)
+        [0, height * 0.8]           # Bottom-left corner (moved downward slightly)
+    ])
+
+    def find_mode_pixel_value(image):
+        """
+        Finds the pixel value with the highest frequency in a grayscale image using a histogram.
+
+        :param image: Input grayscale image
+        :return: Pixel value with the highest frequency
+        """
+        hist = cv2.calcHist([image], [0], None, [256], [0, 256])
+        mode_pixel = np.argmax(hist)  # Pixel value with the highest frequency
+        return mode_pixel
+
+    H = cv2.getPerspectiveTransform(src_pts, dst_pts)
+    transformed_image = cv2.warpPerspective(im, H, (width, height), flags=cv2.INTER_LINEAR)
+
+    # Create a mask of black regions in the transformed image
+    mask = (transformed_image == 0)
+
+    # Determine the background color using the mode of pixel values
+    background_color = find_mode_pixel_value(im)
+    transformed_image[mask] = background_color
+    return transformed_image

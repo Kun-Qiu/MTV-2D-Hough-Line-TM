@@ -19,9 +19,9 @@ def skeletonize_img(image, blur_window=(5,5)):
     _, ot = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
     # Apply morphological operations to Eliminate Noises
-    # kernel = np.ones((3, 3), np.uint8)
-    # adaptive_thresh = cv2.erode(adaptive_thresh, kernel=kernel)
-    # adaptive_thresh = cv2.dilate(adaptive_thresh, kernel=kernel)
+    kernel = np.ones((3, 3), np.uint8)
+    adaptive_thresh = cv2.erode(adaptive_thresh, kernel=kernel)
+    adaptive_thresh = cv2.dilate(adaptive_thresh, kernel=kernel)
 
     # Create a gradient mask to isolate specific regions
     grad_x = cv2.Sobel(ot, cv2.CV_64F, 1, 0, ksize=5)

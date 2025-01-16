@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import cm
 from skimage.registration import phase_cross_correlation
-from scipy.fftpack import fft2, ifft2
 from image_utility import warp_image
 
 
@@ -186,17 +185,6 @@ class GridStruct:
 
                 x_half, y_half = self.grid_img_bound(i, j)
 
-                # bottom_right = self.grid[i, j + 1]
-                # If any corner is NaN, skip cropping this region
-                # if (
-                #     np.isnan(center).any() or
-                #     np.isnan(bottom_right).any()
-                # ):
-                #     continue
-
-                # rect_half_width     = scale * abs(bottom_right[0] - center[0])
-                # rect_half_height    = scale * abs(bottom_right[1] - center[1])
-                
                 rect_half_width     = scale * x_half
                 rect_half_height    = scale * y_half
                 x_center, y_center  = center
@@ -208,12 +196,6 @@ class GridStruct:
                 y_max = min(height, int(y_center + rect_half_height))
 
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
-
-                _, _, template = self.get_template(i, j)
-                template = np.array(template, dtype=np.float64)
-                plt.figure(figsize=(10, 10))
-                plt.imshow(template, cmap='gray')
-                plt.show()
 
 
     def generate_search_patch(self, window_scale=1.2, search_scale=1.5):
@@ -263,37 +245,40 @@ class GridStruct:
                 search_region = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
                 match_result = cv2.matchTemplate(search_region, template, cv2.TM_CCOEFF_NORMED)
 
-                # fig, axes = plt.subplots(2, 3, figsize=(20, 6))
-                # ax = axes.ravel()
+                """
+                # Testing purpose 
+                fig, axes = plt.subplots(2, 3, figsize=(20, 6))
+                ax = axes.ravel()
 
-                # ax[0].imshow(template, cmap=cm.gray)
-                # ax[0].set_title('Template')
-                # ax[0].set_axis_off()
+                ax[0].imshow(template, cmap=cm.gray)
+                ax[0].set_title('Template')
+                ax[0].set_axis_off()
 
-                # ax[1].imshow(search_region, cmap=cm.jet)
-                # ax[1].set_title('Search Region')
-                # ax[1].set_axis_off()
+                ax[1].imshow(search_region, cmap=cm.jet)
+                ax[1].set_title('Search Region')
+                ax[1].set_axis_off()
 
-                # ax[2].imshow(match_result, cmap=cm.gray)
-                # ax[2].set_title('Cross Corrolation')
-                # ax[2].set_axis_off()
+                ax[2].imshow(match_result, cmap=cm.gray)
+                ax[2].set_title('Cross Corrolation')
+                ax[2].set_axis_off()
 
-                # ax[3].imshow(self.img, cmap=cm.gray)
-                # ax[3].set_title('Source Image')
-                # ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
-                #             [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
-                #             color='red', linewidth=2, label='temp Region')
-                # ax[3].set_axis_off()
+                ax[3].imshow(self.img, cmap=cm.gray)
+                ax[3].set_title('Source Image')
+                ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
+                            [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
+                            color='red', linewidth=2, label='temp Region')
+                ax[3].set_axis_off()
 
-                # ax[4].imshow(warped_search_im, cmap=cm.gray)
-                # ax[4].set_title('Warped Image')
-                # ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
-                #             [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
-                #             color='red', linewidth=2, label='Search Region')
-                # ax[4].set_axis_off()
+                ax[4].imshow(warped_search_im, cmap=cm.gray)
+                ax[4].set_title('Warped Image')
+                ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
+                            [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
+                            color='red', linewidth=2, label='Search Region')
+                ax[4].set_axis_off()
 
-                # plt.tight_layout()
-                # plt.show()
+                plt.tight_layout()
+                plt.show()
+                """
                 
                 best_score = -float('inf')
                 best_center = None
@@ -335,6 +320,7 @@ class GridStruct:
         
         return x_min, y_min, self.img[int(y_min):int(y_max), int(x_min):int(x_max)]
     
+
     def get_search(self, i, j):
         """
         Get the search region img corresponding with the index i, j

@@ -78,24 +78,24 @@ def lamb_oseen_vortex(gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=250, shape=(256, 25
     u_y = scale * u_theta * np.cos(theta)
 
     # Visualization of the velocity field using colormap
-    plt.figure(figsize=(10, 5))
+    # plt.figure(figsize=(10, 5))
     
-    # Magnitude of velocity for colormap
-    velocity_magnitude = np.sqrt(u_x**2 + u_y**2)
-    plt.imshow(velocity_magnitude, cmap='jet', extent=[-1, 1, -1, 1])
-    plt.colorbar(label='Velocity Magnitude')
-    plt.title("Lamb-Oseen Vortex Velocity Field")
-    plt.xlabel("X-axis (m)")
-    plt.ylabel("Y-axis (m)")
+    # # Magnitude of velocity for colormap
+    # velocity_magnitude = np.sqrt(u_x**2 + u_y**2)
+    # plt.imshow(velocity_magnitude, cmap='jet', extent=[-1, 1, -1, 1])
+    # plt.colorbar(label='Velocity Magnitude')
+    # plt.title("Lamb-Oseen Vortex Velocity Field")
+    # plt.xlabel("X-axis (m)")
+    # plt.ylabel("Y-axis (m)")
     
-    # Overlay vector field using quiver
-    sampling = 10  # Reduce the number of arrows for better visualization
-    plt.quiver(X[::sampling, ::sampling], Y[::sampling, ::sampling], 
-               u_x[::sampling, ::sampling], u_y[::sampling, ::sampling], 
-               scale=25, color='w')
+    # # Overlay vector field using quiver
+    # sampling = 10  # Reduce the number of arrows for better visualization
+    # plt.quiver(X[::sampling, ::sampling], Y[::sampling, ::sampling], 
+    #            u_x[::sampling, ::sampling], u_y[::sampling, ::sampling], 
+    #            scale=25, color='w')
     
-    plt.grid(False)
-    plt.show()
+    # plt.grid(False)
+    # plt.show()
 
     return np.stack((u_x, u_y), axis=-1)
 

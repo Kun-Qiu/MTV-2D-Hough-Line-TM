@@ -1,51 +1,27 @@
 import cv2
 import numpy as np
-from skimage.registration import phase_cross_correlation
-from image_utility import warp_image, rotate_image
+from scipy.signal import correlate2d
+from image_utility import transform_image
 import scipy.optimize as opt
 
+
 #Uncomment if testing
-import matplotlib.pyplot as plt
-from matplotlib import cm
-
-def objective(params, im1, im2):
-    """
-    Objective function for the minimization problem
-
-    Function: min_{dx,dy, d_theta} (-I^T I + abs(dx) + abs(dy) + abs(d_theta))
-
-    :params params:
-    :params im1
-    :params im2
-    :return  
-    """
-    dx, dy, d_theta = params
-
-    center = (im1.shape[1] // 2, im1.shape[0] // 2)
-    M = cv2.getRotationMatrix2D(center, np.degrees(d_theta), 1)
-    M[:, 2] += [dx, dy]
-
-    transformed_img1 = cv2.warpAffine(im1.astype(np.float32), M, (im1.shape[1], im1.shape[0]))
-    similarity = np.sum(transformed_img1 * im2)
-    penalty = abs(dx) + abs(dy) + abs(d_theta)
-    
-    return -(similarity - penalty)
+# import matplotlib.pyplot as plt
+# from matplotlib import cm
 
 
 class GridStruct:
-    def __init__(self, pos_lines, neg_lines, img, img2, rotation_bound=5,
-                 temp_scale=0.7, window_scale=1.1, search_scale=1.5):
+    def __init__(self, pos_lines, neg_lines, img, img2, temp_scale=0.7, window_scale=1.1, search_scale=1.5):
         """
         Default constructor
 
-        :param pos_lines        :   [rho, theta] of positively sloped lines  
-        :param neg_lines        :   [rho, theta] of negatively sloped lines
-        :param img              :   Input image (Before Transformation)
-        :param img2             :   Input image (After Transformation)
-        :param rotation_bound   :   Rotational parameter is rotation exists.
-        :param temp_scale       :   Scale of the template
-        :param window_scale     :   Scale of window such that template is located within
-        :param search_scale     :   Scale of the search region
+        :param pos_lines        : [rho, theta] of positively sloped lines  
+        :param neg_lines        : [rho, theta] of negatively sloped lines
+        :param img              : Input image (Before Transformation)
+        :param img2             : Input image (After Transformation)
+        :param temp_scale       : Scale of the template
+        :param window_scale     : Scale of window such that template is located within
+        :param search_scale     : Scale of the search region
         """
 
         def sort_lines(lines):
@@ -53,21 +29,18 @@ class GridStruct:
             Sorted by the rho value
             """
             return lines[np.argsort(lines[:, 1])]
- 
-        self.shape = (len(pos_lines), len(neg_lines))   # Shape = (11, 11, 2) 
+
+        # Shape = (11, 11, 2)
+        self.shape              = (len(pos_lines), len(neg_lines))   
+        self.num_intersections  = 0
         
         self.img        = img
         self.img2       = img2
-        self.rotation   = rotation_bound 
 
         self.grid           = np.empty(self.shape, dtype=object)
         self.template       = np.empty(self.shape, dtype=object)
         self.search_patch   = np.empty(self.shape, dtype=object)
         self.displace_arr   = np.empty(self.shape, dtype=object)
-        
-        self.num_intersections = 0
-        self.dy, self.dx = phase_cross_correlation(self.img, self.img2, 
-                                                    normalization=None)[0]
 
         ### Immediately initialize and populate the data structure ###
         self.populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
@@ -230,7 +203,7 @@ class GridStruct:
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
 
 
-    def generate_search_patch(self, window_scale=1.2, search_scale=1.5):
+    def generate_search_patch(self, window_scale=1.1, search_scale=1.2):
         """
         Create search patches for the template matching algorithm by maximizing
         similarity between self.img and self.img2
@@ -240,6 +213,7 @@ class GridStruct:
         """
         
         assert window_scale >= 1, "window_scale must be greater than or equal to 1"
+        assert search_scale >= 1, "search_scale must be greater than or equal to 1"
 
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
@@ -252,7 +226,7 @@ class GridStruct:
                 rect_width                  = abs((x_max - x_min))
                 rect_height                 = abs((y_max - y_min))
                 x_center, y_center          = center
-                bound_x, bound_y            = np.shape(self.img)
+                bound_y, bound_x            = np.shape(self.img)
 
                 def get_bound(x_c, y_c, width, height, scale, bound_width, bound_height):
                     bound_x_min = max(0, int(x_c - (scale * width) / 2))
@@ -262,29 +236,78 @@ class GridStruct:
 
                     return np.array([bound_x_min, bound_y_min, bound_x_max, bound_y_max])
 
+                def objective(params, im1, im2, bounds, alpha=0.05):
+                    """
+                    Objective function for optimization. It calculates the negative similarity
+                    between the template and the transformed search region, penalized by the
+                    displacement magnitude.
+
+                    :param params   : [dx, dy] displacements
+                    :param im1      : Template image
+                    :param im2      : Search region image
+                    :param bounds   : Bounding box coordinates of the template in the search region
+                    :param alpha    : Regularization parameter for the penalty term
+
+                    :return: Negative similarity score with penalty
+                    """
+                    dx, dy, d_theta                      = params
+                    dx, dy                               = int(dx), int(dy) 
+                    x_min, y_min, x_max, y_max  = bounds
+
+                    im2_opt = im2[y_min-dy:y_max-dy, x_min-dx:x_max-dx]
+
+                    # Correlation between rotated template and the displaced search region 
+                    rotate_template = transform_image(im1, d_theta=d_theta)
+                    corr            = correlate2d(rotate_template, im2_opt, mode='same', boundary='wrap')
+                    
+                    similarity      = np.max(corr)
+                    penalty         = np.log1p(abs(dx) + abs(dy) + abs(d_theta))
+                    return -(similarity - alpha * penalty)
+                
                 temp_x_min, temp_y_min, temp_x_max, temp_y_max          = get_bound(x_center, y_center, 
                                                                                     rect_width, rect_height, 
                                                                                     window_scale, bound_x,
                                                                                     bound_y)
-                # search_x_min, search_y_min, search_x_max, search_y_max  = get_bound(x_center, y_center, 
-                #                                                                     rect_width, rect_height, 
-                #                                                                     search_scale, bound_x,
-                #                                                                     bound_y)
-                im1 = self.img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                im2 = self.img2[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                """
-                Local Optimization
-                """
+                search_x_min, search_y_min, search_x_max, search_y_max  = get_bound(x_center, y_center, 
+                                                                                    rect_width, rect_height, 
+                                                                                    search_scale, bound_x,
+                                                                                    bound_y)
+               
+                template        = self.img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
+                bounds          = temp_x_min, temp_y_min, temp_x_max, temp_y_max
 
-                initial_guess = [0, 0, 0]
-                result = opt.minimize(objective, initial_guess, args=(im1, im2), method='Powell')
-                self.displace_arr = result.x
+                init_guess = [0.0, 0.0, 0.0]
+                self.displace_arr[i,j] = opt.minimize(objective, init_guess, args=(
+                    template, self.img2, bounds
+                ), method="Powell").x
 
-                # template = self.img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                
-                # warped_search_im = warp_image(self.img2, self.dy, self.dx)
-                # search_region = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
-                # match_result = cv2.matchTemplate(search_region, template, cv2.TM_CCOEFF_NORMED)
+                dx, dy, d_theta         = self.displace_arr[i, j]
+                template_rotate         = transform_image(template, d_theta=d_theta)
+                warped_search_im        = transform_image(self.img2, 0, dx, dy)
+                search_region_warped    =  warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
+
+                best_score = -float('inf')
+                best_center = None
+                match_result = cv2.matchTemplate(search_region_warped, template_rotate, cv2.TM_CCOEFF_NORMED)
+
+                for y in range(match_result.shape[0]):
+                    for x in range(match_result.shape[1]):
+                        score = match_result[y, x]
+                        candidate_center = (search_x_min + x + template.shape[1] // 2,
+                                            search_y_min + y + template.shape[0] // 2)
+                        if score > best_score:
+                            best_score = score
+                            best_center = candidate_center
+
+                if best_center:
+                    warped_x = best_center[0] - dx
+                    warped_y = best_center[1] - dy
+                    self.search_patch[i, j] = np.array([
+                        warped_x - template.shape[1] // 2,
+                        warped_y - template.shape[0] // 2,
+                        warped_x + template.shape[1] // 2,
+                        warped_y + template.shape[0] // 2
+                    ])
 
                 # Testing purpose 
                 # fig, axes = plt.subplots(2, 3, figsize=(20, 6))
@@ -294,11 +317,11 @@ class GridStruct:
                 # ax[0].set_title('Template')
                 # ax[0].set_axis_off()
 
-                # ax[1].imshow(search_region, cmap=cm.jet)
+                # ax[1].imshow(search_region, cmap=cm.gray)
                 # ax[1].set_title('Search Region')
                 # ax[1].set_axis_off()
 
-                # ax[2].imshow(match_result, cmap=cm.gray)
+                # ax[2].imshow(search_region_warped, cmap=cm.gray)
                 # ax[2].set_title('Cross Corrolation')
                 # ax[2].set_axis_off()
 
@@ -318,75 +341,6 @@ class GridStruct:
 
                 # plt.tight_layout()
                 # plt.show()
-                
-                # best_score  = -float('inf')
-                # best_center = None
-                # best_angle  = None
-
-                # for angle in range(-self.rotation, self.rotation, 1):
-                #     rotated_template = rotate_image(template, angle)
-                #     match_result = cv2.matchTemplate(search_region, rotated_template, cv2.TM_CCOEFF_NORMED)
-
-                #     fig, axes = plt.subplots(2, 3, figsize=(20, 6))
-                #     ax = axes.ravel()
-
-                #     ax[0].imshow(template, cmap=cm.gray)
-                #     ax[0].set_title('Template')
-                #     ax[0].set_axis_off()
-
-                #     ax[1].imshow(search_region, cmap=cm.jet)
-                #     ax[1].set_title('Search Region')
-                #     ax[1].set_axis_off()
-
-                #     ax[2].imshow(match_result, cmap=cm.gray)
-                #     ax[2].set_title('Cross Corrolation')
-                #     ax[2].set_axis_off()
-
-                #     ax[3].imshow(self.img, cmap=cm.gray)
-                #     ax[3].set_title('Source Image')
-                #     ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
-                #                 [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
-                #                 color='red', linewidth=2, label='temp Region')
-                #     ax[3].set_axis_off()
-
-                #     ax[4].imshow(warped_search_im, cmap=cm.gray)
-                #     ax[4].set_title('Warped Image')
-                #     ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
-                #                 [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
-                #                 color='red', linewidth=2, label='Search Region')
-                #     ax[4].set_axis_off()
-
-                #     plt.tight_layout()
-                #     plt.show()
-
-                #     for y in range(match_result.shape[0]):
-                #         for x in range(match_result.shape[1]):
-                #             # Iterate over the match result to find the best match
-
-                #             score = match_result[y, x]
-                #             candidate_center = (search_x_min + x + template.shape[1] // 2,
-                #                                 search_y_min + y + template.shape[0] // 2)
-
-                #             if score > best_score:
-                #                 best_score  = score
-                #                 best_center = candidate_center
-                #                 best_angle  = angle
-
-                #     # Store the best matching center and the region bounds
-                #     if best_center:
-
-                #         # Subtract warped coordinates (dx, dy) back to the actual coordinate
-                #         warped_x = best_center[0] - self.dx
-                #         warped_y = best_center[1] - self.dy
-
-                #         self.search_patch[i, j] = np.array([
-                #             warped_x - template.shape[1] // 2,
-                #             warped_y - template.shape[0] // 2,
-                #             warped_x + template.shape[1] // 2,
-                #             warped_y + template.shape[0] // 2
-                #         ])
-
-                #         self.rotation_scale[i , j] = best_angle
 
 
     def get_template(self, i, j):

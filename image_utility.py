@@ -81,25 +81,26 @@ def stereo_transform(im):
     return transformed_image
 
 
-def transform_image(image, d_theta=0, dx=0, dy=0):
+def transform_image(image, dx=0, dy=0):
     """
-    Rotate and displace an image by a given angle around its center.
+    Translate an image by a given displacement in x and y.
 
-    :param image        :   Input image (template)
-    :param d_theta      :   Angle in degrees to rotate the image
-    :param dx           :   Displacement in x
-    :param dy           :   Displacement in y
-    :return             :   Transformed image
+    :param image: Input image (template)
+    :param dx: Displacement in x
+    :param dy: Displacement in y
+    :return: Translated image
     """
     (h, w) = image.shape[:2]
-    center = (w // 2, h // 2)
-    
-    M = cv2.getRotationMatrix2D(center, d_theta, 1.0)
-    M[:, 2] += [dx, dy]
-    rotated_img = cv2.warpAffine(image, M, (w, h), 
-                                flags=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT, 
-                                borderValue=0)
-    return rotated_img
+
+    # Define the translation matrix
+    M = np.float32([[1, 0, dx], [0, 1, dy]])
+
+    # Apply the affine transformation (translation only)
+    translated_img = cv2.warpAffine(image, M, (w, h), 
+                                    flags=cv2.INTER_LINEAR, 
+                                    borderMode=cv2.BORDER_CONSTANT, 
+                                    borderValue=0)
+    return translated_img
 
 
 def show_hough(image, dt_img, adaptive_thresh, skeleton, points, 

@@ -97,7 +97,7 @@ if __name__ == "__main__":
     spacing     = 20            # Reduced spacing for denser lines
     angle       = 30            # Angle for intersecting lines
     image_size  = (256, 256)    # Size of the image
-    num_lines   = 11            # Number of lines
+    num_lines   = 10            # Number of lines
     snr         = 4             # SNR value
 
     # Generate the grid image

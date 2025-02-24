@@ -70,19 +70,8 @@ class HoughTM:
     def solve(self):
         """
         Solves the grid structure by performing template matching on each grid cell.
-        This method initializes the grid structure with the given parameters and iterates 
-        through each cell in the grid. For each cell, if both the template and search patch 
-        are not None, it performs template matching using OpenCV's `cv2.matchTemplate` 
-        method. The method calculates the top-left corner of the matched region and 
-        determines the center coordinates. These coordinates are then stored in the 
-        `dt_grid` attribute.
 
-        Attributes:
-            grid_struct (GridStruct): The grid structure initialized with the given parameters.
-            dt_grid (np.ndarray): Array to store the determined coordinates for each grid cell.
-            solve_bool (bool): Boolean flag indicating whether the solve method has been executed.
-        Raises:
-            ValueError: If the template or search patch is None for any grid cell.
+        :return None
         """
 
         self.grid_struct = GridStruct(self.lines_pos_arr, self.lines_neg_arr, 
@@ -120,9 +109,18 @@ class HoughTM:
                     absolute_y = y_min + center_y
 
                     self.dt_grid[i, j] = np.array([absolute_x, absolute_y])
+
         self.solve_bool = True
     
+
     def plot_velocity_field(self):
+        """
+        Plots the velocity field based on the solved grid structure. It requires the `solve` method to 
+        be called beforehand to compute the displacement grid.
+
+        :return None
+        """
+        
         if not self.solve_bool:
             raise ValueError("Solve the transformation first using solve().")
 

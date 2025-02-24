@@ -40,9 +40,9 @@ if __name__ == "__main__":
                                snr=snr)
 
     flow_fields = {
-        "poiseuille": fp.poiseuille_flow(8, src.shape[0:2]),
-        "uniform": fp.uniform_flow(5, 5, src.shape[0:2]),
-        "lamb_oseen": fp.lamb_oseen_vortex(scale=200, shape=src.shape[0:2])
+        "poiseuille": fp.poiseuille_flow(8, src.shape[0:2], filename="poiseu_flow.npy", show=True),
+        "uniform": fp.uniform_flow(5, -5, src.shape[0:2], filename="uniform_flow.npy", show=True),
+        "lamb_oseen": fp.lamb_oseen_vortex(scale=150, shape=src.shape[0:2], filename="vortex_flow.npy", show=True)
     }
     
     save_dir = "Synthetic_Data/Image"

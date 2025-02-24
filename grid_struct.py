@@ -1,13 +1,21 @@
+"""
+Main data structure for grid detection 
+"""
+
+__author__ = "Kun Qiu"
+__credits__ = ["Kun Qiu"]
+__version__ = "1.0"
+__maintainer__ = "Kun Qiu"
+__email__ = "qiukun1234@gmail.com"
+__status__ = "Production"
+
 import cv2
 import numpy as np
-from scipy.signal import correlate2d
+import matplotlib.pyplot as plt
+
 from image_utility import transform_image
 from skimage.registration import phase_cross_correlation
-import scipy.optimize as opt
-import skimage.transform
-
-#Uncomment if testing
-import matplotlib.pyplot as plt
+from skimage.transform import rescale 
 from matplotlib import cm
 
 class GridStruct:
@@ -41,13 +49,14 @@ class GridStruct:
 
         # Obtain the coarse global linear shift in image
         self.shifts, _, _ = phase_cross_correlation(
-            skimage.transform.rescale(self.reference_img, 1 / down_scale, anti_aliasing=True), 
-            skimage.transform.rescale(self.moving_img, 1 / down_scale, anti_aliasing=True), 
+            rescale(self.reference_img, 1 / down_scale, anti_aliasing=True), 
+            rescale(self.moving_img, 1 / down_scale, anti_aliasing=True), 
             normalization=None)
         self.shifts *= down_scale
 
         # Public variables
-        self.grid           = np.empty(self.shape, dtype=object)
+        self.t0_grid        = np.empty(self.shape, dtype=object)
+        self.dt_grid        = np.empty(self.shape, dtype=object)
         self.template       = np.empty(self.shape, dtype=object)
         self.search_patch   = np.empty(self.shape, dtype=object)
         self.displace_arr   = np.empty(self.shape, dtype=object)
@@ -117,7 +126,7 @@ class GridStruct:
                 else:
                     intersection = (np.nan, np.nan)
                 
-                self.grid[i, j] = intersection
+                self.t0_grid[i, j] = intersection
                 self.num_intersections += 1
     
 
@@ -131,44 +140,44 @@ class GridStruct:
         :return     :   Half width and half height of crop region 
         """
 
-        if not (0 <= i < self.grid.shape[0] and 0 <= j < self.grid.shape[1]):
+        if not (0 <= i < self.t0_grid.shape[0] and 0 <= j < self.t0_grid.shape[1]):
             raise IndexError("Center index (i, j) is out of bounds.")
 
-        x_c, y_c = self.grid[i, j]
+        x_c, y_c = self.t0_grid[i, j]
 
         min_half_width, min_half_height = 0, 0
         max_distance = 0
 
-        if j + 1 < self.grid.shape[1] and not np.isnan(self.grid[i, j + 1]).any():
+        if j + 1 < self.t0_grid.shape[1] and not np.isnan(self.t0_grid[i, j + 1]).any():
             # Bottom right node
-            x_br, y_br = self.grid[i, j + 1]
+            x_br, y_br = self.t0_grid[i, j + 1]
             dist = np.sqrt((x_br - x_c) ** 2 + (y_br - y_c) ** 2)
             if dist > max_distance:
                 max_distance = dist
                 min_half_width = x_br - x_c
                 min_half_height = y_br - y_c
 
-        if i + 1 < self.grid.shape[0] and not np.isnan(self.grid[i + 1, j]).any():
+        if i + 1 < self.t0_grid.shape[0] and not np.isnan(self.t0_grid[i + 1, j]).any():
             # Bottom left node 
-            x_bl, y_bl = self.grid[i + 1, j]
+            x_bl, y_bl = self.t0_grid[i + 1, j]
             dist = np.sqrt((x_bl - x_c) ** 2 + (y_bl - y_c) ** 2)
             if dist > max_distance:
                 max_distance = dist
                 min_half_width = x_bl - x_c
                 min_half_height = y_bl - y_c
 
-        if i - 1 >= 0 and not np.isnan(self.grid[i - 1, j]).any():
+        if i - 1 >= 0 and not np.isnan(self.t0_grid[i - 1, j]).any():
             # Top right Node
-            x_tr, y_tr = self.grid[i - 1, j]
+            x_tr, y_tr = self.t0_grid[i - 1, j]
             dist = np.sqrt((x_tr - x_c) ** 2 + (y_tr - y_c) ** 2)
             if dist > max_distance:
                 max_distance = dist
                 min_half_width = x_tr - x_c
                 min_half_height = y_tr - y_c
 
-        if j - 1 >= 0 and not np.isnan(self.grid[i, j - 1]).any():
+        if j - 1 >= 0 and not np.isnan(self.t0_grid[i, j - 1]).any():
             # Top left Node
-            x_tl, y_tl = self.grid[i, j - 1]
+            x_tl, y_tl = self.t0_grid[i, j - 1]
             dist = np.sqrt((x_tl - x_c) ** 2 + (y_tl - y_c) ** 2)
             if dist > max_distance:
                 max_distance = dist
@@ -192,7 +201,7 @@ class GridStruct:
             for j in range(self.shape[1]):
                 
                 # Crop based on bottom right node
-                center = self.grid[i, j]
+                center = self.t0_grid[i, j]
                 if (
                     np.isnan(center).any()
                 ):
@@ -213,7 +222,7 @@ class GridStruct:
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
 
 
-    def _generate_search_patch(self, window_scale=1.1, search_scale=1.2):
+    def _generate_search_patch(self, window_scale=1.1, search_scale=2):
         """
         Create search patches for the template matching algorithm by maximizing
         similarity between self.reference_img and self.moving_img
@@ -228,8 +237,8 @@ class GridStruct:
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 
-                center = self.grid[i, j]
-                if np.isnan(center).any() or np.any((self.template[i, j]) == None):
+                center = self.t0_grid[i, j]
+                if np.isnan(center).any() or np.any((self.template[i, j]) is None):
                     continue
 
                 x_min, y_min, x_max, y_max  = self.template[i, j]
@@ -254,31 +263,32 @@ class GridStruct:
                                                                                     rect_width, rect_height, 
                                                                                     search_scale, bound_x,
                                                                                     bound_y)
-               
-                template        = self.reference_img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                
-                dx_loc, dy_loc          = 0, 0
-                self.displace_arr[i,j]  = [dx_loc + self.shifts[1], dy_loc + self.shifts[0]]
-                warped_search_im        = transform_image(self.moving_img, self.displace_arr[i,j][0], 
-                                                          self.displace_arr[i,j][1])
+
+                template                = self.reference_img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
+                warped_search_im        = transform_image(self.moving_img, self.shifts[1], self.shifts[0])
                 search_region_warped    = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
 
-                best_score = -float('inf')
-                best_center = None
-                match_result = cv2.matchTemplate(search_region_warped, template, cv2.TM_CCORR_NORMED)
+                match_result              = cv2.matchTemplate(search_region_warped, template, cv2.TM_CCOEFF_NORMED)
+                max_val, _, _, max_loc    = cv2.minMaxLoc(match_result)
 
-                for y in range(match_result.shape[0]):
-                    for x in range(match_result.shape[1]):
-                        score = match_result[y, x]
-                        candidate_center = (search_x_min + x + template.shape[1] // 2,
-                                            search_y_min + y + template.shape[0] // 2)
-                        if score > best_score:
-                            best_score = score
-                            best_center = candidate_center
+                # confidence_threshold = 0.5
+                # while max_val < confidence_threshold:
+                #     search_x_min, search_y_min, search_x_max, search_y_max  = get_bound(x_center, y_center, 
+                #                                                                     rect_width, rect_height, 
+                #                                                                     search_scale * 1.1, 
+                #                                                                     bound_x, bound_y)
+                #     search_region_warped = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
+                #     result = cv2.matchTemplate(search_region_warped, search_region_warped, cv2.TM_CCOEFF_NORMED)
+                #     max_val, _, max_loc, _ = cv2.minMaxLoc(result)
 
+                best_center = (search_x_min + max_loc[0] + template.shape[1] // 2,
+                               search_y_min + max_loc[1] + template.shape[0] // 2)
+
+                self.displace_arr[i, j] = [self.shifts[1], self.shifts[0]]
+                warped_x = best_center[0] - self.displace_arr[i,j][0]
+                warped_y = best_center[1] - self.displace_arr[i,j][1]
+                
                 if best_center:
-                    warped_x = best_center[0] - self.displace_arr[i,j][0]
-                    warped_y = best_center[1] - self.displace_arr[i,j][1]
                     self.search_patch[i, j] = np.array([
                         warped_x - template.shape[1] // 2,
                         warped_y - template.shape[0] // 2,
@@ -286,42 +296,50 @@ class GridStruct:
                         warped_y + template.shape[0] // 2
                     ])
 
-                test = False
-                # Testing purpose
-                if test == True:
-                    fig, axes = plt.subplots(2, 3, figsize=(20, 6))
-                    ax = axes.ravel()
-                    # print(dx, dy)
-                    ax[0].imshow(template, cmap=cm.gray)
-                    ax[0].set_title('Template')
-                    ax[0].set_axis_off()
+                    self.dt_grid[i, j] = np.array([
+                        search_x_min + max_loc[0] + template.shape[1] // 2,
+                        search_y_min + max_loc[1] + template.shape[0] // 2
+                    ])
 
-                    search_region = self.moving_img[int(search_y_min-self.shifts[0]):int(search_y_max-self.shifts[0]), 
-                                              int(search_x_min-self.shifts[1]):int(search_x_max-self.shifts[1])]
-                    ax[1].imshow(search_region, cmap=cm.gray)
-                    ax[1].set_title('Search Region')
-                    ax[1].set_axis_off()
+                # fig, axes = plt.subplots(2, 3, figsize=(20, 6))
+                # ax = axes.ravel()
+                # ax[0].imshow(template, cmap=cm.gray)
+                # ax[0].set_title('Template')
+                # ax[0].axis("off")
 
-                    ax[2].imshow(search_region_warped, cmap=cm.gray)
-                    ax[2].set_title('Cross Corrolation')
-                    ax[2].set_axis_off()
+                # ax[1].imshow(self.reference_img[search_y_min:search_y_max, 
+                #                                 search_x_min:search_x_max], cmap=cm.gray)
+                # ax[1].set_title('Search Region')
+                # ax[1].axis("off")
 
-                    ax[3].imshow(self.reference_img, cmap=cm.gray)
-                    ax[3].set_title('Source Image')
-                    ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
-                                [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
-                                color='red', linewidth=2, label='temp Region')
-                    ax[3].set_axis_off()
+                # ax[2].imshow(search_region_warped, cmap=cm.gray)
+                # ax[2].scatter(max_loc[0] + template.shape[1] // 2, 
+                #               max_loc[1] + template.shape[0] // 2, 
+                #               color='red', marker='x', s=100, label='Best Match')
+                # ax[2].set_title('Cross Correlation')
+                # ax[2].axis("off")
 
-                    ax[4].imshow(warped_search_im, cmap=cm.gray)
-                    ax[4].set_title('Warped Image')
-                    ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
-                                [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
-                                color='red', linewidth=2, label='Search Region')
-                    ax[4].set_axis_off()
+                # ax[3].imshow(self.reference_img, cmap=cm.gray)
+                # ax[3].set_title('Source Image')
+                # ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
+                #             [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
+                #             color='red', linewidth=2, label='temp Region')
+                # ax[3].axis("off")
 
-                    plt.tight_layout()
-                    plt.show()
+                # x_min, y_min, x_max, y_max = self.search_patch[i,j]
+                # ax[4].imshow(warped_search_im, cmap=cm.gray)
+                # ax[4].set_title('Warped Image')
+                # ax[4].plot([x_min, x_max, x_max, x_min, x_min],
+                #             [y_min, y_min, y_max, y_max, y_min],
+                #             color='red', linewidth=2, label='Search Region')
+                # ax[4].axis("off")
+
+                # ax[5].imshow(match_result, cmap='hot')
+                # ax[5].set_title('Template Matching')
+                # ax[5].axis("off")
+
+                # plt.tight_layout()
+                # plt.show()
     
 
     def get_template(self, i, j):

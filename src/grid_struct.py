@@ -1,24 +1,24 @@
-"""
-Main data structure for grid detection 
-"""
 
 __author__ = "Kun Qiu"
 __credits__ = ["Kun Qiu"]
-__version__ = "1.0"
+__version__ = "1.01"
 __maintainer__ = "Kun Qiu"
 __email__ = "qiukun1234@gmail.com"
 __status__ = "Production"
 
 import cv2
 import numpy as np
+import matplotlib.pyplot as plt
+from matplotlib import cm
 
 from src.image_utility import transform_image
 from skimage.registration import phase_cross_correlation
 from skimage.transform import rescale 
 
+
 class GridStruct:
     def __init__(self, pos_lines, neg_lines, ref_im, mov_im, temp_scale=0.67, 
-                 window_scale=1.2, search_scale=2, down_scale=4):
+                 window_scale=1.2, search_scale=2, down_scale=4, rotate_range=30):
         """
         Default constructor
 
@@ -30,6 +30,7 @@ class GridStruct:
         :param window_scale     : Scale of window such that template is located within
         :param search_scale     : Scale of the search region
         :param down_scale       : Down scale size
+        :param rotate_range     : Range of rotation for template matching
         """
 
         def sort_lines(lines):
@@ -44,12 +45,12 @@ class GridStruct:
         
         self.reference_img    = ref_im
         self.moving_img       = mov_im
+        self.rotation_range   = rotate_range
 
         # Obtain the coarse global linear shift in image
         self.shifts, _, _ = phase_cross_correlation(
             rescale(self.reference_img, 1 / down_scale, anti_aliasing=True), 
-            rescale(self.moving_img, 1 / down_scale, anti_aliasing=True), 
-            normalization=None)
+            rescale(self.moving_img, 1 / down_scale, anti_aliasing=True))
         self.shifts *= down_scale
 
         # Public variables
@@ -115,15 +116,11 @@ class GridStruct:
         for i, pos_line in enumerate(pos_lines):
             for j, neg_line in enumerate(neg_lines):
                 intersection = self._find_intersection(pos_line, neg_line)
-                if intersection is not None:
-                    x, y = intersection
-                    if not self._is_within_bounds(x, y):
-                        intersection = (np.nan, np.nan)
-                else:
+                if intersection is None or not self._is_within_bounds(intersection[0], intersection[1]):
                     intersection = (np.nan, np.nan)
-                
-                self.t0_grid[i, j] = intersection
-                self.num_intersections += 1
+
+                self.t0_grid[i, j]        = intersection
+                self.num_intersections   += 1
     
 
     def _grid_img_bound(self, i, j):
@@ -210,10 +207,14 @@ class GridStruct:
                 x_center, y_center  = center
                 
                 # Ensure the coordinates are within the image boundaries
-                x_min = max(0, int(x_center - rect_half_width))
-                x_max = min(width, int(x_center + rect_half_width))
-                y_min = max(0, int(y_center - rect_half_height))
-                y_max = min(height, int(y_center + rect_half_height))
+                x_min = int(x_center - rect_half_width)
+                y_min = int(y_center - rect_half_height)
+                x_max = int(x_center + rect_half_width)
+                y_max = int(y_center + rect_half_height)
+
+                if (x_min < 0 or y_min < 0 or x_max > width or y_max > height):
+                    # Skip if the crop region is near the image boundary
+                    continue
 
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
 
@@ -229,6 +230,8 @@ class GridStruct:
         
         assert window_scale >= 1, "window_scale must be greater than or equal to 1"
         assert search_scale >= 2, "search_scale must be greater than or equal to 2"
+
+        warped_search_im = transform_image(self.moving_img, self.shifts[1], self.shifts[0])
 
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
@@ -259,42 +262,119 @@ class GridStruct:
                                                                                     rect_width, rect_height, 
                                                                                     search_scale, bound_x,
                                                                                     bound_y)
-
+                
                 template                = self.reference_img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                warped_search_im        = transform_image(self.moving_img, self.shifts[1], self.shifts[0])
                 search_region_warped    = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
+                
+                best_score = -np.inf
+                best_loc, best_res = None, None
 
-                match_result            = cv2.matchTemplate(search_region_warped, template, cv2.TM_CCOEFF_NORMED)
-                _, _, _, max_loc        = cv2.minMaxLoc(match_result)
+                for angle in range(-self.rotation_range, self.rotation_range, 5):
+                    rotate_center   = (template.shape[1] // 2, template.shape[0] // 2)
+                    rot_mat         = cv2.getRotationMatrix2D(rotate_center, angle, 1)
+                    rotate_dst      = cv2.warpAffine(template, rot_mat, (template.shape[1], template.shape[0]))    
+                    
+                    match_result            = cv2.matchTemplate(search_region_warped, rotate_dst, cv2.TM_CCOEFF_NORMED)
+                    _, max_val, _, max_loc  = cv2.minMaxLoc(match_result)
+                    
+                    if max_val > best_score:
+                        best_score = max_val
+                        best_loc = max_loc
+                        best_res = match_result
                 
                 """
-                --------------------------------------------------
-                Sub Pixel Refinement
-                x* = x - hess^-1|x nabla*TM|x
-                --------------------------------------------------
+                Refine the subpixel location of the best match using a 2D quadratic fit.
                 """
-                x, y                = max_loc
-                res_padded          = np.pad(match_result, pad_width=1, mode='reflect')
-                x_padded, y_padded  = x + 1, y + 1
+                x_opt, y_opt = best_loc
+                dx_sub, dy_sub = 0, 0
+                if 1 <= x_opt < best_res.shape[1] - 1 and 1 <= y_opt < best_res.shape[0] - 1:
+                    patch = best_res[y_opt - 1:y_opt + 2, x_opt - 1:x_opt + 2]
+                    print(patch, best_score, best_loc)
+                    X, Y = np.meshgrid(np.linspace(-1, 1, 3), np.linspace(-1, 1, 3))
+                    X, Y, Z = X.flatten(), Y.flatten(), patch.flatten()
+                    dx_sub, dy_sub, _ = quad_opt2D(X, Y, Z)
                 
-                neighbor    = res_padded[y_padded - 1:y_padded + 2, x_padded - 1:x_padded + 2]
-                dx, dy      = np.gradient(neighbor)
-                dxx         = np.gradient(dx, axis=1) 
-                dyy         = np.gradient(dy, axis=0) 
-                dxy         = np.gradient(dx, axis=0)
+                x_opt = search_x_min + x_opt + dx_sub + template.shape[1] / 2 - self.shifts[1]
+                y_opt = search_y_min + y_opt + dy_sub + template.shape[0] / 2 - self.shifts[0]
+                self.dt_grid[i, j] = np.array([x_opt, y_opt])
 
-                grad_max    = np.array([dx[1,1], dy[1,1]])
-                hess_max    = np.array([[dxx[1,1], dxy[1,1]], 
-                                        [dxy[1,1], dyy[1,1]]])
-                try:
-                    H_inv = np.linalg.inv(hess_max)
-                    delta = H_inv @ grad_max
-                    x_opt, y_opt = x - delta[0], y - delta[1]
-                except np.linalg.LinAlgError:
-                    # If Hessian is singular, fall back to integer peak
-                    x_opt, y_opt = x, y
+                fig, axes = plt.subplots(2, 3, figsize=(20, 6))
+                ax = axes.ravel()
+                ax[0].imshow(template, cmap=cm.gray)
+                ax[0].set_title('Template')
+                ax[0].axis("off")
 
-                self.dt_grid[i, j] = np.array([
-                    search_x_min + x_opt + template.shape[1] // 2 - self.shifts[1],
-                    search_y_min + y_opt + template.shape[0] // 2 - self.shifts[0] 
-                ])
+                ax[1].imshow(self.reference_img[search_y_min:search_y_max, 
+                                                search_x_min:search_x_max], cmap=cm.gray)
+                ax[1].set_title('Search Region')
+                ax[1].axis("off")
+
+                ax[2].imshow(search_region_warped, cmap=cm.gray)
+                ax[2].scatter(best_loc[0] + template.shape[1] // 2, 
+                              best_loc[1] + template.shape[0] // 2, 
+                              color='red', marker='x', s=100, label='Best Match')
+                ax[2].set_title('Cross Correlation')
+                ax[2].axis("off")
+
+                ax[3].imshow(self.reference_img, cmap=cm.gray)
+                ax[3].set_title('Source Image')
+                ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
+                            [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
+                            color='red', linewidth=2, label='temp Region')
+                ax[3].axis("off")
+
+                ax[4].imshow(warped_search_im, cmap=cm.gray)
+                ax[4].set_title('Warped Image')
+                ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
+                            [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
+                            color='red', linewidth=2, label='Search Region')
+                ax[4].axis("off")
+
+                ax[5].imshow(best_res, cmap='hot')
+                ax[5].set_title('Template Matching')
+                ax[5].axis("off")
+
+                plt.tight_layout()
+                plt.show()
+
+def quad_opt2D(X, Y, Z, x_lim=None, y_lim=None):
+    """
+    Finds the maximum or critical point of a 2D quadratic fit.
+
+    Parameters:
+        X, Y, Z : 1D numpy arrays of coordinates and corresponding values.
+        x_lim, y_lim : Limits for valid peak selection.
+
+    Returns:
+        x_opt, y_opt, z_opt: Optimal peak coordinates.
+    """
+    X, Y, Z = np.array(X).flatten(), np.array(Y).flatten(), np.array(Z).flatten()
+
+    if x_lim is None:
+        x_lim = (np.min(X), np.max(X))
+    if y_lim is None:
+        y_lim = (np.min(Y), np.max(Y))
+
+    mat = np.column_stack([X**2, Y**2, X*Y, X, Y, np.ones_like(X)])
+    A, _, _, _ = np.linalg.lstsq(mat, Z, rcond=None)
+
+    # Solve dz/dx = dz/dy = 0 for [x, y] (critical point)
+    mat_critical    = np.array([[2 * A[0], A[2]], 
+                                [A[2], 2 * A[1]]], dtype=np.float32)
+    rhs             = np.array([-A[3], -A[4]], dtype=np.float32)
+    cpoint          = np.linalg.solve(mat_critical, rhs)
+
+    # Compute discriminant: d = dzdx*dzdy - (dz2dxdy)^2
+    d = 4 * A[0] * A[1] - A[2]**2
+
+    # If a max exists in valid bounds, use that; otherwise, take the max Z
+    if (cpoint[0] < x_lim[0] or cpoint[0] > x_lim[1]
+        or cpoint[1] < y_lim[0] or cpoint[1] > y_lim[1]
+    ):
+        max_idx = np.argmax(Z)
+        x_opt, y_opt, z_opt = X[max_idx], Y[max_idx], Z[max_idx]
+    else:
+        x_opt, y_opt = cpoint
+        z_opt = A @ np.array([x_opt**2, y_opt**2, x_opt*y_opt, x_opt, y_opt, 1])
+
+    return x_opt, y_opt, z_opt

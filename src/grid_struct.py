@@ -59,12 +59,12 @@ class GridStruct:
         self.template       = np.empty(self.shape, dtype=object)
 
         ### Immediately initialize and populate the data structure ###
-        self._populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
-        self._generate_template(scale=temp_scale)
-        self._solve_dt_grid(window_scale=window_scale, search_scale=search_scale)
+        self.__populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
+        self.__generate_template(scale=temp_scale)
+        self.__solve_dt_grid(window_scale=window_scale, search_scale=search_scale)
 
 
-    def _is_within_bounds(self, x, y):
+    def __is_within_bounds(self, x, y):
         """
         Check if a point (x, y) lies within the image boundaries.
 
@@ -76,8 +76,8 @@ class GridStruct:
         height, width = np.shape(self.reference_img)
         return 0 <= x < width and 0 <= y < height
         
-
-    def _find_intersection(self, line1, line2):
+    @staticmethod
+    def __find_intersection(line1, line2):
         """
         Find the intersection of two lines given in rho-theta representation.
 
@@ -105,7 +105,7 @@ class GridStruct:
             return None
 
 
-    def _populate_grid(self, pos_lines, neg_lines):
+    def __populate_grid(self, pos_lines, neg_lines):
         """
         Populate the grid with the intersection points of positive and negative lines.
 
@@ -115,15 +115,16 @@ class GridStruct:
         """
         for i, pos_line in enumerate(pos_lines):
             for j, neg_line in enumerate(neg_lines):
-                intersection = self._find_intersection(pos_line, neg_line)
-                if intersection is None or not self._is_within_bounds(intersection[0], intersection[1]):
+                intersection = self.__find_intersection(pos_line, neg_line)
+                if intersection is None or not self.__is_within_bounds(intersection[0], 
+                                                                       intersection[1]):
                     intersection = (np.nan, np.nan)
 
                 self.t0_grid[i, j]        = intersection
                 self.num_intersections   += 1
     
 
-    def _grid_img_bound(self, i, j):
+    def __grid_img_bound(self, i, j):
         """
         Given the center of point, determine the maximum bounding box for the template
         using at max 4 adjacent points and at min 1 adjacent point
@@ -180,7 +181,7 @@ class GridStruct:
         return np.array([abs(min_half_width), abs(min_half_height)])
 
 
-    def _generate_template(self, scale=0.7):
+    def __generate_template(self, scale=0.7):
         """
         Create template patches using the grid intersections and the search patch for
         the consecutive frame.
@@ -200,7 +201,7 @@ class GridStruct:
                 ):
                     continue
 
-                x_half, y_half = self._grid_img_bound(i, j)
+                x_half, y_half = self.__grid_img_bound(i, j)
 
                 rect_half_width     = scale * x_half
                 rect_half_height    = scale * y_half
@@ -219,7 +220,7 @@ class GridStruct:
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
 
 
-    def _solve_dt_grid(self, window_scale=1.1, search_scale=2):
+    def __solve_dt_grid(self, window_scale=1.1, search_scale=2):
         """
         Create search patches for the template matching algorithm by maximizing
         similarity between self.reference_img and self.moving_img
@@ -233,6 +234,9 @@ class GridStruct:
 
         warped_search_im = transform_image(self.moving_img, self.shifts[1], self.shifts[0])
 
+        """
+        Initial Guess
+        """
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 
@@ -266,8 +270,8 @@ class GridStruct:
                 template                = self.reference_img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
                 search_region_warped    = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
                 
-                best_score = -np.inf
-                best_loc, best_res = None, None
+                opt_score = -np.inf
+                opt_loc, opt_res = None, None
 
                 for angle in range(-self.rotation_range, self.rotation_range, 5):
                     rotate_center   = (template.shape[1] // 2, template.shape[0] // 2)
@@ -277,104 +281,67 @@ class GridStruct:
                     match_result            = cv2.matchTemplate(search_region_warped, rotate_dst, cv2.TM_CCOEFF_NORMED)
                     _, max_val, _, max_loc  = cv2.minMaxLoc(match_result)
                     
-                    if max_val > best_score:
-                        best_score = max_val
-                        best_loc = max_loc
-                        best_res = match_result
+                    if max_val > opt_score:
+                        opt_score = max_val
+                        opt_loc   = max_loc
+                        opt_res   = match_result
                 
                 """
                 Refine the subpixel location of the best match using a 2D quadratic fit.
                 """
-                x_opt, y_opt = best_loc
+                x_opt, y_opt = opt_loc
                 dx_sub, dy_sub = 0, 0
-                if 1 <= x_opt < best_res.shape[1] - 1 and 1 <= y_opt < best_res.shape[0] - 1:
-                    patch = best_res[y_opt - 1:y_opt + 2, x_opt - 1:x_opt + 2]
-                    print(patch, best_score, best_loc)
+                if 1 <= x_opt < opt_res.shape[1] - 1 and 1 <= y_opt < opt_res.shape[0] - 1:
+                    patch = opt_res[y_opt - 1:y_opt + 2, x_opt - 1:x_opt + 2]
                     X, Y = np.meshgrid(np.linspace(-1, 1, 3), np.linspace(-1, 1, 3))
                     X, Y, Z = X.flatten(), Y.flatten(), patch.flatten()
-                    dx_sub, dy_sub, _ = quad_opt2D(X, Y, Z)
+                    dx_sub, dy_sub, _ = self.__quad_opt2D(X, Y, Z)
                 
                 x_opt = search_x_min + x_opt + dx_sub + template.shape[1] / 2 - self.shifts[1]
                 y_opt = search_y_min + y_opt + dy_sub + template.shape[0] / 2 - self.shifts[0]
                 self.dt_grid[i, j] = np.array([x_opt, y_opt])
 
-                fig, axes = plt.subplots(2, 3, figsize=(20, 6))
-                ax = axes.ravel()
-                ax[0].imshow(template, cmap=cm.gray)
-                ax[0].set_title('Template')
-                ax[0].axis("off")
 
-                ax[1].imshow(self.reference_img[search_y_min:search_y_max, 
-                                                search_x_min:search_x_max], cmap=cm.gray)
-                ax[1].set_title('Search Region')
-                ax[1].axis("off")
+    @staticmethod
+    def __quad_opt2D(X, Y, Z, x_lim=None, y_lim=None):
+        """
+        Finds the maximum or critical point of a 2D quadratic fit.
 
-                ax[2].imshow(search_region_warped, cmap=cm.gray)
-                ax[2].scatter(best_loc[0] + template.shape[1] // 2, 
-                              best_loc[1] + template.shape[0] // 2, 
-                              color='red', marker='x', s=100, label='Best Match')
-                ax[2].set_title('Cross Correlation')
-                ax[2].axis("off")
+        Parameters:
+            X, Y, Z : 1D numpy arrays of coordinates and corresponding values.
+            x_lim, y_lim : Limits for valid peak selection.
 
-                ax[3].imshow(self.reference_img, cmap=cm.gray)
-                ax[3].set_title('Source Image')
-                ax[3].plot([temp_x_min, temp_x_max, temp_x_max, temp_x_min, temp_x_min],
-                            [temp_y_min, temp_y_min, temp_y_max, temp_y_max, temp_y_min],
-                            color='red', linewidth=2, label='temp Region')
-                ax[3].axis("off")
+        Returns:
+            x_opt, y_opt, z_opt: Optimal peak coordinates.
+        """
+        X, Y, Z = np.array(X).flatten(), np.array(Y).flatten(), np.array(Z).flatten()
 
-                ax[4].imshow(warped_search_im, cmap=cm.gray)
-                ax[4].set_title('Warped Image')
-                ax[4].plot([search_x_min, search_x_max, search_x_max, search_x_min, search_x_min],
-                            [search_y_min, search_y_min, search_y_max, search_y_max, search_y_min],
-                            color='red', linewidth=2, label='Search Region')
-                ax[4].axis("off")
+        if x_lim is None:
+            x_lim = (np.min(X), np.max(X))
+        if y_lim is None:
+            y_lim = (np.min(Y), np.max(Y))
 
-                ax[5].imshow(best_res, cmap='hot')
-                ax[5].set_title('Template Matching')
-                ax[5].axis("off")
+        mat = np.column_stack([X**2, Y**2, X*Y, X, Y, np.ones_like(X)])
+        A, _, _, _ = np.linalg.lstsq(mat, Z, rcond=None)
 
-                plt.tight_layout()
-                plt.show()
+        # Solve dz/dx = dz/dy = 0 for [x, y] (critical point)
+        mat_critical    = np.array([[2 * A[0], A[2]], 
+                                    [A[2], 2 * A[1]]], dtype=np.float32)
+        rhs             = np.array([-A[3], -A[4]], dtype=np.float32)
+        cpoint          = np.linalg.solve(mat_critical, rhs)
 
-def quad_opt2D(X, Y, Z, x_lim=None, y_lim=None):
-    """
-    Finds the maximum or critical point of a 2D quadratic fit.
+        # Compute discriminant: d = dzdx*dzdy - (dz2dxdy)^2
+        d = 4 * A[0] * A[1] - A[2]**2
 
-    Parameters:
-        X, Y, Z : 1D numpy arrays of coordinates and corresponding values.
-        x_lim, y_lim : Limits for valid peak selection.
+        # If a max exists in valid bounds, use that; otherwise, take the max Z
+        if (cpoint[0] < x_lim[0] or cpoint[0] > x_lim[1]
+            or cpoint[1] < y_lim[0] or cpoint[1] > y_lim[1]
+            or d <= 0
+        ):
+            max_idx = np.argmax(Z)
+            x_opt, y_opt, z_opt = X[max_idx], Y[max_idx], Z[max_idx]
+        else:
+            x_opt, y_opt = cpoint
+            z_opt = A @ np.array([x_opt**2, y_opt**2, x_opt*y_opt, x_opt, y_opt, 1])
 
-    Returns:
-        x_opt, y_opt, z_opt: Optimal peak coordinates.
-    """
-    X, Y, Z = np.array(X).flatten(), np.array(Y).flatten(), np.array(Z).flatten()
-
-    if x_lim is None:
-        x_lim = (np.min(X), np.max(X))
-    if y_lim is None:
-        y_lim = (np.min(Y), np.max(Y))
-
-    mat = np.column_stack([X**2, Y**2, X*Y, X, Y, np.ones_like(X)])
-    A, _, _, _ = np.linalg.lstsq(mat, Z, rcond=None)
-
-    # Solve dz/dx = dz/dy = 0 for [x, y] (critical point)
-    mat_critical    = np.array([[2 * A[0], A[2]], 
-                                [A[2], 2 * A[1]]], dtype=np.float32)
-    rhs             = np.array([-A[3], -A[4]], dtype=np.float32)
-    cpoint          = np.linalg.solve(mat_critical, rhs)
-
-    # Compute discriminant: d = dzdx*dzdy - (dz2dxdy)^2
-    d = 4 * A[0] * A[1] - A[2]**2
-
-    # If a max exists in valid bounds, use that; otherwise, take the max Z
-    if (cpoint[0] < x_lim[0] or cpoint[0] > x_lim[1]
-        or cpoint[1] < y_lim[0] or cpoint[1] > y_lim[1]
-    ):
-        max_idx = np.argmax(Z)
-        x_opt, y_opt, z_opt = X[max_idx], Y[max_idx], Z[max_idx]
-    else:
-        x_opt, y_opt = cpoint
-        z_opt = A @ np.array([x_opt**2, y_opt**2, x_opt*y_opt, x_opt, y_opt, 1])
-
-    return x_opt, y_opt, z_opt
+        return x_opt, y_opt, z_opt

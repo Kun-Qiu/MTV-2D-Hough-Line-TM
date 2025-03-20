@@ -32,8 +32,8 @@ if __name__ == "__main__":
     spacing     = 20            # Reduced spacing for denser lines
     angle       = 120           # Angle for intersecting lines
     image_size  = (256, 256)    # Size of the image
-    num_lines   = 11            # Number of lines
-    snr         = 8             # SNR value
+    num_lines   = 10            # Number of lines
+    snr         = 4             # SNR value
 
     src = create_centered_grid(image_size, fwhm, spacing, angle, 
                                line_intensity=2, num_lines=num_lines, 

@@ -107,7 +107,7 @@ class HoughTM:
         return lines_pos, lines_neg    
     
 
-    def solve(self, sigma=7):
+    def solve(self):
         """
         Solve the correspondence between t0 image and dt img to obtainn the change in 
         displacement field
@@ -126,18 +126,18 @@ class HoughTM:
                     self.disp_field[i, j] = [x0, y0, dx, dy]
                     valid_points.append([x0, y0, dx, dy])
 
-        valid_points = np.array(valid_points)
+        # valid_points = np.array(valid_points)
 
-        points  = valid_points[:, :2]
-        dx_vals = valid_points[:, 2]  
-        dy_vals = valid_points[:, 3]  
+        # points  = valid_points[:, :2]
+        # dx_vals = valid_points[:, 2]  
+        # dy_vals = valid_points[:, 3]  
 
-        dx_s, dy_s = gauss_smooth(points, dx_vals, dy_vals, method="mean", alpha=0.1)
+        # dx_s, dy_s = gauss_smooth(points, dx_vals, dy_vals, method="mean", alpha=0.1)
 
-        for i, (x, y, dx_new, dy_new) in enumerate(zip(points[:, 0], points[:, 1], dx_s, dy_s)):
-            mask = (self.disp_field[..., 0] == x) & (self.disp_field[..., 1] == y)
-            self.disp_field[mask, 2] = dx_new
-            self.disp_field[mask, 3] = dy_new
+        # for i, (x, y, dx_new, dy_new) in enumerate(zip(points[:, 0], points[:, 1], dx_s, dy_s)):
+        #     mask = (self.disp_field[..., 0] == x) & (self.disp_field[..., 1] == y)
+        #     self.disp_field[mask, 2] = dx_new
+        #     self.disp_field[mask, 3] = dy_new
 
         self.solve_bool = True
 

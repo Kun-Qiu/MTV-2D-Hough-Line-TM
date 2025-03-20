@@ -4,11 +4,14 @@ import matplotlib.pyplot as plt
 from src.Scipy_Hough_TM import HoughTM
 
 
-def compute_rmse(predicted, ground_truth):
+def compute_cdf(errors):
     """ 
-    Compute the Root Mean Square Error (RMSE) between two displacement fields. 
+    Compute the cumulative probability distribution function (CDF) of errors.
     """
-    return np.sqrt(np.mean((predicted - ground_truth) ** 2))
+    sorted_errors = np.sort(errors)
+    cdf = np.arange(1, len(sorted_errors) + 1) / len(sorted_errors)
+    return sorted_errors, cdf
+
 
 if __name__ == "__main__":
     test_dir = "data/Test"
@@ -26,7 +29,8 @@ if __name__ == "__main__":
         "lamb_oseen": "displaced_lamb_oseen.png"
     }
 
-    rmse_values = {}
+    cdf_values = {}
+    confidence_intervals = {}
     for key, value in img_type.items():
         img_path = os.path.join(image_dir, value)
         solver = HoughTM(src_path, img_path, num_lines=10,
@@ -48,14 +52,25 @@ if __name__ == "__main__":
         extracted_gt = ground_truth[y_indices, x_indices]
 
         # Compute RMSE
-        rmse = compute_rmse(valid_field[:, 2:], extracted_gt)
-        rmse_values[key] = rmse
+        errors = np.linalg.norm(valid_field[:, 2:] - extracted_gt, axis=1)
 
-    # Plot RMSE values
+        # Compute CDF
+        sorted_errors, cdf = compute_cdf(errors)
+        cdf_values[key] = (sorted_errors, cdf)
+        
+        # Find 95% confidence interval
+        confidence_idx = np.searchsorted(cdf, 0.95)
+        confidence_intervals[key] = sorted_errors[confidence_idx]
+
     plt.figure(figsize=(8, 5))
-    plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'green', 'red'])
-    plt.xlabel("Flow Type")
-    plt.ylabel("RMSE")
-    plt.title("RMSE for Different Flow Types")
-    plt.ylim(0, max(rmse_values.values()) * 1.2)  # Add some padding
+    for key, (sorted_errors, cdf) in cdf_values.items():
+        plt.plot(sorted_errors, cdf, label=key)
+        plt.axvline(confidence_intervals[key], color='k', linestyle='--', alpha=0.7,
+                    label=f"{key} 95% CI: {confidence_intervals[key]:.3f}")
+    
+    plt.xlabel("Displacement Error")
+    plt.ylabel("Cumulative Probability")
+    plt.title("CDF of Displacement Errors for Different Flow Types")
+    plt.legend()
+    plt.grid()
     plt.show()

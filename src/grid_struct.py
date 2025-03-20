@@ -14,11 +14,13 @@ from matplotlib import cm
 from src.image_utility import transform_image
 from skimage.registration import phase_cross_correlation
 from skimage.transform import rescale 
+from scipy.ndimage import rotate
 
 
 class GridStruct:
     def __init__(self, pos_lines, neg_lines, ref_im, mov_im, temp_scale=0.67, 
-                 window_scale=1.2, search_scale=2, down_scale=4, rotate_range=30):
+                 window_scale=1.2, search_scale=2, down_scale=4, rotate_range=30,
+                 opt_generations=3, opt_shrink_factor=2):
         """
         Default constructor
 
@@ -57,6 +59,11 @@ class GridStruct:
         self.t0_grid        = np.empty(self.shape, dtype=object)
         self.dt_grid        = np.empty(self.shape, dtype=object)
         self.template       = np.empty(self.shape, dtype=object)
+
+        # self.opt_generations = opt_generations
+        # self.opt_shrink_factor = opt_shrink_factor
+        # self.param_radii = np.array([5.0, 5.0, 5.0])  # dx, dy, angle
+        # self.param_nsteps = np.array([5, 5, 5])
 
         ### Immediately initialize and populate the data structure ###
         self.__populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
@@ -233,10 +240,6 @@ class GridStruct:
         assert search_scale >= 2, "search_scale must be greater than or equal to 2"
 
         warped_search_im = transform_image(self.moving_img, self.shifts[1], self.shifts[0])
-
-        """
-        Initial Guess
-        """
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
                 
@@ -269,7 +272,7 @@ class GridStruct:
                 
                 template                = self.reference_img[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
                 search_region_warped    = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
-                
+
                 opt_score = -np.inf
                 opt_loc, opt_res = None, None
 
@@ -285,7 +288,7 @@ class GridStruct:
                         opt_score = max_val
                         opt_loc   = max_loc
                         opt_res   = match_result
-                
+
                 """
                 Refine the subpixel location of the best match using a 2D quadratic fit.
                 """

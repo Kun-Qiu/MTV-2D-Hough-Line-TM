@@ -13,14 +13,12 @@ from matplotlib import cm
 
 from src.image_utility import transform_image
 from skimage.registration import phase_cross_correlation
-from skimage.transform import rescale 
-from scipy.ndimage import rotate
+from skimage.transform import rescale
 
 
 class GridStruct:
     def __init__(self, pos_lines, neg_lines, ref_im, mov_im, temp_scale=0.67, 
-                 window_scale=1.2, search_scale=2, down_scale=4, rotate_range=30,
-                 opt_generations=3, opt_shrink_factor=2):
+                 window_scale=1.2, search_scale=2, down_scale=4, rotate_range=45):
         """
         Default constructor
 
@@ -42,9 +40,7 @@ class GridStruct:
             return lines[np.argsort(lines[:, 1])]
 
         # Shape = (11, 11, 2)
-        self.shape              = (len(pos_lines), len(neg_lines))   
-        self.num_intersections  = 0
-        
+        self.shape            = (len(pos_lines), len(neg_lines))
         self.reference_img    = ref_im
         self.moving_img       = mov_im
         self.rotation_range   = rotate_range
@@ -59,11 +55,7 @@ class GridStruct:
         self.t0_grid        = np.empty(self.shape, dtype=object)
         self.dt_grid        = np.empty(self.shape, dtype=object)
         self.template       = np.empty(self.shape, dtype=object)
-
-        # self.opt_generations = opt_generations
-        # self.opt_shrink_factor = opt_shrink_factor
-        # self.param_radii = np.array([5.0, 5.0, 5.0])  # dx, dy, angle
-        # self.param_nsteps = np.array([5, 5, 5])
+        self.template_param = np.empty(self.shape, dtype=object)
 
         ### Immediately initialize and populate the data structure ###
         self.__populate_grid(sort_lines(pos_lines), sort_lines(neg_lines))
@@ -106,7 +98,7 @@ class GridStruct:
 
         try:
             x, y = np.linalg.solve(A, b)
-            return x, y
+            return A, b, (x, y)
         except np.linalg.LinAlgError:
             # Lines are parallel, no intersection
             return None
@@ -122,13 +114,13 @@ class GridStruct:
         """
         for i, pos_line in enumerate(pos_lines):
             for j, neg_line in enumerate(neg_lines):
-                intersection = self.__find_intersection(pos_line, neg_line)
+                A, b, intersection = self.__find_intersection(pos_line, neg_line)
                 if intersection is None or not self.__is_within_bounds(intersection[0], 
                                                                        intersection[1]):
                     intersection = (np.nan, np.nan)
 
                 self.t0_grid[i, j]        = intersection
-                self.num_intersections   += 1
+                self.template_param[i, j] = [A, b]
     
 
     def __grid_img_bound(self, i, j):
@@ -274,7 +266,7 @@ class GridStruct:
                 search_region_warped    = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
 
                 opt_score = -np.inf
-                opt_loc, opt_res = None, None
+                opt_loc   = None
 
                 for angle in range(-self.rotation_range, self.rotation_range, 5):
                     rotate_center   = (template.shape[1] // 2, template.shape[0] // 2)
@@ -287,21 +279,23 @@ class GridStruct:
                     if max_val > opt_score:
                         opt_score = max_val
                         opt_loc   = max_loc
-                        opt_res   = match_result
+                        # opt_res   = match_result
 
                 """
                 Refine the subpixel location of the best match using a 2D quadratic fit.
                 """
                 x_opt, y_opt = opt_loc
-                dx_sub, dy_sub = 0, 0
-                if 1 <= x_opt < opt_res.shape[1] - 1 and 1 <= y_opt < opt_res.shape[0] - 1:
-                    patch = opt_res[y_opt - 1:y_opt + 2, x_opt - 1:x_opt + 2]
-                    X, Y = np.meshgrid(np.linspace(-1, 1, 3), np.linspace(-1, 1, 3))
-                    X, Y, Z = X.flatten(), Y.flatten(), patch.flatten()
-                    dx_sub, dy_sub, _ = self.__quad_opt2D(X, Y, Z)
+                # dx_sub, dy_sub = 0, 0
+                # if 1 <= x_opt < opt_res.shape[1] - 1 and 1 <= y_opt < opt_res.shape[0] - 1:
+                #     patch = opt_res[y_opt - 1:y_opt + 2, x_opt - 1:x_opt + 2]
+                #     X, Y = np.meshgrid(np.linspace(-1, 1, 3), np.linspace(-1, 1, 3))
+                #     X, Y, Z = X.flatten(), Y.flatten(), patch.flatten()
+                #     dx_sub, dy_sub, _ = self.__quad_opt2D(X, Y, Z)
                 
-                x_opt = search_x_min + x_opt + dx_sub + template.shape[1] / 2 - self.shifts[1]
-                y_opt = search_y_min + y_opt + dy_sub + template.shape[0] / 2 - self.shifts[0]
+                # x_opt = search_x_min + x_opt + dx_sub + template.shape[1] / 2 - self.shifts[1]
+                # y_opt = search_y_min + y_opt + dy_sub + template.shape[0] / 2 - self.shifts[0]
+                x_opt = search_x_min + x_opt + template.shape[1] / 2 - self.shifts[1]
+                y_opt = search_y_min + y_opt + template.shape[0] / 2 - self.shifts[0]
                 self.dt_grid[i, j] = np.array([x_opt, y_opt])
 
 

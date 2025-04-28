@@ -1,12 +1,15 @@
 from dataclasses import dataclass, field
 from typing import List, Tuple, Optional
 import numpy as np
+from scipy.signal import correlate2d, convolve2d
+import matplotlib.pyplot as plt
+
 
 @dataclass
 class ParametricX:
     center      : Tuple[float, float]
     shape       : Tuple[float, float, float, float, float]
-    img_shape   : Tuple[float, float]
+    image       : Optional[np.ndarray]
 
     params : List[float] = field(init=False)
 
@@ -52,8 +55,10 @@ class ParametricX:
             raise ValueError("leg_len must be positive")
         
 
-    def _parametric_template(self, params: List[float]) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """Generate a parametric template based on the provided parameters"""
+    def _parametric_template(self, params: List[float] = None) -> Tuple[np.ndarray, Tuple[int, int]]:
+        if params is None:
+            params = self.params
+
         x, y, ang1, ang2, rel_intens, lin_wid, leg_len = params
         half_leg_len = int(round(leg_len / 2))
         
@@ -61,7 +66,7 @@ class ParametricX:
         y_vals = np.arange(-half_leg_len, half_leg_len)
         xx, yy = np.meshgrid(x_vals, y_vals)
         
-        rot1, rot2 = self._rotation_matrix(ang1), self._rotation_matrix(ang2, False)
+        rot1, rot2 = self._rotation_matrix(ang1), self._rotation_matrix(ang2, counter_clock=False)
         
         coords = np.stack([xx.ravel(), yy.ravel()]).T
         rot_coords1 = coords @ rot1
@@ -73,7 +78,64 @@ class ParametricX:
         template = rel_intens * leg1 + (1 - rel_intens) * leg2
         template = template.reshape(xx.shape)
         
-        min_col = int(np.clip(x - half_leg_len, 0, self.img_shape[1]))
-        min_row = int(np.clip(y - half_leg_len, 0, self.img_shape[0]))
+        min_col = int(np.clip(x - half_leg_len, 0, self.image.shape[1]))
+        min_row = int(np.clip(y - half_leg_len, 0, self.image.shape[0]))
         
         return template, (min_col, min_row)
+    
+
+    def correlate(self, params: List[float]) -> dict:
+        result = {
+            'correlation': -np.inf,
+            # 'peak': 0.0,
+            'background': 0.0,
+            'noise': np.nan,
+            'difference': None
+        }
+
+        template, (min_col, min_row) = self._parametric_template(params)
+        t_height, t_width = template.shape
+        
+        img_patch = self.image[min_row:min_row + t_height, 
+                               min_col:min_col + t_width]
+        if img_patch.shape != template.shape:
+            return -np.inf
+        
+        # Normalization of template and image patch
+        template_mean, template_std = np.mean(template), np.std(template)
+        img_mean, img_std = np.mean(img_patch), np.std(img_patch)
+
+        template_norm = (template - template_mean) / (template_std + 1e-9)
+        img_norm = (img_patch - img_mean) / (img_std + 1e-9)
+
+        # corr_map = correlate2d(img_norm, template_norm, mode='same', boundary='fill')
+        scaled_diff = (img_norm - template_norm) * img_std
+
+        # result['peak']            = np.max(corr_map)
+        # result['correlation']     = np.max(corr_map) / (template.size - 1)
+        result['correlation']     = np.corrcoef(template_norm.flatten(), img_norm.flatten())[0, 1]
+        result['background']      = ((1 - template_mean) / template_std * img_std) + img_mean
+
+        if scaled_diff.shape[0] > 2 and scaled_diff.shape[1] > 2:
+            kernel = np.ones((3, 3)) / 9
+            local_mean = convolve2d(scaled_diff, kernel, mode='valid')
+            noise = scaled_diff[1:-1, 1:-1] - local_mean
+            result['noise'] = 5 * np.std(noise)
+        
+        return result
+    
+
+    def get_parametric_X(self, params: List[float] = None) -> np.ndarray:
+        return self._parametric_template(params)
+    
+
+    def visualize(self) -> None:    
+        template, _ = self._parametric_template()
+        
+        plt.figure(figsize=(10, 5))
+        plt.imshow(template, cmap='hot', alpha=0.5)
+        plt.title('Parametric X Template')
+        plt.axis('off') 
+        
+        plt.tight_layout()
+        plt.show()

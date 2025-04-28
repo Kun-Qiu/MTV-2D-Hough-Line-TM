@@ -1,45 +1,53 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
-from scipy.signal import correlate2d, convolve2d
+from typing import Tuple
 import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 import warnings
+from parametric_X import ParametricX
 
+"""
+This Python script is a direct transcription and adaptation of Mark Ramsey's original MATLAB 
+implementation as described in the publication:
+
+    "Template Matching for Improved Accuracy in Molecular Tagging Velocimetry"
+    Marc C. Ramsey and Robert W. Pitz
+
+All algorithmic methods, logic, and workflows closely follow the techniques outlined in 
+the original work, with adjustments made only for syntax, language-specific practices, and 
+minor optimization for Python execution.
+
+Citation:
+Ramsey, M. C., & Pitz, R. W. (Year). Template Matching for Improved Accuracy in Molecular 
+Tagging Velocimetry. [Publication details].
+
+This script is intended for academic, research, and educational purposes.
+"""
 
 @dataclass
 class ParameterOptimizer:
-    center      : Tuple[float, float]
-    shape       : Tuple[float, float, float, float, float]
-    image       : Optional[np.ndarray]
+    parametric_X    : ParametricX
+    uncertainty     : float = 2.0
+    num_interval    : int = 5
+    generation      : int = 3
+    shrnk_factor    : int = 2
+    lock_angle      : bool = False
+    num_par         : int = 11
 
-    uncertainty : float = 1
-    num_interval: int = 5
-    generation  : int = 3
-    shrnk_factor: int = 2
-    lock_angle  : bool = False
-    num_par     : int = 11
-
-    rad         : Tuple[float, float, float, float, float, float] = field(init=False)
-    n_rad       : Tuple[float, float, float, float, float, float] = field(init=False)
-    params      : List[float] = field(init=False)
+    rad    : Tuple[float, float, float, float, float, float] = field(init=False)
+    n_rad  : Tuple[float, float, float, float, float, float] = field(init=False)
 
 
     def __post_init__(self):
-        self.params = [
-            self.center[0], self.center[1],  # x, y
-            self.shape[0] , self.shape[1],   # ang1, ang2
-            self.shape[2] , self.shape[3],   # rel_intens, lin_wid
-            self.shape[4]   # leg_len
-        ]
-
         NRPos = np.ceil(self.num_interval / 2)
+        print(NRPos)
+        shape = self.parametric_X.shape
         self.rad = np.array([
             self.uncertainty * 2, self.uncertainty * 2,
-            np.arctan(self.uncertainty / self.shape[4]),
-            np.arctan(self.uncertainty / self.shape[4]), 
-            np.min([self.shape[2], 1-self.shape[2]]) / 2, 
-            0.75 * self.shape[2]
+            np.arctan(self.uncertainty / shape[4]),
+            np.arctan(self.uncertainty / shape[4]), 
+            np.min([shape[2], 1 - shape[2]]) / 2, 
+            0.75 * shape[2]
         ])
         
         self.n_rad = np.array([
@@ -47,66 +55,23 @@ class ParameterOptimizer:
             self.num_interval, self.num_interval
         ])
          
-        print(f"Initialized with parameters: {self.params}")
+        print(f"Initialized with parameters: {self.parametric_X.params}")
         print(f"Uncertainty values: {self.rad}")
-
-
-    @staticmethod
-    def _rotation_matrix(angle: float, counter_clock=True) -> np.ndarray:
-        if counter_clock:
-            R = np.array([
-                [np.cos(angle), -np.sin(angle)],
-                [np.sin(angle),  np.cos(angle)]
-            ])
-        else:
-            R = np.array([
-                [np.cos(angle), np.sin(angle)],
-                [-np.sin(angle), np.cos(angle)]
-            ])
-        return R
-
-
-    def _parametric_template(self, params: List[float]) -> Tuple[np.ndarray, Tuple[int, int]]:
-        """Generate a parametric template based on the provided parameters"""
-        x, y, ang1, ang2, rel_intens, lin_wid, leg_len = params
-        half_leg_len = int(round(leg_len / 2))
-        
-        x_vals = np.arange(-half_leg_len, half_leg_len)
-        y_vals = np.arange(-half_leg_len, half_leg_len)
-        xx, yy = np.meshgrid(x_vals, y_vals)
-        
-        rot1, rot2 = self._rotation_matrix(ang1), self._rotation_matrix(ang2, False)
-        
-        coords = np.stack([xx.ravel(), yy.ravel()]).T
-        rot_coords1 = coords @ rot1
-        rot_coords2 = coords @ rot2
-        
-        sigma = lin_wid/ (2 * np.sqrt(2 * np.log(2)))
-        leg1 = np.exp(-(rot_coords1[:, 0]**2) / (2 * sigma**2))
-        leg2 = np.exp(-(rot_coords2[:, 0]**2) / (2 * sigma**2))
-        template = rel_intens * leg1 + (1 - rel_intens) * leg2
-        template = template.reshape(xx.shape)
-        
-        min_col = int(np.clip(x - half_leg_len, 0, self.image.shape[1]))
-        min_row = int(np.clip(y - half_leg_len, 0, self.image.shape[0]))
-        
-        return template, (min_col, min_row)
+        print(f"Number of intervals: {self.n_rad}")
 
 
     def visualize(self) -> None:
-        if self.image is None:
+        img = self.parametric_X.image
+        if img is None:
             raise ValueError("No image available for visualization")
         
-        template, (min_col, min_row) = self._parametric_template(self.params)
+        template, (min_col, min_row) = self.parametric_X.get_parametric_X()
         
         # Create figure
         fig = plt.figure(figsize=(15, 7))
-        
-        # Original image with template overlay
         ax1 = plt.subplot(121)
-        plt.imshow(self.image, cmap='gray')
+        plt.imshow(img, cmap='gray')
         
-        # Calculate template extent in image coordinates
         extent = [
             min_col - 0.5,  # left
             min_col + template.shape[1] - 0.5,  # right
@@ -114,80 +79,40 @@ class ParameterOptimizer:
             min_row - 0.5  # top
         ]
         
-        # Overlay template with transparency
         plt.imshow(template, cmap='viridis', alpha=0.7, extent=extent)
         plt.scatter(min_col + template.shape[1]/2, 
                 min_row + template.shape[0]/2,
-                c='cyan', marker='o', s=100,
-                edgecolors='red', linewidth=2)
+                c='cyan', marker='o', s = 100,
+                edgecolors='red', linewidth=1)
         plt.title("Template Overlay on Image")
         
-        # Template visualization
         ax2 = plt.subplot(122)
         plt.imshow(template, cmap='viridis', 
-                extent=[min_col, min_col+template.shape[1],
-                        min_row+template.shape[0], min_row])
+                extent=[min_col, min_col + template.shape[1],
+                        min_row + template.shape[0], min_row])
         plt.colorbar(label='Template Intensity')
         plt.title("Template Only")
         plt.xlabel("X Position")
         plt.ylabel("Y Position")
-        
+
         plt.tight_layout()
         plt.show()
-
-
-    def correlate(self, params: List[float]) -> dict:
-        result = {
-            'correlation': -np.inf,
-            'peak': 0.0,
-            'background': 0.0,
-            'noise': np.nan,
-            'difference': None
-        }
-
-        template, (min_col, min_row) = self._parametric_template(params)
-        t_height, t_width = template.shape
-        
-        img_patch = self.image[min_row:min_row + t_height, 
-                               min_col:min_col + t_width]
-        if img_patch.shape != template.shape:
-            return -np.inf
-        
-        template_mean, template_std = np.mean(template), np.std(template)
-        img_mean, img_std = np.mean(img_patch), np.std(img_patch)
-
-        template_norm = (template - template_mean) / (template_std + 1e-9)
-        img_norm = (img_patch - img_mean) / (img_std + 1e-9)
-
-        corr_map = correlate2d(img_norm, template_norm, mode='same', boundary='fill')
-        scaled_diff = (img_norm - template_norm) * img_std
-
-        result['peak']            = np.max(corr_map)
-        result['correlation']     = np.max(corr_map) / (template.size - 1)
-        result['background']      = ((1 - template_mean) / template_std * img_std) + img_mean
-
-        if scaled_diff.shape[0] > 2 and scaled_diff.shape[1] > 2:
-            kernel = np.ones((3, 3)) / 9
-            local_mean = convolve2d(scaled_diff, kernel, mode='valid')
-            noise = scaled_diff[1:-1, 1:-1] - local_mean
-            result['noise'] = 5 * np.std(noise)
-        
-        return result
+        return None
     
 
     def quad_optimize(self) -> np.ndarray:
         num_params = len([r for r, nr in zip(self.rad[2:5], self.n_rad[2:5]) if r > 0 and nr > 0])
-        corr = np.full((self.generation * (num_params + 1) + 1, len(self.params)), np.nan)
+        corr = np.full((self.generation * (num_params + 1) + 1, len(self.parametric_X.params)), np.nan)
         
         try:
             warnings.filterwarnings("error")
             
-            temp_opt = ParameterOptimizer(
-                center=self.center,
-                shape=self.shape,
-                image=self.image
+            temp_opt = ParametricX(
+                center=self.parametric_X.center,
+                shape=self.parametric_X.shape,
+                image=self.parametric_X.image
             )
-            initial_corr = self.correlate(self.params)
+            initial_corr = self.parametric_X.correlate(self.parametric_X.params)
             corr[0] = initial_corr['correlation']
 
             for G in range(self.generation):
@@ -195,77 +120,90 @@ class ParameterOptimizer:
                 increment = cur_rad / self.n_rad
 
                 x_vals = np.arange(
-                    self.params[0] - cur_rad[0],
-                    self.params[0] + cur_rad[0],
-                    increment[0], dtype=np.float64
+                    self.parametric_X.params[0] - cur_rad[0],
+                    self.parametric_X.params[0] + cur_rad[0] + 1e-8,
+                    step=increment[0], dtype=np.float64
                 )
                 y_vals = np.arange(
-                    self.params[1] - cur_rad[1],
-                    self.params[1] + cur_rad[1],
-                    increment[1], dtype=np.float64
-                )  
+                    self.parametric_X.params[1] - cur_rad[1],
+                    self.parametric_X.params[1] + cur_rad[1] + 1e-8,
+                    step=increment[1], dtype=np.float64
+                )
+
                 pos_corrs = np.zeros((len(y_vals), len(x_vals)))
                 for i, y in enumerate(y_vals):
                     for j, x in enumerate(x_vals):
-                        temp_params = self.params.copy()
+                        temp_params = self.parametric_X.params.copy()
                         temp_params[0] = x
                         temp_params[1] = y
                         res = temp_opt.correlate(temp_params)
                         pos_corrs[i, j] = res['correlation']
-
-                self.params[0], self.params[1] = self._quad_fit_2D(x_vals, y_vals, pos_corrs)
+                
+                self.parametric_X.params[0], self.parametric_X.params[1] = self._quad_fit_2D(x_vals, y_vals, pos_corrs)
                 corr_idx = G * num_params + 1
 
-                current_result = self.correlate(self.params)
+                current_result = self.parametric_X.correlate(self.parametric_X.params)
                 corr[corr_idx] = current_result['correlation']
 
                 if self.lock_angle:
-                    ang_vals = np.arange(-cur_rad[2], cur_rad[2], self.n_rad[2])
+                    ang_vals = np.arange(-cur_rad[2], cur_rad[2], 
+                                         step=increment[2], dtype=np.float64)
                     ang_corrs = []
                     for da in ang_vals:
-                        temp_params = self.params.copy()
+                        temp_params = self.parametric_X.params.copy()
                         temp_params[2] += da
                         temp_params[3] += da
                         res = temp_opt.correlate(temp_params)
                         ang_corrs.append(res['correlation'])
 
-                    best_da = self._quad_fit_1D(ang_vals, ang_corrs)
-                    self.params[2] += best_da
-                    self.params[3] += best_da
+                    best_da, a_coeff = self._quad_fit_1D(ang_vals, ang_corrs)
+                    if (a_coeff >= 0) or (best_da < ang_vals[-1]) or (best_da > ang_vals[0]):
+                        max_idx = np.argmax(ang_corrs)
+                        best_da = ang_vals[max_idx]
+                    
+                    self.parametric_X.params[2] += best_da
+                    self.parametric_X.params[3] += best_da
                 else:
                     for ang_idx in [2, 3]:
-                        ang_vals = np.arange(-cur_rad[ang_idx],
-                                             cur_rad[ang_idx],
-                                             self.n_rad[ang_idx])
+                        ang_vals = np.arange(-cur_rad[ang_idx], cur_rad[ang_idx],
+                                             step=increment[ang_idx], dtype=np.float64)
                         ang_corrs = []
                         for av in ang_vals:
-                            temp_params = self.params.copy()
+                            temp_params = self.parametric_X.params.copy()
                             temp_params[ang_idx] += av
                             res = temp_opt.correlate(temp_params)
                             ang_corrs.append(res['correlation'])
-                        best_da = self._quad_fit_1D(ang_vals, ang_corrs)
-                        self.params[ang_idx] += best_da
+                        
+                        best_da, a_coeff = self._quad_fit_1D(ang_vals, ang_corrs)
+                        if (a_coeff >= 0) or (best_da < ang_vals[-1]) or (best_da > ang_vals[0]):
+                            max_idx = np.argmax(ang_corrs)
+                            best_da = ang_vals[max_idx]
+
+                        self.parametric_X.params[ang_idx] += best_da
 
                 corr_idx += 1
-                current_result = self.correlate(self.params)
+                current_result = self.parametric_X.correlate(self.parametric_X.params)
                 corr[corr_idx] = current_result['correlation']
 
                 param_indices = [4, 5]
                 for p_idx in param_indices:
-                    p_vals = np.arange(self.params[p_idx] - cur_rad[p_idx],
-                                        self.params[p_idx] + cur_rad[p_idx],
-                                        increment[p_idx])
+                    p_vals = np.arange(-cur_rad[p_idx], cur_rad[p_idx],
+                                       step=increment[p_idx], dtype=np.float64)
                     p_corrs = []
                     for pv in p_vals:
-                        temp_params = self.params.copy()
-                        temp_params[p_idx] = pv
+                        temp_params = self.parametric_X.params.copy()
+                        temp_params[p_idx] += pv
                         res = temp_opt.correlate(temp_params)
                         p_corrs.append(res['correlation'])
-                    best_dp = self._quad_fit_1D(p_vals, p_corrs)
-                    self.params[p_idx] += best_dp
+                    best_dp, a_coeff = self._quad_fit_1D(p_vals, p_corrs)
+                    if (a_coeff >= 0) or (best_da < p_vals[-1]) or (best_dp > p_vals[0]):
+                            max_idx = np.argmax(p_corrs)
+                            best_da = p_vals[max_idx]
+
+                    self.parametric_X.params[p_idx] += best_dp
 
                     corr_idx += 1
-                    current_result = self.correlate(self.params)
+                    current_result = self.parametric_X.correlate(self.parametric_X.params)
                     corr[corr_idx] = current_result['correlation']
 
         except Warning as w:
@@ -278,16 +216,21 @@ class ParameterOptimizer:
 
         return corr
 
-    
-    def _quad_fit_1D(self, values, corrs):
-        """Quadratic fit for 1D parameter optimization"""
-        coeffs = np.polyfit(values, corrs, 2)
+
+    def _quad_fit_1D(self, values, corrs) -> Tuple[float, float]:
+        if np.all(values == values[0]) or len(values) < 3:
+            return values[np.argmax(corrs)], None
         
-        if coeffs[0] >= 0:  # Check for minimum
-            return values[np.argmax(corrs)]
-        
-        optimal = -coeffs[1] / (2 * coeffs[0])
-        return optimal if (values[0] <= optimal <= values[-1]) else values[np.argmax(corrs)]
+        try:
+            coeffs = np.polyfit(values, corrs, 2)
+            a = coeffs[0]
+            if a >= 0:  # Minimum case - return max sample
+                return values[np.argmax(corrs)], a
+            
+            optimal = -coeffs[1]/(2*coeffs[0])
+            return optimal, a
+        except np.linalg.LinAlgError:
+            return values[np.argmax(corrs)], None
 
     
     def _quad_fit_2D(self, x_vals, y_vals, corr_matrix):
@@ -301,32 +244,28 @@ class ParameterOptimizer:
         
         return opt_x, opt_y
 
-    
-    def _get_temp_params(self, param_idx, value):
-        """Helper to generate temporary parameter sets"""
-        temp_params = self.params.copy()
-        temp_params[param_idx] = value
-        return temp_params
-
 
 
 if __name__ == "__main__":
     import os
     # image_dir = os.path.abspath("data/Experimental_Data/Target/frame_2_2us.png")
-    image_dir = os.path.abspath("data/Synthetic_Data/Image/displaced_poiseuille.png")
-    fwhm      = 6             # Full width at half maximum for the Gaussian lines
-    angle     = 120           # Angle for intersecting lines
+    image_dir = os.path.abspath("data/Synthetic_Data/Image/displaced_lamb_oseen.png")
+    fwhm = 4
 
     img = cv2.imread(image_dir, cv2.IMREAD_GRAYSCALE)
-    
-    # Initialize and optimize
-    optimizer = ParameterOptimizer(
-        center=(67, 109),
-        shape=(np.pi / 6, np.pi / 6, 0.5, fwhm, 38 * 0.8),
+    parameter_X = ParametricX(
+        center=(129, 128),
+        shape=(np.pi / 6, np.pi / 6, 0.5, fwhm, 38 * 0.7),
         image=img
     )
-    result = optimizer.correlate(optimizer.params)
+
+    # Initialize and optimize
+    optimizer = ParameterOptimizer(
+        parametric_X=parameter_X,
+        lock_angle=False
+    )
+    result = optimizer.parametric_X.correlate(optimizer.parametric_X.params)
     print("Correlation Result:", result)
     corr = optimizer.quad_optimize()
-    print("Optimized Parameters:", optimizer.params)
+    print("Optimized Parameters:", optimizer.parametric_X.params)
     optimizer.visualize()

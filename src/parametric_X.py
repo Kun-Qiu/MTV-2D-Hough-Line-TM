@@ -1,15 +1,10 @@
-from dataclasses import dataclass, field
-from typing import List, Tuple, Optional
-import numpy as np
-from scipy.signal import correlate2d, convolve2d
-import matplotlib.pyplot as plt
-
+from src.py_import import plt, np, convolve2d, dataclass, field, List, Tuple, Optional
 
 @dataclass
 class ParametricX:
-    center      : Tuple[float, float]
-    shape       : Tuple[float, float, float, float, float]
-    image       : Optional[np.ndarray]
+    center : Tuple[float, float]
+    shape  : Tuple[float, float, float, float, float]
+    image  : Optional[np.ndarray]
 
     params : List[float] = field(init=False)
 
@@ -24,8 +19,8 @@ class ParametricX:
 
     
     @staticmethod
-    def _rotation_matrix(angle: float, counter_clock=True) -> np.ndarray:
-        if counter_clock:
+    def _rotation_matrix(angle: float, counter_clockwise:bool = False) -> np.ndarray:
+        if counter_clockwise:
             R = np.array([
                 [np.cos(angle), -np.sin(angle)],
                 [np.sin(angle),  np.cos(angle)]
@@ -66,7 +61,7 @@ class ParametricX:
         y_vals = np.arange(-half_leg_len, half_leg_len)
         xx, yy = np.meshgrid(x_vals, y_vals)
         
-        rot1, rot2 = self._rotation_matrix(ang1), self._rotation_matrix(ang2, counter_clock=False)
+        rot1, rot2 = self._rotation_matrix(ang1), self._rotation_matrix(ang2, counter_clockwise=True)
         
         coords = np.stack([xx.ravel(), yy.ravel()]).T
         rot_coords1 = coords @ rot1
@@ -87,7 +82,6 @@ class ParametricX:
     def correlate(self, params: List[float]) -> dict:
         result = {
             'correlation': -np.inf,
-            # 'peak': 0.0,
             'background': 0.0,
             'noise': np.nan,
             'difference': None
@@ -98,8 +92,9 @@ class ParametricX:
         
         img_patch = self.image[min_row:min_row + t_height, 
                                min_col:min_col + t_width]
+        
         if img_patch.shape != template.shape:
-            return -np.inf
+            return result
         
         # Normalization of template and image patch
         template_mean, template_std = np.mean(template), np.std(template)
@@ -108,12 +103,12 @@ class ParametricX:
         template_norm = (template - template_mean) / (template_std + 1e-9)
         img_norm = (img_patch - img_mean) / (img_std + 1e-9)
 
-        # corr_map = correlate2d(img_norm, template_norm, mode='same', boundary='fill')
         scaled_diff = (img_norm - template_norm) * img_std
-
-        # result['peak']            = np.max(corr_map)
-        # result['correlation']     = np.max(corr_map) / (template.size - 1)
-        result['correlation']     = np.corrcoef(template_norm.flatten(), img_norm.flatten())[0, 1]
+        corr_coef = np.corrcoef(template_norm.flatten(), img_norm.flatten())[0, 1]
+        if np.isnan(corr_coef):
+            corr_coef = -np.inf
+        
+        result['correlation']     = corr_coef
         result['background']      = ((1 - template_mean) / template_std * img_std) + img_mean
 
         if scaled_diff.shape[0] > 2 and scaled_diff.shape[1] > 2:

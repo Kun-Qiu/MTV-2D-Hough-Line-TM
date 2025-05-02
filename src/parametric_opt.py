@@ -1,28 +1,5 @@
-from dataclasses import dataclass, field
-from typing import Tuple
-import numpy as np
-import matplotlib.pyplot as plt
-import cv2
-import warnings
-from parametric_X import ParametricX
-
-"""
-This Python script is a direct transcription and adaptation of Mark Ramsey's original MATLAB 
-implementation as described in the publication:
-
-    "Template Matching for Improved Accuracy in Molecular Tagging Velocimetry"
-    Marc C. Ramsey and Robert W. Pitz
-
-All algorithmic methods, logic, and workflows closely follow the techniques outlined in 
-the original work, with adjustments made only for syntax, language-specific practices, and 
-minor optimization for Python execution.
-
-Citation:
-Ramsey, M. C., & Pitz, R. W. (Year). Template Matching for Improved Accuracy in Molecular 
-Tagging Velocimetry. [Publication details].
-
-This script is intended for academic, research, and educational purposes.
-"""
+from src.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
+from src.parametric_X import ParametricX
 
 @dataclass
 class ParameterOptimizer:
@@ -33,6 +10,7 @@ class ParameterOptimizer:
     shrnk_factor    : int = 2
     lock_angle      : bool = False
     num_par         : int = 11
+    verbose         : bool = True
 
     rad    : Tuple[float, float, float, float, float, float] = field(init=False)
     n_rad  : Tuple[float, float, float, float, float, float] = field(init=False)
@@ -40,7 +18,6 @@ class ParameterOptimizer:
 
     def __post_init__(self):
         NRPos = np.ceil(self.num_interval / 2)
-        print(NRPos)
         shape = self.parametric_X.shape
         self.rad = np.array([
             self.uncertainty * 2, self.uncertainty * 2,
@@ -54,10 +31,11 @@ class ParameterOptimizer:
             NRPos, NRPos, self.num_interval, self.num_interval, 
             self.num_interval, self.num_interval
         ])
-         
-        print(f"Initialized with parameters: {self.parametric_X.params}")
-        print(f"Uncertainty values: {self.rad}")
-        print(f"Number of intervals: {self.n_rad}")
+        
+        if self.verbose:
+            print(f"Initialized with parameters: {self.parametric_X.params}")
+            print(f"Uncertainty values: {self.rad}")
+            print(f"Number of intervals: {self.n_rad}")
 
 
     def visualize(self) -> None:
@@ -213,18 +191,22 @@ class ParameterOptimizer:
             raise
         finally:
             warnings.filterwarnings("default")
+        
+        if self.verbose:
+            print(f"Final optimized parameters: {self.parametric_X.params}")
 
         return corr
 
 
-    def _quad_fit_1D(self, values, corrs) -> Tuple[float, float]:
+    def _quad_fit_1D(self, values: np.ndarray, corrs: np.ndarray) -> Tuple[float, float]:
+        """Optimized quadratic fit for 1D parameter optimization"""
         if np.all(values == values[0]) or len(values) < 3:
             return values[np.argmax(corrs)], None
         
         try:
             coeffs = np.polyfit(values, corrs, 2)
             a = coeffs[0]
-            if a >= 0:  # Minimum case - return max sample
+            if a >= 0:
                 return values[np.argmax(corrs)], a
             
             optimal = -coeffs[1]/(2*coeffs[0])
@@ -233,8 +215,8 @@ class ParameterOptimizer:
             return values[np.argmax(corrs)], None
 
     
-    def _quad_fit_2D(self, x_vals, y_vals, corr_matrix):
-        """Quadratic fit for 2D position optimization"""
+    def _quad_fit_2D(self, x_vals: np.ndarray, y_vals: np.ndarray, 
+                     corr_matrix: np.ndarray) -> Tuple[float, float]:
         max_idx = np.unravel_index(np.argmax(corr_matrix), corr_matrix.shape)
         x_coeffs = np.polyfit(x_vals, corr_matrix[max_idx[0], :], 2)
         y_coeffs = np.polyfit(y_vals, corr_matrix[:, max_idx[1]], 2)
@@ -247,6 +229,9 @@ class ParameterOptimizer:
 
 
 if __name__ == "__main__":
+    # Example usage of the ParameterOptimizer 
+    # with a ParametricX instance
+    
     import os
     # image_dir = os.path.abspath("data/Experimental_Data/Target/frame_2_2us.png")
     image_dir = os.path.abspath("data/Synthetic_Data/Image/displaced_lamb_oseen.png")
@@ -254,8 +239,8 @@ if __name__ == "__main__":
 
     img = cv2.imread(image_dir, cv2.IMREAD_GRAYSCALE)
     parameter_X = ParametricX(
-        center=(129, 128),
-        shape=(np.pi / 6, np.pi / 6, 0.5, fwhm, 38 * 0.7),
+        center=(110, 123),
+        shape=(np.pi / 6, -np.pi / 6, 0.5, fwhm, 38 * 0.7),
         image=img
     )
 

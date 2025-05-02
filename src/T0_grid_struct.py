@@ -1,5 +1,5 @@
-from src.py_import import np, cv2, dataclass, field, Tuple
-from src.image_utility import skeletonize_img
+from utility.py_import import np, cv2, dataclass, field, Tuple
+from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -33,9 +33,9 @@ class T0GridStruct:
         self.image          = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         _, self.image_skel  = skeletonize_img(self.image)
 
-        ################################
-        ### Initialize the the grids ###
-        ################################
+        ############################
+        ### Initialize the grids ###
+        ############################
         self._populate_grid()
         self._generate_template(scale=self.temp_scale)
     
@@ -191,6 +191,6 @@ class T0GridStruct:
 
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
                 self.params[i, j] = np.array([ang1, ang2, length])
-                
+
         print("Templates generated for the grid intersections.")
         return None

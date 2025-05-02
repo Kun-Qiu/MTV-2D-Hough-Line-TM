@@ -1,6 +1,4 @@
-import os
-import numpy as np
-import matplotlib.pyplot as plt
+from utility.py_import import plt, np, os 
 from src.Scipy_Hough_TM import HoughTM
 
 

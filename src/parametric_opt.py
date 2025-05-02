@@ -1,10 +1,10 @@
-from src.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
+from utility.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
 from src.parametric_X import ParametricX
 
 @dataclass
 class ParameterOptimizer:
     parametric_X    : ParametricX
-    uncertainty     : float = 2.0
+    uncertainty     : float = 3.0
     num_interval    : int = 5
     generation      : int = 3
     shrnk_factor    : int = 2
@@ -34,8 +34,8 @@ class ParameterOptimizer:
         
         if self.verbose:
             print(f"Initialized with parameters: {self.parametric_X.params}")
-            print(f"Uncertainty values: {self.rad}")
-            print(f"Number of intervals: {self.n_rad}")
+            # print(f"Uncertainty values: {self.rad}")
+            # print(f"Number of intervals: {self.n_rad}")
 
 
     def visualize(self) -> None:

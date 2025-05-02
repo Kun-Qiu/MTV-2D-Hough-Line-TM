@@ -5,7 +5,7 @@ import matplotlib.tri as tri
 
 from skimage.transform import hough_line, hough_line_peaks
 from src.grid_struct import GridStruct
-from src.image_utility import skeletonize_img
+from utility.image_utility import skeletonize_img
 from scipy.spatial.distance import cdist
  
 

@@ -29,10 +29,14 @@ if __name__ == "__main__":
 
     cdf_values = {}
     confidence_intervals = {}
+    rmse_values = {}  # New dictionary to store RMSE values
+
     for key, value in img_type.items():
         img_path = os.path.join(image_dir, value)
-        solver = HoughTM(src_path, img_path, num_lines=10,
-                         temp_scale=0.67, window_scale=1.2, search_scale=2.0)
+        solver = HoughTM(
+            src_path, img_path, verbose=False, num_lines=10,
+            temp_scale=0.67, window_scale=1.2, search_scale=2.0
+            )
 
         solver.solve()
         solver.plot_intersections()
@@ -51,6 +55,10 @@ if __name__ == "__main__":
 
         # Compute RMSE
         errors = np.linalg.norm(valid_field[:, 2:] - extracted_gt, axis=1)
+        
+        # Compute and store RMSE
+        rmse = np.sqrt(np.mean(errors ** 2))  # RMSE calculation
+        rmse_values[key] = rmse
 
         # Compute CDF
         sorted_errors, cdf = compute_cdf(errors)
@@ -60,15 +68,58 @@ if __name__ == "__main__":
         confidence_idx = np.searchsorted(cdf, 0.95)
         confidence_intervals[key] = sorted_errors[confidence_idx]
 
-    plt.figure(figsize=(8, 5))
+    # plt.figure(figsize=(8, 5))
+    # for key, (sorted_errors, cdf) in cdf_values.items():
+    #     plt.plot(sorted_errors, cdf, label=key)
+    #     plt.axvline(confidence_intervals[key], color='k', linestyle='--', alpha=0.7,
+    #                 label=f"{key} 95% CI: {confidence_intervals[key]:.3f}")
+    
+    # plt.xlabel("Displacement Error")
+    # plt.ylabel("Cumulative Probability")
+    # plt.title("CDF of Displacement Errors for Different Flow Types")
+    # plt.legend()
+    # plt.grid()
+
+    # plt.figure(figsize=(8, 5))
+    # plt.bar(rmse_values.keys(), rmse_values.values(), color=['blue', 'orange', 'green'])
+    # plt.xlabel("Flow Type")
+    # plt.ylabel("RMSE")
+    # plt.title("RMSE of Displacement Errors for Different Flow Types")
+    
+    # # Add value labels on top of bars
+    # for flow_type, value in rmse_values.items():
+    #     plt.text(flow_type, value, f"{value:.3f}", ha='center', va='bottom')
+    
+    # plt.grid(True, axis='y', linestyle='--', alpha=0.7)
+    # plt.tight_layout()
+    # plt.show()
+    # plt.show()
+
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 6))
+
+    # Plot CDF on the first subplot
     for key, (sorted_errors, cdf) in cdf_values.items():
-        plt.plot(sorted_errors, cdf, label=key)
-        plt.axvline(confidence_intervals[key], color='k', linestyle='--', alpha=0.7,
+        ax1.plot(sorted_errors, cdf, label=key)
+        ax1.axvline(confidence_intervals[key], color='k', linestyle='--', alpha=0.7,
                     label=f"{key} 95% CI: {confidence_intervals[key]:.3f}")
     
-    plt.xlabel("Displacement Error")
-    plt.ylabel("Cumulative Probability")
-    plt.title("CDF of Displacement Errors for Different Flow Types")
-    plt.legend()
-    plt.grid()
+    ax1.set_xlabel("Displacement Error")
+    ax1.set_ylabel("Cumulative Probability")
+    ax1.set_title("CDF of Displacement Errors")
+    ax1.legend()
+    ax1.grid()
+
+    # Plot RMSE on the second subplot
+    colors = ['blue', 'orange', 'green']
+    for i, (flow_type, rmse) in enumerate(rmse_values.items()):
+        ax2.bar(flow_type, rmse, color=colors[i], label=flow_type)
+        ax2.text(flow_type, rmse, f"{rmse:.3f}", ha='center', va='bottom')
+    
+    ax2.set_xlabel("Flow Type")
+    ax2.set_ylabel("RMSE")
+    ax2.set_title("Root Mean Square Error (RMSE)")
+    ax2.legend()
+    ax2.grid(True, axis='y', linestyle='--', alpha=0.7)
+
+    plt.tight_layout()
     plt.show()

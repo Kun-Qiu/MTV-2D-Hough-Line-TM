@@ -16,6 +16,7 @@ class DTGridStruct:
     down_scale    : int = 4
     rotate_range  : int = 45
 
+    shape       : Tuple[int, int] = field(init=False)
     grid        : np.ndarray = field(init=False)
     params      : np.ndarray = field(init=False)
     image       : np.ndarray = field(init=False)
@@ -23,19 +24,23 @@ class DTGridStruct:
     shifts      : Tuple[float, float] = field(init=False)
 
     def __post_init__(self):
-        self.grid   = np.empty(self.T0_grid.shape, dtype=object)
-        self.params = np.empty(self.T0_grid.shape, dtype=object)
-
-        self.image  = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+        self.shape = self.T0_grid.shape
+        self.grid = np.empty(
+            self.shape, dtype=object
+            )
+        
+        self.image = cv2.imread(
+            self.image_path, cv2.IMREAD_GRAYSCALE
+            )
         _, self.image_skel = skeletonize_img(self.image)
+        self.params = self.T0_grid.params.copy()
         
         # Shift from moving image to reference image
         self.shifts, _, _ = phase_cross_correlation(
             rescale(self.T0_grid.image_skel, 1 / self.down_scale, anti_aliasing=True), 
-            rescale(self.image_skel, 1 / self.down_scale, anti_aliasing=True))
+            rescale(self.image_skel, 1 / self.down_scale, anti_aliasing=True)
+            )
         self.shifts *= self.down_scale
-
-        print(self.shifts)
         
         ############################
         ### Initialize the grids ###
@@ -52,9 +57,13 @@ class DTGridStruct:
         assert window_scale >= 1, "window_scale must be greater than or equal to 1"
         assert search_scale >= 2, "search_scale must be greater than or equal to 2"
 
-        warped_search_im = transform_image(self.image_skel, self.shifts[1], self.shifts[0])
-        for i in range(self.T0_grid.shape[0]):
-            for j in range(self.T0_grid.shape[1]):
+        warped_search_im = transform_image(
+            self.image_skel, 
+            self.shifts[1], 
+            self.shifts[0]
+            )
+        for i in range(self.shape[0]):
+            for j in range(self.shape[1]):
                 
                 center = self.T0_grid.grid[i, j]
                 if np.isnan(center).any() or np.any((self.T0_grid.template[i, j]) is None):
@@ -74,27 +83,45 @@ class DTGridStruct:
 
                     return np.array([bound_x_min, bound_y_min, bound_x_max, bound_y_max])
                 
-                temp_x_min, temp_y_min, temp_x_max, temp_y_max         = get_bound(x_center, y_center, 
-                                                                                    rect_width, rect_height, 
-                                                                                    window_scale, bound_x,
-                                                                                    bound_y)
-                search_x_min, search_y_min, search_x_max, search_y_max = get_bound(x_center, y_center, 
-                                                                                    rect_width, rect_height, 
-                                                                                    search_scale, bound_x,
-                                                                                    bound_y)
+                temp_x_min, temp_y_min, temp_x_max, temp_y_max = get_bound(
+                    x_center, y_center, 
+                    rect_width, rect_height, 
+                    window_scale, 
+                    bound_x, bound_y
+                    )
                 
-                template             = self.T0_grid.image_skel[temp_y_min:temp_y_max, temp_x_min:temp_x_max]
-                search_region_warped = warped_search_im[search_y_min:search_y_max, search_x_min:search_x_max]
+                search_x_min, search_y_min, search_x_max, search_y_max = get_bound(
+                    x_center, y_center, 
+                    rect_width, rect_height, 
+                    search_scale, 
+                    bound_x, bound_y
+                    )
+                
+                template = self.T0_grid.image_skel[
+                    temp_y_min:temp_y_max, temp_x_min:temp_x_max
+                    ]
+                
+                search_region_warped = warped_search_im[
+                    search_y_min:search_y_max, search_x_min:search_x_max
+                    ]
 
                 opt_score = -np.inf
                 opt_loc   = None
 
                 for angle in range(-self.rotate_range, self.rotate_range, 5):
                     rotate_center = (template.shape[1] // 2, template.shape[0] // 2)
-                    rot_mat       = cv2.getRotationMatrix2D(rotate_center, angle, 1)
-                    rotate_dst    = cv2.warpAffine(template, rot_mat, (template.shape[1], template.shape[0]))    
+                    rot_mat = cv2.getRotationMatrix2D(
+                        rotate_center, angle, scale=1
+                        )
                     
-                    match_result           = cv2.matchTemplate(search_region_warped, rotate_dst, cv2.TM_CCOEFF_NORMED)
+                    rotate_dst = cv2.warpAffine(
+                        template, rot_mat, (template.shape[1], template.shape[0])
+                        )    
+                    
+                    match_result = cv2.matchTemplate(
+                        search_region_warped, rotate_dst, cv2.TM_CCOEFF_NORMED
+                        )
+                    
                     _, max_val, _, max_loc = cv2.minMaxLoc(match_result)
                     
                     if max_val > opt_score:
@@ -105,10 +132,6 @@ class DTGridStruct:
                 x_opt = search_x_min + x_opt + template.shape[1] / 2 - self.shifts[1]
                 y_opt = search_y_min + y_opt + template.shape[0] / 2 - self.shifts[0]
                 self.grid[i, j] = np.array([x_opt, y_opt])
-
-                
-                # delta = np.array([np.deg2rad(angle), np.deg2rad(angle), 0])
-                self.params[i, j] = self.T0_grid.params[i, j] #+ delta
 
         return None
     

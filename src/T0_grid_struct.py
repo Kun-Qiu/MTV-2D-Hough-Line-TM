@@ -54,7 +54,7 @@ class T0GridStruct:
         A = np.array([
             [np.cos(theta1), np.sin(theta1)],
             [np.cos(theta2), np.sin(theta2)]
-        ])
+            ])
         b = np.array([rho1, rho2])
 
         try:
@@ -93,8 +93,12 @@ class T0GridStruct:
         lines_neg = np.empty((0, 2), dtype=float)  
 
         h, theta, d = hough_line(self.image_skel, theta=self.test_angles)
-        for _, angle, dist in zip(*hough_line_peaks(h, theta, d, threshold=self.threshold*h.max(),
-                                                    num_peaks=np.sum(self.shape))):
+        for _, angle, dist in zip(*hough_line_peaks(
+                h, theta, d, 
+                threshold=self.threshold*h.max(),
+                num_peaks=np.sum(self.shape)
+                )):
+
             slope = np.tan(angle + np.pi / 2) 
 
             if abs(slope) > slope_thresh: # Assume no horizontal lines
@@ -119,7 +123,7 @@ class T0GridStruct:
             (i + 1, j),   # Bottom
             (i, j - 1),   # Left
             (i - 1, j)    # Top
-        ]
+            ]
 
         for ni, nj in directions:
             if 0 <= ni < self.shape[0] and 0 <= nj < self.shape[1] and not np.isnan(self.grid[ni, nj]).any():
@@ -163,12 +167,9 @@ class T0GridStruct:
 
         for i in range(self.shape[0]):
             for j in range(self.shape[1]):
-                
                 # Crop based on bottom right node
                 center = self.grid[i, j]
-                if (
-                    np.isnan(center).any()
-                ):
+                if (np.isnan(center).any()):
                     continue
 
                 half_sizes, angles, length = self._grid_img_bound(i, j)

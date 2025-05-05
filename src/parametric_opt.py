@@ -3,14 +3,14 @@ from src.parametric_X import ParametricX
 
 @dataclass
 class ParameterOptimizer:
-    parametric_X    : ParametricX
-    uncertainty     : float = 3.0
-    num_interval    : int = 5
-    generation      : int = 3
-    shrnk_factor    : int = 2
-    lock_angle      : bool = False
-    num_par         : int = 11
-    verbose         : bool = True
+    parametric_X : ParametricX
+
+    uncertainty  : float = 1.0
+    num_interval : int = 5
+    generation   : int = 3
+    shrnk_factor : int = 2
+    lock_angle   : bool = False
+    verbose      : bool = True
 
     rad    : Tuple[float, float, float, float, float, float] = field(init=False)
     n_rad  : Tuple[float, float, float, float, float, float] = field(init=False)
@@ -19,23 +19,22 @@ class ParameterOptimizer:
     def __post_init__(self):
         NRPos = np.ceil(self.num_interval / 2)
         shape = self.parametric_X.shape
+
         self.rad = np.array([
             self.uncertainty * 2, self.uncertainty * 2,
             np.arctan(self.uncertainty / shape[4]),
             np.arctan(self.uncertainty / shape[4]), 
             np.min([shape[2], 1 - shape[2]]) / 2, 
             0.75 * shape[2]
-        ])
+            ])
         
         self.n_rad = np.array([
             NRPos, NRPos, self.num_interval, self.num_interval, 
             self.num_interval, self.num_interval
-        ])
+            ])
         
         if self.verbose:
             print(f"Initialized with parameters: {self.parametric_X.params}")
-            # print(f"Uncertainty values: {self.rad}")
-            # print(f"Number of intervals: {self.n_rad}")
 
 
     def visualize(self) -> None:
@@ -79,8 +78,13 @@ class ParameterOptimizer:
     
 
     def quad_optimize(self) -> np.ndarray:
-        num_params = len([r for r, nr in zip(self.rad[2:5], self.n_rad[2:5]) if r > 0 and nr > 0])
-        corr = np.full((self.generation * (num_params + 1) + 1, len(self.parametric_X.params)), np.nan)
+        num_params = len([
+            r for r, nr in zip(self.rad[2:5], self.n_rad[2:5]) 
+            if r > 0 and nr > 0
+            ])
+        
+        max_steps = self.generation * (num_params + 1) + 1
+        corr = np.full((max_steps, len(self.parametric_X.params)), np.nan)
         
         try:
             warnings.filterwarnings("error")
@@ -89,43 +93,54 @@ class ParameterOptimizer:
                 center=self.parametric_X.center,
                 shape=self.parametric_X.shape,
                 image=self.parametric_X.image
-            )
-            initial_corr = self.parametric_X.correlate(self.parametric_X.params)
-            corr[0] = initial_corr['correlation']
+                )
+            
+            cur_corr = self.parametric_X.correlate(self.parametric_X.params)
+            corr[0] = cur_corr['correlation']
 
             for G in range(self.generation):
                 cur_rad = self.rad / (self.shrnk_factor ** G)
                 increment = cur_rad / self.n_rad
+                corr_idx = G * (num_params + 1) + 1
 
-                x_vals = np.arange(
-                    self.parametric_X.params[0] - cur_rad[0],
-                    self.parametric_X.params[0] + cur_rad[0] + 1e-8,
-                    step=increment[0], dtype=np.float64
-                )
-                y_vals = np.arange(
-                    self.parametric_X.params[1] - cur_rad[1],
-                    self.parametric_X.params[1] + cur_rad[1] + 1e-8,
-                    step=increment[1], dtype=np.float64
-                )
+                if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
+                    x_vals = np.arange(
+                        self.parametric_X.params[0] - cur_rad[0],
+                        self.parametric_X.params[0] + cur_rad[0] + 1e-8,
+                        step=increment[0], dtype=np.float64
+                        )
+                    
+                    y_vals = np.arange(
+                        self.parametric_X.params[1] - cur_rad[1],
+                        self.parametric_X.params[1] + cur_rad[1] + 1e-8,
+                        step=increment[1], dtype=np.float64
+                        )
 
-                pos_corrs = np.zeros((len(y_vals), len(x_vals)))
-                for i, y in enumerate(y_vals):
-                    for j, x in enumerate(x_vals):
-                        temp_params = self.parametric_X.params.copy()
-                        temp_params[0] = x
-                        temp_params[1] = y
-                        res = temp_opt.correlate(temp_params)
-                        pos_corrs[i, j] = res['correlation']
-                
-                self.parametric_X.params[0], self.parametric_X.params[1] = self._quad_fit_2D(x_vals, y_vals, pos_corrs)
-                corr_idx = G * num_params + 1
+                    x_lim = (x_vals[0], x_vals[-1])
+                    y_lim = (y_vals[0], y_vals[-1])
 
-                current_result = self.parametric_X.correlate(self.parametric_X.params)
-                corr[corr_idx] = current_result['correlation']
+                    xx, yy = np.meshgrid(x_vals, y_vals)
+                    grid_corrs = np.zeros_like(xx)
+                    for i in range(xx.shape[0]):
+                        for j in range(xx.shape[1]):
+                            temp_params = self.parametric_X.params.copy()
+                            temp_params[0] = xx[i,j]
+                            temp_params[1] = yy[i,j]
+                            res = temp_opt.correlate(temp_params)
+                            grid_corrs[i,j] = res['correlation']
+                    
+                    opt_x, opt_y = self._quad_fit_2D(x_vals, y_vals, grid_corrs, x_lim, y_lim)
+                    self.parametric_X.params[0], self.parametric_X.params[1] = opt_x, opt_y
+                    cur_corr = self.parametric_X.correlate(self.parametric_X.params)
+                    corr[corr_idx] = cur_corr['correlation']
+                    corr_idx += 1
 
                 if self.lock_angle:
-                    ang_vals = np.arange(-cur_rad[2], cur_rad[2], 
-                                         step=increment[2], dtype=np.float64)
+                    ang_vals = np.arange(
+                        -cur_rad[2], cur_rad[2], 
+                        step=increment[2], dtype=np.float64
+                        )
+                    
                     ang_corrs = []
                     for da in ang_vals:
                         temp_params = self.parametric_X.params.copy()
@@ -143,8 +158,11 @@ class ParameterOptimizer:
                     self.parametric_X.params[3] += best_da
                 else:
                     for ang_idx in [2, 3]:
-                        ang_vals = np.arange(-cur_rad[ang_idx], cur_rad[ang_idx],
-                                             step=increment[ang_idx], dtype=np.float64)
+                        ang_vals = np.arange(
+                            -cur_rad[ang_idx], cur_rad[ang_idx],
+                            step=increment[ang_idx], dtype=np.float64
+                            )
+                        
                         ang_corrs = []
                         for av in ang_vals:
                             temp_params = self.parametric_X.params.copy()
@@ -159,14 +177,18 @@ class ParameterOptimizer:
 
                         self.parametric_X.params[ang_idx] += best_da
 
+                cur_corr = self.parametric_X.correlate(self.parametric_X.params)
+                corr[corr_idx] = cur_corr['correlation']
                 corr_idx += 1
-                current_result = self.parametric_X.correlate(self.parametric_X.params)
-                corr[corr_idx] = current_result['correlation']
 
                 param_indices = [4, 5]
                 for p_idx in param_indices:
-                    p_vals = np.arange(-cur_rad[p_idx], cur_rad[p_idx],
-                                       step=increment[p_idx], dtype=np.float64)
+                    # Switch to np.linspace if space complexity is a concern
+                    p_vals = np.arange(
+                        -cur_rad[p_idx], cur_rad[p_idx],
+                        step=increment[p_idx], dtype=np.float64
+                        )
+                    
                     p_corrs = []
                     for pv in p_vals:
                         temp_params = self.parametric_X.params.copy()
@@ -174,15 +196,14 @@ class ParameterOptimizer:
                         res = temp_opt.correlate(temp_params)
                         p_corrs.append(res['correlation'])
                     best_dp, a_coeff = self._quad_fit_1D(p_vals, p_corrs)
-                    if (a_coeff >= 0) or (best_da < p_vals[-1]) or (best_dp > p_vals[0]):
+                    if (a_coeff >= 0) or (best_dp < p_vals[-1]) or (best_dp > p_vals[0]):
                             max_idx = np.argmax(p_corrs)
-                            best_da = p_vals[max_idx]
+                            best_dp = p_vals[max_idx]
 
                     self.parametric_X.params[p_idx] += best_dp
-
+                    cur_corr = self.parametric_X.correlate(self.parametric_X.params)
+                    corr[corr_idx] = cur_corr['correlation']
                     corr_idx += 1
-                    current_result = self.parametric_X.correlate(self.parametric_X.params)
-                    corr[corr_idx] = current_result['correlation']
 
         except Warning as w:
             print(f"Warning encountered during optimization: {w}")
@@ -216,13 +237,30 @@ class ParameterOptimizer:
 
     
     def _quad_fit_2D(self, x_vals: np.ndarray, y_vals: np.ndarray, 
-                     corr_matrix: np.ndarray) -> Tuple[float, float]:
+                     corr_matrix: np.ndarray, x_lim: Tuple[float, float], 
+                     y_lim: Tuple[float, float]) -> Tuple[float, float]:
         max_idx = np.unravel_index(np.argmax(corr_matrix), corr_matrix.shape)
         x_coeffs = np.polyfit(x_vals, corr_matrix[max_idx[0], :], 2)
         y_coeffs = np.polyfit(y_vals, corr_matrix[:, max_idx[1]], 2)
+
+        if x_coeffs[0] < 0:
+            opt_x_candidate = -x_coeffs[1] / (2 * x_coeffs[0])
+            if x_lim[0] <= opt_x_candidate <= x_lim[1]:
+                opt_x = opt_x_candidate
+            else:
+                opt_x = x_vals[max_idx[1]]
+        else:
+            opt_x = x_vals[max_idx[1]]
         
-        opt_x = -x_coeffs[1]/(2*x_coeffs[0]) if x_coeffs[0] < 0 else x_vals[max_idx[1]]
-        opt_y = -y_coeffs[1]/(2*y_coeffs[0]) if y_coeffs[0] < 0 else y_vals[max_idx[0]]
+        # Calculate optimal y with boundary check
+        if y_coeffs[0] < 0:
+            opt_y_candidate = -y_coeffs[1] / (2 * y_coeffs[0])
+            if y_lim[0] <= opt_y_candidate <= y_lim[1]:
+                opt_y = opt_y_candidate
+            else:
+                opt_y = y_vals[max_idx[0]]
+        else:
+            opt_y = y_vals[max_idx[0]]
         
         return opt_x, opt_y
 

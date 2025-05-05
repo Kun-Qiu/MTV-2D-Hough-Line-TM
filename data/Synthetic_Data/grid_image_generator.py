@@ -5,17 +5,17 @@ import matplotlib.pyplot as plt
 
 def add_noise(image_array, snr):
     """
-    Add noise to the image based on the specified SNR.
-
-    image_array :   Input image array
-    snr         :   The desired signal-to-noise ratio
-    :return     :   Noise induced image
+    Add Gaussian noise to the image based on the specified SNR.
+    
+    image_array : Input image array (float32)
+    snr         : Desired signal-to-noise ratio (S_p / N_p, where N_p = 4σ)
+    :return     : Noisy image (float32)
     """
-
-    noise = np.random.random(image_array.size).reshape(*image_array.shape)
-    current_snr = np.max(image_array) / (4 * np.std(noise))
-    noise_img = image_array + (noise * (current_snr / snr))
-    return noise_img
+    sp = np.max(image_array)
+    sigma = sp / (4 * snr)  # Calculate required standard deviation
+    noise = np.random.normal(0, sigma, image_array.shape)  # Zero-mean Gaussian noise
+    noisy_image = image_array + noise
+    return noisy_image
 
 
 def gaussian_kernel(size, fwhm):
@@ -55,7 +55,7 @@ def draw_gaussian_line(image, start_point, end_point, fwhm, intensity=3.0):
     np.add(image, gaussian_line_img, out=image, casting="unsafe")
 
 
-def create_centered_grid(image_size, fwhm, spacing, angle, line_intensity=1.0, num_lines=10, snr=20):
+def create_centered_grid(image_size, fwhm, spacing, angle, line_intensity=0.5, num_lines=10, snr=20):
     """
     Creates a grid image with Gaussian lines intersecting near the center.
 
@@ -79,30 +79,31 @@ def create_centered_grid(image_size, fwhm, spacing, angle, line_intensity=1.0, n
         offset = i * spacing
         
         # Calculate line start and end points for proper centering
-        x1, y1 = center_x + offset - int(center_y / np.tan(radians)), 0
-        x2, y2 = center_x + offset + int(center_y / np.tan(radians)), h
-        draw_gaussian_line(image, (x1, y1), (x2, y2), fwhm, intensity=line_intensity)
+        x1 = center_x + offset - int(center_y / np.tan(radians))
+        x2 = center_x + offset + int(center_y / np.tan(radians))
+        draw_gaussian_line(image, (x1, 0), (x2, h), fwhm, line_intensity)
+        # Opposite direction
+        x1 = center_x + offset + int(center_y / np.tan(radians))
+        x2 = center_x + offset - int(center_y / np.tan(radians))
+        draw_gaussian_line(image, (x1, 0), (x2, h), fwhm, line_intensity)
 
-        x1, y1 = center_x + offset + int(center_y / np.tan(radians)), 0
-        x2, y2 = center_x + offset - int(center_y / np.tan(radians)), h
-        draw_gaussian_line(image, (x1, y1), (x2, y2), fwhm, intensity=line_intensity)
-
-    image = add_noise(np.clip(image, 0, 255).astype(np.uint8), snr)
-    return image
+    noisy_image = add_noise(image, snr)
+    noisy_image = np.clip(noisy_image, 0, 255).astype(np.uint8)
+    return noisy_image
 
 
 if __name__ == "__main__":
 
     fwhm        = 4             # Full width at half maximum for the Gaussian lines
     spacing     = 20            # Reduced spacing for denser lines
-    angle       = 30            # Angle for intersecting lines
+    angle       = 60            # Angle for intersecting lines
     image_size  = (256, 256)    # Size of the image
     num_lines   = 10            # Number of lines
     snr         = 8             # SNR value
 
     # Generate the grid image
     image = create_centered_grid(image_size, fwhm, spacing, angle, 
-                                line_intensity=2, num_lines=num_lines, snr=snr)
+                                line_intensity=0.5, num_lines=num_lines, snr=snr)
 
     plt.figure(figsize=(6, 6))
     plt.title("Centered Gaussian Grid Image")

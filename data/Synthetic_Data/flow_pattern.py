@@ -45,7 +45,7 @@ def poiseuille_flow(U, shape=(256, 256), filename=None, show=False):
         np.save(filename, field)
         print(f"Velocity field saved to {filename}")
 
-    return -field
+    return field
 
 
 def lamb_oseen_vortex(shape=(256, 256), gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=250, 
@@ -102,7 +102,7 @@ def lamb_oseen_vortex(shape=(256, 256), gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=2
         np.save(filename, field)
         print(f"Velocity field saved to {filename}")
 
-    return -field
+    return field
 
 
 def uniform_flow(x_translate, y_translate, shape=(256, 256), filename=None, show=False):
@@ -148,7 +148,7 @@ def uniform_flow(x_translate, y_translate, shape=(256, 256), filename=None, show
         np.save(filename, field)
         print(f"Velocity field saved to {filename}")
     
-    return -field
+    return field
 
 
 if __name__ == "__main__":

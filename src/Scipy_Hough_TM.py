@@ -4,39 +4,6 @@ from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 from src.parametric_X import ParametricX
 from src.parametric_opt import ParameterOptimizer
-from scipy.spatial.distance import cdist
- 
-
-def gauss_smooth(points, dx, dy, method="median", alpha=0.2):
-    """
-    Smooths the dx, dy values using a weighted Gaussian kernel.
-
-    Parameters:
-        points (ndarray): Nx2 array of (x, y) positions.
-        dx (ndarray): Nx1 array of dx values.
-        dy (ndarray): Nx1 array of dy values.
-        method (str): Smoothing method ("mean" or "gaussian").
-        alpha (float): Standard deviation of the Gaussian function.
-
-    Returns:
-        smoothed_dx (ndarray): Smoothed dx values.
-        smoothed_dy (ndarray): Smoothed dy values.
-    """
-    
-    distances = cdist(points, points, metric='euclidean')
-    
-    if method == "mean":
-        sigma = alpha * np.mean(distances)
-    elif method == "median":
-        sigma = alpha * np.median(distances)
-    elif method == "max":
-        sigma = alpha * np.max(distances)
-    else:
-        raise ValueError("Invalid method for sigma selection. Use 'mean', 'median', or 'max'.")
-
-    weights = np.exp(- (distances**2) / (2 * sigma**2))
-    weights /= weights.sum(axis=1, keepdims=True)
-    return np.dot(weights, dx), np.dot(weights, dy)
 
 
 @dataclass
@@ -80,12 +47,12 @@ class HoughTM:
 
         # Initialize displacement field
         self.disp_field = np.empty(shape, dtype=object)
-        self.solve_bool = False
         self._optimize(self.grid_T0)
-        self._optimize(self.grid_dT)
-    
+        self._optimize(self.grid_dT, visualize=False)
+        self.solve_bool = False
+        
 
-    def _optimize(self, grid_obj) -> None:
+    def _optimize(self, grid_obj, visualize=False) -> None:
         """
         Optimize the parameters of the template matching algorithm
         """
@@ -95,8 +62,8 @@ class HoughTM:
                     x, y  = grid_obj.grid[i, j]
                     ang1, ang2, leg_len = grid_obj.params[i, j]
                     parametricX_obj = ParametricX(
-                        (int(round(x)), int(round(y))), 
-                        (ang1, ang2, 0.5, 4, leg_len),
+                        center=(int(round(x)), int(round(y))), 
+                        shape=(ang1, ang2, 0.5, 4, leg_len),
                         image=grid_obj.image
                         )
                     
@@ -104,6 +71,8 @@ class HoughTM:
                         parametricX_obj, lock_angle=False, verbose=self.verbose
                         )
                     optimizer.quad_optimize()
+                    if visualize:
+                        optimizer.visualize()
                     grid_obj.grid[i, j] = parametricX_obj.params[0:2]
 
         print("Optimization complete.")
@@ -128,20 +97,8 @@ class HoughTM:
                     self.disp_field[i, j] = [x0, y0, dx, dy]
                     valid_points.append([x0, y0, dx, dy])
 
-        # valid_points = np.array(valid_points)
-
-        # points  = valid_points[:, :2]
-        # dx_vals = valid_points[:, 2]  
-        # dy_vals = valid_points[:, 3]  
-
-        # dx_s, dy_s = gauss_smooth(points, dx_vals, dy_vals, method="mean", alpha=0.1)
-
-        # for i, (x, y, dx_new, dy_new) in enumerate(zip(points[:, 0], points[:, 1], dx_s, dy_s)):
-        #     mask = (self.disp_field[..., 0] == x) & (self.disp_field[..., 1] == y)
-        #     self.disp_field[mask, 2] = dx_new
-        #     self.disp_field[mask, 3] = dy_new
-
         self.solve_bool = True
+        return None
 
 
     def get_velocity(self, dt:float=1) -> np.ndarray:

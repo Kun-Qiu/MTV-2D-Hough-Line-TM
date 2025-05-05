@@ -108,8 +108,9 @@ class ParametricX:
         if np.isnan(corr_coef):
             corr_coef = -np.inf
         
-        result['correlation']     = corr_coef
-        result['background']      = ((1 - template_mean) / template_std * img_std) + img_mean
+        result['correlation'] = corr_coef
+        result['background']  = ((1 - template_mean) / template_std * img_std) + img_mean
+        result['difference'] = scaled_diff
 
         if scaled_diff.shape[0] > 2 and scaled_diff.shape[1] > 2:
             kernel = np.ones((3, 3)) / 9

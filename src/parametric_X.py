@@ -90,8 +90,10 @@ class ParametricX:
         template, (min_col, min_row) = self._parametric_template(params)
         t_height, t_width = template.shape
         
-        img_patch = self.image[min_row:min_row + t_height, 
-                               min_col:min_col + t_width]
+        img_patch = self.image[
+            min_row:min_row + t_height, 
+            min_col:min_col + t_width
+            ]
         
         if img_patch.shape != template.shape:
             return result
@@ -105,6 +107,7 @@ class ParametricX:
 
         scaled_diff = (img_norm - template_norm) * img_std
         corr_coef = np.corrcoef(template_norm.flatten(), img_norm.flatten())[0, 1]
+        # corr_coef = np.sum(template_norm*img_norm) / len(template_norm.ravel())
         if np.isnan(corr_coef):
             corr_coef = -np.inf
         
@@ -118,6 +121,7 @@ class ParametricX:
             noise = scaled_diff[1:-1, 1:-1] - local_mean
             result['noise'] = 5 * np.std(noise)
         
+        # print(result['correlation'], result['background'], result['noise'])
         return result
     
 

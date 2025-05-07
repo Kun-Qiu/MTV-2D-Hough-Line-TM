@@ -1,9 +1,10 @@
-from utility.py_import import np, plt, tri, dataclass, field
+from utility.py_import import np, plt, tri, dataclass, field, Tuple
 import matplotlib.tri as tri
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 from src.parametric_X import ParametricX
 from src.parametric_opt import ParameterOptimizer
+import multiprocessing as mp
 
 
 @dataclass
@@ -12,13 +13,14 @@ class HoughTM:
     path_mov    : str
     num_lines   : int
 
-    verbose     : bool = True
-    density     : int = 10
-    threshold   : float = 0.2
-    temp_scale  : float = 0.67
-    window_scale: float = 1.2
-    search_scale: float = 2.0
-    down_scale  : int = 4
+    verbose   : bool = False
+    density   : int = 10
+    threshold : float = 0.2
+    temp_scale: float = 0.67
+    win_size  : Tuple[int, int] = (31, 31)
+    max_level : int = 5
+    iteration : int = 10
+    epsilon   : float = 0.03
 
     displacement: np.ndarray = field(init=False)
     solve_bool  : bool = field(init=False)
@@ -39,10 +41,10 @@ class HoughTM:
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
             self.path_mov, 
-            down_scale=self.down_scale, 
-            window_scale=self.window_scale, 
-            search_scale=self.search_scale, 
-            rotate_range=45
+            win_size=self.win_size,
+            max_level=self.max_level,
+            iteration=self.iteration,
+            epsilon=self.epsilon
             )
 
         # Initialize displacement field
@@ -68,7 +70,8 @@ class HoughTM:
                         )
                     
                     optimizer = ParameterOptimizer(
-                        parametricX_obj, lock_angle=False, verbose=self.verbose
+                        parametricX_obj, uncertainty=3, num_interval=15,
+                        lock_angle=False, verbose=self.verbose
                         )
                     optimizer.quad_optimize()
                     if visualize:
@@ -245,3 +248,19 @@ class HoughTM:
         # Display plots
         plt.tight_layout()
         plt.show()
+
+
+def process_cell(args):
+        i, j, x, y, ang1, ang2, leg_len, image, verbose = args
+        parametricX_obj = ParametricX(
+            center=(int(round(x)), int(round(y))), 
+            shape=(ang1, ang2, 0.5, 4, leg_len),
+            image=image
+            )
+        
+        optimizer = ParameterOptimizer(
+            parametricX_obj, uncertainty=3, num_interval=10,
+            lock_angle=False, verbose=verbose
+            )
+        optimizer.quad_optimize()
+        return (i, j, parametricX_obj.params[0:2])

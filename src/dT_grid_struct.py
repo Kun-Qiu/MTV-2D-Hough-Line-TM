@@ -1,8 +1,5 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple, plt
-from utility.image_utility import skeletonize_img, transform_image
 from src.T0_grid_struct import T0GridStruct
-from skimage.registration import phase_cross_correlation
-from skimage.transform import rescale
 
 @dataclass
 class DTGridStruct:
@@ -10,21 +7,21 @@ class DTGridStruct:
     image_path  : str
 
     # Default Parameters
-    down_scale    : int = 4
-    window_scale  : float = 1.2
-    search_scale  : float = 2
-    down_scale    : int = 4
-    rotate_range  : int = 45
+    win_size  : Tuple[int, int] = (31, 31)
+    max_level : int = 5
+    iteration : int = 10
+    epsilon   : float = 0.03
 
     shape       : Tuple[int, int] = field(init=False)
     grid        : np.ndarray = field(init=False)
     params      : np.ndarray = field(init=False)
     image       : np.ndarray = field(init=False)
-    image_skel  : np.ndarray = field(init=False)
     shifts      : Tuple[float, float] = field(init=False)
 
     def __post_init__(self):
         self.shape = self.T0_grid.shape
+        self.params = self.T0_grid.params.copy()
+
         self.grid = np.empty(
             self.shape, dtype=object
             )
@@ -32,20 +29,27 @@ class DTGridStruct:
         self.image = cv2.imread(
             self.image_path, cv2.IMREAD_GRAYSCALE
             )
-        _, self.image_skel = skeletonize_img(self.image)
-        self.params = self.T0_grid.params.copy()
         
         ############################
         ### Initialize the grids ###
         ############################
-        self._populate_grid_LK()
+        self._populate_grid_LK(
+            self.win_size, self.max_level, 
+            self.iteration, self.epsilon
+            )
+        
 
-
-    def _populate_grid_LK(self, winSize: Tuple[int, int]=(31,31), maxLevel: int=5) -> None:
+    def _populate_grid_LK(
+            self, winSize: Tuple[int, int]=(31,31), 
+            maxLevel: int=5,
+            iterations :int=10, 
+            epsilon: float=0.03
+            ) -> None:
+        
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
         prev_pts = np.stack(self.T0_grid.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2)
         
-        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03)
+        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, iterations, epsilon)
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
             prevImg=self.T0_grid.image, 
             nextImg=self.image, 

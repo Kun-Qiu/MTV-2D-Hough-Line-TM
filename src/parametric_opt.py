@@ -3,12 +3,14 @@ from src.parametric_X import ParametricX
 
 @dataclass
 class ParameterOptimizer:
-    parametric_X : ParametricX
+    parametric_X: ParametricX
 
-    uncertainty  : float = 1.0
     num_interval : int = 5
+    uncertainty  : float = 1.0
     generation   : int = 3
     shrnk_factor : int = 2
+    adapt_thresh : float = 0.1
+    refine_factor: float = 1.5
     lock_angle   : bool = False
     verbose      : bool = True
 
@@ -17,7 +19,6 @@ class ParameterOptimizer:
 
 
     def __post_init__(self):
-        NRPos = np.ceil(self.num_interval / 2)
         shape = self.parametric_X.shape
 
         self.rad = np.array([
@@ -28,6 +29,7 @@ class ParameterOptimizer:
             0.75 * shape[2]
             ])
         
+        NRPos = np.ceil(self.num_interval / 2)
         self.n_rad = np.array([
             NRPos, NRPos, self.num_interval, self.num_interval, 
             self.num_interval, self.num_interval
@@ -37,44 +39,15 @@ class ParameterOptimizer:
             print(f"Initialized with parameters: {self.parametric_X.params}")
 
 
-    def visualize(self) -> None:
-        img = self.parametric_X.image
-        if img is None:
-            raise ValueError("No image available for visualization")
+    def __update_n_rad(self) -> np.ndarray:
+        NRPos = np.ceil(self.num_interval / 2)
         
-        template, (min_col, min_row) = self.parametric_X.get_parametric_X()
+        n_rad = np.array([
+            NRPos, NRPos, self.num_interval, self.num_interval, 
+            self.num_interval, self.num_interval
+        ])
         
-        # Create figure
-        fig = plt.figure(figsize=(15, 7))
-        ax1 = plt.subplot(121)
-        plt.imshow(img, cmap='gray')
-        
-        extent = [
-            min_col - 0.5,  # left
-            min_col + template.shape[1] - 0.5,  # right
-            min_row + template.shape[0] - 0.5,  # bottom
-            min_row - 0.5  # top
-        ]
-        
-        plt.imshow(template, cmap='viridis', alpha=0.7, extent=extent)
-        plt.scatter(min_col + template.shape[1]/2, 
-                min_row + template.shape[0]/2,
-                c='cyan', marker='o', s = 100,
-                edgecolors='red', linewidth=1)
-        plt.title("Template Overlay on Image")
-        
-        ax2 = plt.subplot(122)
-        plt.imshow(template, cmap='viridis', 
-                extent=[min_col, min_col + template.shape[1],
-                        min_row + template.shape[0], min_row])
-        plt.colorbar(label='Template Intensity')
-        plt.title("Template Only")
-        plt.xlabel("X Position")
-        plt.ylabel("Y Position")
-
-        plt.tight_layout()
-        plt.show()
-        return None
+        return n_rad
     
 
     def quad_optimize(self) -> np.ndarray:
@@ -265,14 +238,52 @@ class ParameterOptimizer:
         return opt_x, opt_y
 
 
+def visualize(self) -> None:
+        img = self.parametric_X.image
+        if img is None:
+            raise ValueError("No image available for visualization")
+        
+        template, (min_col, min_row) = self.parametric_X.get_parametric_X()
+        
+        # Create figure
+        fig = plt.figure(figsize=(15, 7))
+        ax1 = plt.subplot(121)
+        plt.imshow(img, cmap='gray')
+        
+        extent = [
+            min_col - 0.5,  # left
+            min_col + template.shape[1] - 0.5,  # right
+            min_row + template.shape[0] - 0.5,  # bottom
+            min_row - 0.5  # top
+        ]
+        
+        plt.imshow(template, cmap='viridis', alpha=0.7, extent=extent)
+        plt.scatter(min_col + template.shape[1]/2, 
+                min_row + template.shape[0]/2,
+                c='cyan', marker='o', s = 100,
+                edgecolors='red', linewidth=1)
+        plt.title("Template Overlay on Image")
+        
+        ax2 = plt.subplot(122)
+        plt.imshow(template, cmap='viridis', 
+                extent=[min_col, min_col + template.shape[1],
+                        min_row + template.shape[0], min_row])
+        plt.colorbar(label='Template Intensity')
+        plt.title("Template Only")
+        plt.xlabel("X Position")
+        plt.ylabel("Y Position")
+
+        plt.tight_layout()
+        plt.show()
+        return None
+
 
 if __name__ == "__main__":
     # Example usage of the ParameterOptimizer 
     # with a ParametricX instance
     
     import os
-    # image_dir = os.path.abspath("data/Experimental_Data/Target/frame_2_2us.png")
-    image_dir = os.path.abspath("data/Synthetic_Data/Image/displaced_lamb_oseen.png")
+    image_dir = os.path.abspath("data/Synthetic_Data/Image/SNR_1/0/displaced_lamb_oseen.png")
     fwhm = 4
 
     img = cv2.imread(image_dir, cv2.IMREAD_GRAYSCALE)

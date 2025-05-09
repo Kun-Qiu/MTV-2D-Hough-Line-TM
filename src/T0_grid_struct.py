@@ -1,5 +1,5 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple
-from utility.image_utility import skeletonize_img
+from utility.image_utility import skeletonize_img, stereo_transform
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -12,6 +12,7 @@ class T0GridStruct:
     shape       : Tuple[int, int]
     image_path  : str
     num_lines   : int
+    solve_uncert: bool 
 
     threshold   : float = 0.2
     density     : int = 10
@@ -23,14 +24,18 @@ class T0GridStruct:
     image_skel  : np.ndarray = field(init=False)
     template    : np.ndarray = field(init=False)
     params      : np.ndarray = field(init=False)
+    uncertainty : np.ndarray = field(init=False)
 
 
     def __post_init__(self):
-        self.grid           = np.empty(self.shape, dtype=object)
-        self.template       = np.empty(self.shape, dtype=object)
-        self.params         = np.empty(self.shape, dtype=object)
-        self.test_angles    = np.linspace(-np.pi / 2, np.pi / 2, self.density * 360, endpoint=True)
-        self.image          = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+        self.grid        = np.empty(self.shape, dtype=object)
+        self.template    = np.empty(self.shape, dtype=object)
+        self.params      = np.empty(self.shape, dtype=object)
+        self.uncertainty = np.empty(self.shape, dtype=object)
+        self.test_angles = np.linspace(-np.pi / 2, np.pi / 2, self.density * 360, endpoint=True)
+        self.image       = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+        # self.image     = stereo_transform(self.image)
+
         _, self.image_skel  = skeletonize_img(self.image)
 
         ############################
@@ -80,6 +85,22 @@ class T0GridStruct:
                     intersection = (np.nan, np.nan)
 
                 self.grid[i, j]  = intersection
+
+                if self.solve_uncert:
+                    angular_bin = np.pi / (self.density * 360)
+                    sigma_params = np.diag([
+                        1,                  # 1 pixel resolution for scipy hough
+                        (angular_bin) ** 2,
+                        1,              
+                        (angular_bin) ** 2
+                        ])
+                    J = self.__jacobian(pos_line, neg_line)
+
+                    # Chi Square 95 % with 2 degree of freedom --> 5.991
+                    sigma_xy = J @ sigma_params @ J.T
+                    self.uncertainty[i, j] = np.sqrt(
+                        np.array([sigma_xy[0, 0], sigma_xy[1,1]])
+                        ) * np.sqrt(5.991)
         print("Grid populated with intersections of lines.")
 
 
@@ -195,3 +216,39 @@ class T0GridStruct:
 
         print("Templates generated for the grid intersections.")
         return None
+    
+
+    def __jacobian(self, line1: np.ndarray, line2: np.ndarray) -> np.ndarray:
+        theta1, rho1 = line1
+        theta2, rho2 = line2
+        delta_theta = theta2 - theta1
+        sin_dtheta = np.sin(delta_theta)
+        cos_dtheta = np.cos(delta_theta)
+
+        if np.abs(sin_dtheta) < 1e-10:
+            raise ValueError("Lines are nearly parallel (sin(delta_theta) ≈ 0)")
+        
+        # Precompute terms for x and y derivatives
+        x_num = rho1 * np.sin(theta2) - rho2 * np.sin(theta1)
+        y_num = rho2 * np.cos(theta1) - rho1 * np.cos(theta2)
+        
+        # Partial derivatives for x
+        dx_drho1 = np.sin(theta2) / sin_dtheta
+        dx_drho2 = -np.sin(theta1) / sin_dtheta
+        dx_dtheta1 = (-rho2 * np.cos(theta1) * sin_dtheta + x_num * cos_dtheta) / (sin_dtheta ** 2)
+        dx_dtheta2 = (rho1 * np.cos(theta2) * sin_dtheta - x_num * cos_dtheta) / (sin_dtheta ** 2)
+        
+        # Partial derivatives for y
+        dy_drho1 = -np.cos(theta2) / sin_dtheta
+        dy_drho2 = np.cos(theta1) / sin_dtheta
+        dy_dtheta1 = (-rho2 * np.sin(theta1) * sin_dtheta + y_num * cos_dtheta) / (sin_dtheta ** 2)
+        dy_dtheta2 = (rho1 * np.sin(theta2) * sin_dtheta - y_num * cos_dtheta) / (sin_dtheta ** 2)
+        
+        # Assemble Jacobian matrix
+        J = np.array([
+            [dx_drho1, dx_dtheta1, dx_drho2, dx_dtheta2],
+            [dy_drho1, dy_dtheta1, dy_drho2, dy_dtheta2]
+        ])
+        
+        return J
+    

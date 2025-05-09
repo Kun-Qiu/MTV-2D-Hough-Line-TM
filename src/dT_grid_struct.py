@@ -1,5 +1,6 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple, plt
 from src.T0_grid_struct import T0GridStruct
+from utility.image_utility import stereo_transform
 
 @dataclass
 class DTGridStruct:
@@ -29,6 +30,7 @@ class DTGridStruct:
         self.image = cv2.imread(
             self.image_path, cv2.IMREAD_GRAYSCALE
             )
+        # self.image = stereo_transform(self.image)
         
         ############################
         ### Initialize the grids ###

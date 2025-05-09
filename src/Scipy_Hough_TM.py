@@ -12,8 +12,11 @@ class HoughTM:
     path_ref    : str
     path_mov    : str
     num_lines   : int
+    fwhm        : float
+    uncertainty : float = None
+    num_interval: int = 5
 
-    verbose   : bool = False
+    intensity : float = 0.5
     density   : int = 10
     threshold : float = 0.2
     temp_scale: float = 0.67
@@ -21,6 +24,7 @@ class HoughTM:
     max_level : int = 5
     iteration : int = 10
     epsilon   : float = 0.03
+    verbose   : bool = False
 
     displacement: np.ndarray = field(init=False)
     solve_bool  : bool = field(init=False)
@@ -29,9 +33,15 @@ class HoughTM:
 
     def __post_init__(self):
         shape = (self.num_lines, self.num_lines)
+        if self.uncertainty is not None:
+            solve_uncert = True
+        else:
+            solve_uncert = False
+
         self.grid_T0 = T0GridStruct(
             shape, 
             self.path_ref, 
+            solve_uncert=solve_uncert,
             num_lines=self.num_lines, 
             threshold=self.threshold, 
             density=self.density,
@@ -47,7 +57,6 @@ class HoughTM:
             epsilon=self.epsilon
             )
 
-        # Initialize displacement field
         self.disp_field = np.empty(shape, dtype=object)
         self._optimize(self.grid_T0)
         self._optimize(self.grid_dT, visualize=False)
@@ -65,19 +74,27 @@ class HoughTM:
                     ang1, ang2, leg_len = grid_obj.params[i, j]
                     parametricX_obj = ParametricX(
                         center=(int(round(x)), int(round(y))), 
-                        shape=(ang1, ang2, 0.5, 4, leg_len),
+                        shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
                         image=grid_obj.image
                         )
                     
+                    if self.uncertainty is not None:
+                        pred_uncertainty = self.grid_T0.uncertainty[i, j]
+                        self.uncertainty = np.average([
+                            pred_uncertainty[0], 
+                            pred_uncertainty[1] 
+                            ])
+                    
                     optimizer = ParameterOptimizer(
-                        parametricX_obj, uncertainty=3, num_interval=15,
+                        parametricX_obj, uncertainty=self.uncertainty, 
+                        num_interval=self.num_interval,
                         lock_angle=False, verbose=self.verbose
                         )
+                    
                     optimizer.quad_optimize()
                     if visualize:
                         optimizer.visualize()
                     grid_obj.grid[i, j] = parametricX_obj.params[0:2]
-
         print("Optimization complete.")
 
 

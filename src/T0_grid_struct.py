@@ -32,7 +32,12 @@ class T0GridStruct:
         self.template    = np.empty(self.shape, dtype=object)
         self.params      = np.empty(self.shape, dtype=object)
         self.uncertainty = np.empty(self.shape, dtype=object)
-        self.test_angles = np.linspace(-np.pi / 2, np.pi / 2, self.density * 360, endpoint=True)
+        self.test_angles = np.linspace(
+            -np.pi / 2, np.pi / 2, 
+            self.density * 360, 
+            endpoint=True
+            )
+        
         self.image       = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         # self.image     = stereo_transform(self.image)
 
@@ -55,8 +60,8 @@ class T0GridStruct:
         theta1, rho1 = line1
         theta2, rho2 = line2
 
-        # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
         A = np.array([
+            # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
             [np.cos(theta1), np.sin(theta1)],
             [np.cos(theta2), np.sin(theta2)]
             ])
@@ -105,11 +110,6 @@ class T0GridStruct:
 
 
     def _hough_line_transform(self, slope_thresh:float=0.1):
-        """
-        Perform Hough Line Transform to detect lines in a skeletonized image.
-        This function applies the Hough Line Transform to the skeletonized image 
-        (`self.image_skel`) using a set of test angles (`self.test_angles`).
-        """
         lines_pos = np.empty((0, 2), dtype=float)  
         lines_neg = np.empty((0, 2), dtype=float)  
 
@@ -168,8 +168,8 @@ class T0GridStruct:
         angle2 = np.arctan2(dx_max2, dy_max2) if max_dist2 > 0 else 0.0
         
         # Ensure angles are acute (0 ≤ angle ≤ π/2)
-        angle1 = min(abs(angle1), np.pi - abs(angle1)) #* np.sign(angle1) 
-        angle2 = min(abs(angle2), np.pi - abs(angle2)) #* np.sign(angle2)
+        angle1 = min(abs(angle1), np.pi - abs(angle1)) 
+        angle2 = min(abs(angle2), np.pi - abs(angle2)) 
         lengths = [max_dist1, max_dist2]
 
         # Bounding box half-sizes (max of absolute values)
@@ -180,10 +180,6 @@ class T0GridStruct:
     
 
     def _generate_template(self, scale: float=0.7):
-        """
-        Create template patches using the grid intersections and the search patch for
-        the consecutive frame.
-        """
         height, width = np.shape(self.image)
 
         for i in range(self.shape[0]):
@@ -195,11 +191,11 @@ class T0GridStruct:
 
                 half_sizes, angles, length = self._grid_img_bound(i, j)
                 
-                x_half, y_half      = half_sizes
-                ang1, ang2          = angles 
-                rect_half_width     = scale * x_half
-                rect_half_height    = scale * y_half
-                x_center, y_center  = center
+                x_half, y_half     = half_sizes
+                ang1, ang2         = angles 
+                rect_half_width    = scale * x_half
+                rect_half_height   = scale * y_half
+                x_center, y_center = center
                 
                 # Ensure the coordinates are within the image boundaries
                 x_min = int(x_center - rect_half_width)
@@ -244,11 +240,8 @@ class T0GridStruct:
         dy_dtheta1 = (-rho2 * np.sin(theta1) * sin_dtheta + y_num * cos_dtheta) / (sin_dtheta ** 2)
         dy_dtheta2 = (rho1 * np.sin(theta2) * sin_dtheta - y_num * cos_dtheta) / (sin_dtheta ** 2)
         
-        # Assemble Jacobian matrix
-        J = np.array([
+        return np.array([
             [dx_drho1, dx_dtheta1, dx_drho2, dx_dtheta2],
             [dy_drho1, dy_dtheta1, dy_drho2, dy_dtheta2]
         ])
-        
-        return J
     

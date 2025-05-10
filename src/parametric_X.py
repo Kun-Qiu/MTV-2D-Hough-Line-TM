@@ -2,11 +2,11 @@ from utility.py_import import plt, np, convolve2d, dataclass, field, List, Tuple
 
 @dataclass
 class ParametricX:
-    center : Tuple[float, float]
-    shape  : Tuple[float, float, float, float, float]
-    image  : Optional[np.ndarray]
+    center: Tuple[float, float]
+    shape : Tuple[float, float, float, float, float]
+    image : Optional[np.ndarray]
 
-    params : List[float] = field(init=False)
+    params: List[float] = field(init=False)
 
     def __post_init__(self):
         self._validate_inputs()
@@ -101,16 +101,14 @@ class ParametricX:
         # Normalization of template and image patch
         template_mean, template_std = np.mean(template), np.std(template)
         img_mean, img_std = np.mean(img_patch), np.std(img_patch)
-
         template_norm = (template - template_mean) / (template_std + 1e-9)
         img_norm = (img_patch - img_mean) / (img_std + 1e-9)
 
         scaled_diff = (img_norm - template_norm) * img_std
         corr_coef = np.corrcoef(template_norm.flatten(), img_norm.flatten())[0, 1]
-        # corr_coef = np.sum(template_norm*img_norm) / len(template_norm.ravel())
+
         if np.isnan(corr_coef):
             corr_coef = -np.inf
-        
         result['correlation'] = corr_coef
         result['background']  = ((1 - template_mean) / template_std * img_std) + img_mean
         result['difference']  = scaled_diff

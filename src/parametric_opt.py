@@ -8,24 +8,25 @@ class ParameterOptimizer:
     num_interval: int = 5
     generation  : int = 3
     shrnk_factor: int = 2
-    lock_angle  : bool = False
-    verbose     : bool = False
 
-    rad    : Tuple[float, float, float, float, float, float] = field(init=False)
-    n_rad  : Tuple[int, int, int, int, int, int] = field(init=False)
+    lock_angle: bool = False
+    verbose   : bool = False
+
+    rad   : Tuple[float, float, float, float, float, float] = field(init=False)
+    n_rad : Tuple[int, int, int, int, int, int] = field(init=False)
 
     def __post_init__(self):
         shape = self.parametric_X.shape
 
         self.rad = np.array([
-            self.uncertainty * 2, self.uncertainty * 2,
-            np.arctan(self.uncertainty / shape[4]),
-            np.arctan(self.uncertainty / shape[4]), 
-            np.min([shape[2], 1 - shape[2]]) / 2, 
-            0.75 * shape[2]
+            self.uncertainty*2, self.uncertainty*2,
+            np.arctan(self.uncertainty/shape[4]),
+            np.arctan(self.uncertainty/shape[4]), 
+            np.min([shape[2], 1-shape[2]])/2, 
+            0.75*shape[2]
             ])
         
-        NRPos = np.ceil(self.num_interval / 2)
+        NRPos = np.ceil(self.num_interval/2)
         self.n_rad = np.array([
             NRPos, NRPos, self.num_interval, self.num_interval, 
             self.num_interval, self.num_interval
@@ -37,13 +38,6 @@ class ParameterOptimizer:
             print(f"#### Initial radius: {self.__format_verbose(self.rad)}")
             print(f"#### Initial number of intervals: {self.__format_verbose(self.n_rad)}")
             print("#############################################################################")
-    
-
-    def set_rad_i(self, i:int, rad:float) -> None:
-        if i < 0 or i >= len(self.rad):
-            raise IndexError("Index out of bounds for rad array")
-        self.rad[i] = rad
-        return None
 
 
     @staticmethod
@@ -64,7 +58,7 @@ class ParameterOptimizer:
             ])
         
         max_steps = (self.generation * (num_params + 1)) + 1
-        corr = np.full(max_steps, np.nan) #1D array for each template
+        corr = np.full(max_steps, np.nan) # 1D array for each template
         
         try:
             warnings.filterwarnings("error")
@@ -80,22 +74,23 @@ class ParameterOptimizer:
 
             for G in range(self.generation):
                 cur_rad = self.rad / (self.shrnk_factor ** G)
-                corr_idx = G * (num_params + 1) + 1
+                corr_idx = (G * (num_params + 1)) + 1
+                G_s = G + 1
 
                 if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
                     x_vals = np.linspace(
                         self.parametric_X.params[0] - cur_rad[0],
                         self.parametric_X.params[0] + cur_rad[0] + 1e-8,
-                        num=int(2*self.n_rad[0]+1)
+                        num=int(2*(self.n_rad[0]*G_s)+1)
                         )
                     
                     y_vals = np.linspace(
                         self.parametric_X.params[1] - cur_rad[1],
                         self.parametric_X.params[1] + cur_rad[1] + 1e-8,
-                        num=int(2*self.n_rad[1]+1)
+                        num=int(2*(self.n_rad[1]*G_s)+1)
                         )
+                    
                     xx, yy = np.meshgrid(x_vals, y_vals)
-
                     params_batch = np.tile(self.parametric_X.params, (xx.size, 1))
                     params_batch[:, 0] = xx.ravel()
                     params_batch[:, 1] = yy.ravel()
@@ -114,7 +109,7 @@ class ParameterOptimizer:
                 if self.lock_angle:
                     ang_vals = np.linspace(
                         -cur_rad[2], cur_rad[2], 
-                        num=int(2*self.n_rad[2]+1)
+                        num=int(2*(self.n_rad[2]*G_s)+1)
                         )
                     
                     params_batch = np.tile(self.parametric_X.params, (len(ang_vals), 1))
@@ -134,7 +129,7 @@ class ParameterOptimizer:
                     for ang_idx in [2, 3]:
                         ang_vals = np.linspace(
                             -cur_rad[ang_idx], cur_rad[ang_idx], 
-                            num=int(2*self.n_rad[ang_idx]+1)
+                            num=int(2*(self.n_rad[ang_idx]*G_s)+1)
                             )
                         params_batch = np.tile(self.parametric_X.params, (len(ang_vals), 1))
                         params_batch[:, ang_idx] += ang_vals
@@ -152,7 +147,7 @@ class ParameterOptimizer:
                 for p_idx in [4, 5]:
                     p_vals = np.linspace(
                         -cur_rad[p_idx], cur_rad[p_idx], 
-                        num=int(2*self.n_rad[p_idx]+1)
+                        num=int(2*(self.n_rad[p_idx]*G_s)+1)
                         )
                     params_batch = np.tile(self.parametric_X.params, (len(p_vals), 1))
                     params_batch[:, p_idx] += p_vals
@@ -165,6 +160,8 @@ class ParameterOptimizer:
                     self.parametric_X.params[p_idx] += best_dp
                     corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.params)['correlation']
                     corr_idx += 1
+
+        #ToDo Implement a convergence checker
 
         except Warning as w:
             print(f"Warning encountered during optimization: {w}")

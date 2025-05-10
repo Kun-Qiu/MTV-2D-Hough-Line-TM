@@ -33,15 +33,15 @@ class HoughTM:
 
     def __post_init__(self):
         shape = (self.num_lines, self.num_lines)
-        if self.uncertainty is not None:
-            solve_uncert = True
+        if self.uncertainty is None:
+            approx_uncert = True
         else:
-            solve_uncert = False
+            approx_uncert = False
 
         self.grid_T0 = T0GridStruct(
             shape, 
             self.path_ref, 
-            solve_uncert=solve_uncert,
+            solve_uncert=approx_uncert,
             num_lines=self.num_lines, 
             threshold=self.threshold, 
             density=self.density,
@@ -64,9 +64,6 @@ class HoughTM:
         
 
     def _optimize(self, grid_obj, visualize=False) -> None:
-        """
-        Optimize the parameters of the template matching algorithm
-        """
         for i in range(grid_obj.shape[0]):
             for j in range(grid_obj.shape[1]):
                 if grid_obj.grid[i, j] is not None and grid_obj.params[i, j] is not None:
@@ -78,9 +75,9 @@ class HoughTM:
                         image=grid_obj.image
                         )
                     
-                    if self.uncertainty is not None:
+                    if self.uncertainty is None:
                         pred_uncertainty = self.grid_T0.uncertainty[i, j]
-                        self.uncertainty = np.average([
+                        self.uncertainty = np.max([
                             pred_uncertainty[0], 
                             pred_uncertainty[1] 
                             ])
@@ -134,12 +131,12 @@ class HoughTM:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_vorticity().")
         
-        rows, cols      = self.grid_T0.shape
-        vort_field      = np.full((rows, cols, 3), np.nan)  # (x, y, w)
-        vel_field       = self.get_velocity(dt=dt)
+        rows, cols = self.grid_T0.shape
+        vort_field = np.full((rows, cols, 3), np.nan)  # (x, y, w)
+        vel_field  = self.get_velocity(dt=dt)
 
-        x, y    = vel_field[..., 0], vel_field[..., 1]
-        vx, vy  = vel_field[..., 2], vel_field[..., 3]
+        x, y   = vel_field[..., 0], vel_field[..., 1]
+        vx, vy = vel_field[..., 2], vel_field[..., 3]
         vort_field[..., 0] = x
         vort_field[..., 1] = y
 

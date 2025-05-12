@@ -2,10 +2,9 @@ from utility.py_import import np, plt, tri, dataclass, field, Tuple
 import matplotlib.tri as tri
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
-from src.parametric_X import ParametricX
+# from src.parametric_X import ParametricX
+from cython_build.parametric_x.parametric_X import ParametricX
 from src.parametric_opt import ParameterOptimizer
-import multiprocessing as mp
-
 
 @dataclass
 class HoughTM:
@@ -91,7 +90,8 @@ class HoughTM:
                     optimizer.quad_optimize()
                     if visualize:
                         optimizer.visualize()
-                    grid_obj.grid[i, j] = parametricX_obj.params[0:2]
+                    grid_obj.grid[i, j] = parametricX_obj.get_params()[0:2]
+                    # grid_obj.grid[i,j] = parametricX_obj.params[0:2]
         print("Optimization complete.")
 
 

@@ -1,3 +1,4 @@
+# cython_build/parametric_x/parametric_X_c.pxd
 # cython: language_level=3
 cimport numpy as np
 
@@ -7,8 +8,6 @@ cdef class ParametricX:
     cdef public tuple shape
     cdef public object image
     cdef double[7] c_params
-    
-    # Class Functions
 
     # Callable by Cython only 
     cdef void _validate_inputs(self) except *
@@ -16,13 +15,14 @@ cdef class ParametricX:
     cdef tuple _parametric_template(self, double* params)
 
     cdef dict _correlate(self, double* params)
-    
-    @staticmethod
-    cdef double[:, :] _rotation_matrix(double angle, bint ccw=*)
 
-    cdef np.ndarray get_parametric_X(self, double* params)
-    
     # Callable by Python and Cython
-    cpdef dict correlate(self, list params)
+    cpdef dict correlate(self, np.ndarray params)
     
     cpdef void visualize(self)
+
+    cpdef np.ndarray get_params(self)
+
+    cpdef void update_params(self, np.ndarray i, np.ndarray vals)
+
+    cpdef tuple get_parametric_X(self)

@@ -1,5 +1,6 @@
 from utility.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
-from src.parametric_X import ParametricX
+# from src.parametric_X import ParametricX
+from cython_build.parametric_x.parametric_X import ParametricX
 
 @dataclass
 class ParameterOptimizer:
@@ -34,7 +35,7 @@ class ParameterOptimizer:
         
         if self.verbose:
             print("#############################################################################")
-            print(f"#### Initial parameters: {self.__format_verbose(self.parametric_X.params)}")
+            print(f"#### Initial parameters: {self.__format_verbose(self.parametric_X.get_params())}")
             print(f"#### Initial radius: {self.__format_verbose(self.rad)}")
             print(f"#### Initial number of intervals: {self.__format_verbose(self.n_rad)}")
             print("#############################################################################")
@@ -69,7 +70,7 @@ class ParameterOptimizer:
                 image=self.parametric_X.image
                 )
             
-            cur_corr = self.parametric_X.correlate(self.parametric_X.params)
+            cur_corr = self.parametric_X.correlate(self.parametric_X.get_params())
             corr[0] = cur_corr['correlation']
 
             for G in range(self.generation):
@@ -78,19 +79,19 @@ class ParameterOptimizer:
 
                 if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
                     x_vals = np.linspace(
-                        self.parametric_X.params[0] - cur_rad[0],
-                        self.parametric_X.params[0] + cur_rad[0] + 1e-8,
+                        self.parametric_X.get_params()[0] - cur_rad[0],
+                        self.parametric_X.get_params()[0] + cur_rad[0] + 1e-8,
                         num=int(2*(self.n_rad[0])+1)
                         )
                     
                     y_vals = np.linspace(
-                        self.parametric_X.params[1] - cur_rad[1],
-                        self.parametric_X.params[1] + cur_rad[1] + 1e-8,
+                        self.parametric_X.get_params()[1] - cur_rad[1],
+                        self.parametric_X.get_params()[1] + cur_rad[1] + 1e-8,
                         num=int(2*(self.n_rad[1])+1)
                         )
                     
                     xx, yy = np.meshgrid(x_vals, y_vals)
-                    params_batch = np.tile(self.parametric_X.params, (xx.size, 1))
+                    params_batch = np.tile(self.parametric_X.get_params(), (xx.size, 1))
                     params_batch[:, 0] = xx.ravel()
                     params_batch[:, 1] = yy.ravel()
 
@@ -100,8 +101,8 @@ class ParameterOptimizer:
                         (x_vals[0], x_vals[-1]), 
                         (y_vals[0], y_vals[-1])
                         )
-                    self.parametric_X.params[0], self.parametric_X.params[1] = opt_x, opt_y
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.params)['correlation']
+                    self.parametric_X.update_params([0, 1], [opt_x, opt_y])
+                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
                     corr_idx += 1
 
                 # Vectorized angle optimization
@@ -111,7 +112,7 @@ class ParameterOptimizer:
                         num=int(2*(self.n_rad[2])+1)
                         )
                     
-                    params_batch = np.tile(self.parametric_X.params, (len(ang_vals), 1))
+                    params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
                     params_batch[:, 2] += ang_vals
                     params_batch[:, 3] += ang_vals
                     ang_corrs = self.__correlate_batch(params_batch, temp_opt)
@@ -120,9 +121,9 @@ class ParameterOptimizer:
                     if (a_coeff >= 0) or (best_da < ang_vals[0]) or (best_da > ang_vals[-1]):
                         best_da = ang_vals[np.argmax(ang_corrs)]
                     
-                    self.parametric_X.params[2] += best_da
-                    self.parametric_X.params[3] += best_da
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.params)['correlation']
+                    a1 = self.parametric_X.get_params()[2] + best_da
+                    self.parametric_X.update_params([2, 3], [a1, a1])
+                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
                     corr_idx += 1
                 else:
                     for ang_idx in [2, 3]:
@@ -130,7 +131,7 @@ class ParameterOptimizer:
                             -cur_rad[ang_idx], cur_rad[ang_idx], 
                             num=int(2*(self.n_rad[ang_idx])+1)
                             )
-                        params_batch = np.tile(self.parametric_X.params, (len(ang_vals), 1))
+                        params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
                         params_batch[:, ang_idx] += ang_vals
                         ang_corrs = self.__correlate_batch(params_batch, temp_opt)
                         
@@ -138,17 +139,17 @@ class ParameterOptimizer:
                         if (a_coeff >= 0) or (best_da < ang_vals[0]) or (best_da > ang_vals[-1]):
                             best_da = ang_vals[np.argmax(ang_corrs)]
                         
-                        self.parametric_X.params[ang_idx] += best_da
-                        corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.params)['correlation']
+                        a1 = self.parametric_X.get_params()[ang_idx] + best_da
+                        self.parametric_X.update_params([ang_idx], [a1])
+                        corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
                         corr_idx += 1
 
-                # Vectorized parameter optimization (4,5)
                 for p_idx in [4, 5]:
                     p_vals = np.linspace(
                         -cur_rad[p_idx], cur_rad[p_idx], 
                         num=int(2*(self.n_rad[p_idx])+1)
                         )
-                    params_batch = np.tile(self.parametric_X.params, (len(p_vals), 1))
+                    params_batch = np.tile(self.parametric_X.get_params(), (len(p_vals), 1))
                     params_batch[:, p_idx] += p_vals
                     p_corrs = self.__correlate_batch(params_batch, temp_opt)
                     
@@ -156,8 +157,9 @@ class ParameterOptimizer:
                     if (a_coeff >= 0) or (best_dp < p_vals[0]) or (best_dp > p_vals[-1]):
                         best_dp = p_vals[np.argmax(p_corrs)]
                     
-                    self.parametric_X.params[p_idx] += best_dp
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.params)['correlation']
+                    a1 = self.parametric_X.get_params()[p_idx] + best_dp
+                    self.parametric_X.update_params([p_idx], [a1])
+                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
                     corr_idx += 1
 
         except Warning as w:
@@ -169,7 +171,7 @@ class ParameterOptimizer:
             warnings.filterwarnings("default")
         
         if self.verbose:
-            print(f"Optimized parameters: {self.__format_verbose(self.parametric_X.params)}")
+            print(f"Optimized parameters: {self.__format_verbose(self.parametric_X.get_params())}")
         return corr
 
 
@@ -220,9 +222,8 @@ class ParameterOptimizer:
             opt_y = y_vals[max_idx[0]]
         
         return opt_x, opt_y
-
-
-def visualize(self) -> None:
+    
+    def visualize(self) -> None:
         img = self.parametric_X.image
         if img is None:
             raise ValueError("No image available for visualization")

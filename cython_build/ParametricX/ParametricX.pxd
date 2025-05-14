@@ -4,23 +4,21 @@ cimport numpy as np
 
 cdef class ParametricX:
     # Class Variables
-    cdef public tuple center
-    cdef public tuple shape
-    cdef public object image
-    cdef double[7] c_params
+    cdef: 
+        public tuple center
+        public tuple shape
+        public object image
+        double[7] c_params
+        double[:, ::1] image_view
 
     # Callable by Cython only 
     cdef void validate_inputs(self) except *
     
-    cdef void parametric_template(
-        self, 
-        double* params, 
-        double[:, ::1] template, 
-        int* min_col, 
-        int* min_row
-        )
+    cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil
 
-    cdef void _correlate(self, double* params, double* corr)
+    cdef void _correlate(self, double* params, double* corr) nogil
+
+    cdef double* get_params_ptr(self) nogil
 
     # Callable by Python and Cython
     cpdef dict correlate(self, np.ndarray params)

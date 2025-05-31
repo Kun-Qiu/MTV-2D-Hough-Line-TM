@@ -1,12 +1,12 @@
 # cython: language_level=3, boundscheck=False, wraparound=False, cdivision=True
 # distutils: language = c++
-# cython_build/ParametricOpt/ParametricOpt.pyx
+# cython_build/ParametricOPT/ParametricOpt.pyx
 
 from utility.py_import import np, plt
 from libc.math cimport atan, fabs, INFINITY
+from cython cimport boundscheck, wraparound
 
 cimport numpy as np
-cimport cython
 
 cdef extern from * nogil:
     """
@@ -16,8 +16,8 @@ cdef extern from * nogil:
     double c_sqrt "sqrt"(double) nogil
     double c_atan "atan"(double) nogil
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
+@boundscheck(False)
+@wraparound(True)
 cdef class ParameterOptimizer:
     def __init__(
             self, 
@@ -31,16 +31,16 @@ cdef class ParameterOptimizer:
             ):
 
         self.parametric_X = parametric_X
-        cdef:
-            tuple shape = self.parametric_X.shape
-            int NRPos = <int>np.ceil(self.num_interval / 2.0)
-
         self.uncertainty = uncertainty
         self.num_interval = num_interval
         self.generation = generation
         self.shrnk_factor = shrnk_factor
         self.lock_angle = lock_angle
         self.verbose = verbose
+
+        cdef:
+            tuple shape = self.parametric_X.shape
+            int NRPos = <int>np.ceil(self.num_interval / 2.0)
         
         self.rad[0] = self.uncertainty * 2
         self.rad[1] = self.uncertainty * 2
@@ -81,7 +81,7 @@ cdef class ParameterOptimizer:
         return arr
     
 
-    cdef double[::1] correlate_batch(self, double[:, ::1] params, ParametricX temp_opt) nogil:
+    cdef double correlate(self, double* param, ParametricX X_obj) nogil:
         cdef:
             Py_ssize_t i, n = params.shape[0]
             double[::1] corrs
@@ -99,13 +99,16 @@ cdef class ParameterOptimizer:
 
 
     cdef void quad_fit_1D(self, double[::1] values, double[::1] corrs, double* opt_x, double* a_coeff) nogil:
-        cdef:
-            Py_ssize_t i, max_idx = 0
-            bint homogeneous = True
-            double first_val = values[0]
-            double[:] values_view = values
-            double[:] corrs_view = corrs
+    cdef:
+        Py_ssize_t i, max_idx = 0
+        bint homogeneous = True
+        double first_val = values[0]
+        double x, y, x2, x3, x4
+        double sum_x4 = 0.0, sum_x3 = 0.0, sum_x2 = 0.0, sum_x = 0.0, sum_1 = 0.0
+        double sum_x2y = 0.0, sum_xy = 0.0, sum_y = 0.0
+        double det, det_a, det_b, det_c, a, b, c, optimal
 
+        # Check homogeneity
         for i in range(1, values.shape[0]):
             if values[i] != first_val:
                 homogeneous = False
@@ -119,41 +122,83 @@ cdef class ParameterOptimizer:
             a_coeff[0] = 0.0
             return
 
-        with gil:
-            try:
-                values_np = np.asarray(values)
-                corrs_np = np.asarray(corrs)
-                
-                coeffs = np.polyfit(values_np, corrs_np, 2)
-                a = coeffs[0]
-                
-                if a >= 0: 
-                    max_idx = np.argmax(corrs_np)
-                    opt_x[0] = values_np[max_idx]
-                    a_coeff[0] = a
-                else:
-                    optimal = -coeffs[1] / (2 * coeffs[0])
-                    
-                    if optimal < values_np[0]:
-                        optimal = values_np[0]
-                    elif optimal > values_np[-1]:
-                        optimal = values_np[-1]
-                    
-                    opt_x[0] = optimal
-                    a_coeff[0] = a
-                    
-            except np.linalg.LinAlgError:
-                max_idx = np.argmax(corrs_np)
-                opt_x[0] = values_np[max_idx]
-                a_coeff[0] = 0.0
+        # Compute sums for quadratic fit
+        sum_1 = values.shape[0]
+        for i in range(values.shape[0]):
+            x = values[i]
+            y = corrs[i]
+            x2 = x * x
+            x3 = x2 * x
+            x4 = x3 * x
+            sum_x4 += x4
+            sum_x3 += x3
+            sum_x2 += x2
+            sum_x += x
+            sum_x2y += x2 * y
+            sum_xy += x * y
+            sum_y += y
+
+        # Compute determinant of the matrix
+        det = (sum_x4 * (sum_x2 * sum_1 - sum_x * sum_x) 
+            - sum_x3 * (sum_x3 * sum_1 - sum_x * sum_x2) 
+            + sum_x2 * (sum_x3 * sum_x - sum_x2 * sum_x2))
+
+        if fabs(det) < 1e-12:
+            # Singular matrix, find max index
+            max_idx = 0
+            for i in range(1, corrs.shape[0]):
+                if corrs[i] > corrs[max_idx]:
+                    max_idx = i
+            opt_x[0] = values[max_idx]
+            a_coeff[0] = 0.0
+            return
+
+        # Compute coefficients using Cramer's rule
+        det_a = (sum_x2y * (sum_x2 * sum_1 - sum_x * sum_x) 
+                - sum_x3 * (sum_xy * sum_1 - sum_x * sum_y) 
+                + sum_x2 * (sum_xy * sum_x - sum_x2 * sum_y))
+        det_b = (sum_x4 * (sum_xy * sum_1 - sum_x * sum_y) 
+                - sum_x2y * (sum_x3 * sum_1 - sum_x * sum_x2) 
+                + sum_x2 * (sum_x3 * sum_y - sum_xy * sum_x2))
+        det_c = (sum_x4 * (sum_x2 * sum_y - sum_x * sum_xy) 
+                - sum_x3 * (sum_x3 * sum_y - sum_x * sum_x2y) 
+                + sum_x2y * (sum_x3 * sum_x - sum_x2 * sum_x2))
+
+        a = det_a / det
+        b = det_b / det
+        c = det_c / det
+
+        if a >= 0:
+            # Find max index
+            max_idx = 0
+            for i in range(1, corrs.shape[0]):
+                if corrs[i] > corrs[max_idx]:
+                    max_idx = i
+            opt_x[0] = values[max_idx]
+            a_coeff[0] = a
+        else:
+            optimal = -b / (2 * a)
+            if optimal < values[0]:
+                optimal = values[0]
+            elif optimal > values[values.shape[0] - 1]:
+                optimal = values[values.shape[0] - 1]
+            
+            opt_x[0] = optimal
+            a_coeff[0] = a
 
     
     cdef void quad_fit_2D(self, double[::1] x_vals, double[::1] y_vals, double[:, ::1] corr_matrix, double* opt_x, double* opt_y) nogil:
         cdef:
             Py_ssize_t i, j, max_i = 0, max_j = 0
             double max_val = -INFINITY
-            double[::1] row_vals, col_vals
+            double x, y, x2, x3, x4, y2, y3, y4
+            double sum_x4, sum_x3, sum_x2, sum_x, sum_1_x
+            double sum_x2y, sum_xy, sum_y_x
+            double sum_y4, sum_y3, sum_y2, sum_y, sum_1_y
+            double sum_y2x, sum_yx, sum_x_y
+            double det, det_a, det_b, det_c, a, b, c, optimal
 
+        # Find maximum correlation index
         for i in range(corr_matrix.shape[0]):
             for j in range(corr_matrix.shape[1]):
                 if corr_matrix[i, j] > max_val:
@@ -161,167 +206,298 @@ cdef class ParameterOptimizer:
                     max_i = i
                     max_j = j
 
-        # X-direction fit -----------------------------------------------------
-        with gil:
-            try:
-                row_np = np.asarray(corr_matrix[max_i, :])
-                x_np = np.asarray(x_vals)
-                
-                x_coeffs = np.polyfit(x_np, row_np, 2)
-                a_x = x_coeffs[0]
-                
-                if a_x < 0:  # Valid maximum
-                    opt_x_candidate = -x_coeffs[1] / (2 * x_coeffs[0])
-                    if opt_x_candidate >= x_np[0] and opt_x_candidate <= x_np[-1]:
-                        opt_x[0] = opt_x_candidate
-                    else:
-                        opt_x[0] = x_np[max_j]
-                else:
-                    opt_x[0] = x_np[max_j]
-                    
-            except np.linalg.LinAlgError:
-                opt_x[0] = x_np[max_j]
+        # X-direction fit ---------------------------------------------------------
+        sum_x4 = 0.0
+        sum_x3 = 0.0
+        sum_x2 = 0.0
+        sum_x = 0.0
+        sum_1_x = x_vals.shape[0]
+        sum_x2y = 0.0
+        sum_xy = 0.0
+        sum_y_x = 0.0
 
-        # Y-direction fit -----------------------------------------------------
-        with gil:
-            try:
-                col_np = np.asarray(corr_matrix[:, max_j])
-                y_np = np.asarray(y_vals)
+        for j in range(x_vals.shape[0]):
+            x = x_vals[j]
+            y = corr_matrix[max_i, j]
+            x2 = x * x
+            x3 = x2 * x
+            x4 = x3 * x
+            sum_x4 += x4
+            sum_x3 += x3
+            sum_x2 += x2
+            sum_x += x
+            sum_x2y += x2 * y
+            sum_xy += x * y
+            sum_y_x += y
+
+        det = (sum_x4 * (sum_x2 * sum_1_x - sum_x * sum_x) 
+            - sum_x3 * (sum_x3 * sum_1_x - sum_x * sum_x2) 
+            + sum_x2 * (sum_x3 * sum_x - sum_x2 * sum_x2))
+
+        if fabs(det) < 1e-12:
+            opt_x[0] = x_vals[max_j]
+        else:
+            det_a = (sum_x2y * (sum_x2 * sum_1_x - sum_x * sum_x) 
+                    - sum_x3 * (sum_xy * sum_1_x - sum_x * sum_y_x) 
+                    + sum_x2 * (sum_xy * sum_x - sum_x2 * sum_y_x))
+            det_b = (sum_x4 * (sum_xy * sum_1_x - sum_x * sum_y_x) 
+                    - sum_x2y * (sum_x3 * sum_1_x - sum_x * sum_x2) 
+                    + sum_x2 * (sum_x3 * sum_y_x - sum_xy * sum_x2))
+            det_c = (sum_x4 * (sum_x2 * sum_y_x - sum_x * sum_xy) 
+                    - sum_x3 * (sum_x3 * sum_y_x - sum_x * sum_x2y) 
+                    + sum_x2y * (sum_x3 * sum_x - sum_x2 * sum_x2))
+
+            a = det_a / det
+            b = det_b / det
+            c = det_c / det
+
+            if a < 0:
+                optimal = -b / (2 * a)
+                if optimal < x_vals[0]:
+                    optimal = x_vals[0]
+                elif optimal > x_vals[x_vals.shape[0] - 1]:
+                    optimal = x_vals[x_vals.shape[0] - 1]
+                opt_x[0] = optimal
+            else:
+                opt_x[0] = x_vals[max_j]
+
+        # Y-direction fit ---------------------------------------------------------
+        sum_y4 = 0.0
+        sum_y3 = 0.0
+        sum_y2 = 0.0
+        sum_y = 0.0
+        sum_1_y = y_vals.shape[0]
+        sum_y2x = 0.0
+        sum_yx = 0.0
+        sum_x_y = 0.0
+
+        for i in range(y_vals.shape[0]):
+            y = y_vals[i]
+            x_val = corr_matrix[i, max_j]
+            y2 = y * y
+            y3 = y2 * y
+            y4 = y3 * y
+            sum_y4 += y4
+            sum_y3 += y3
+            sum_y2 += y2
+            sum_y += y
+            sum_y2x += y2 * x_val
+            sum_yx += y * x_val
+            sum_x_y += x_val
+
+        det = (sum_y4 * (sum_y2 * sum_1_y - sum_y * sum_y) 
+            - sum_y3 * (sum_y3 * sum_1_y - sum_y * sum_y2) 
+            + sum_y2 * (sum_y3 * sum_y - sum_y2 * sum_y2))
+
+        if fabs(det) < 1e-12:
+            opt_y[0] = y_vals[max_i]
+        else:
+            det_a = (sum_y2x * (sum_y2 * sum_1_y - sum_y * sum_y) 
+                    - sum_y3 * (sum_yx * sum_1_y - sum_y * sum_x_y) 
+                    + sum_y2 * (sum_yx * sum_y - sum_y2 * sum_x_y))
+            det_b = (sum_y4 * (sum_yx * sum_1_y - sum_y * sum_x_y) 
+                    - sum_y2x * (sum_y3 * sum_1_y - sum_y * sum_y2) 
+                    + sum_y2 * (sum_y3 * sum_x_y - sum_yx * sum_y2))
+            det_c = (sum_y4 * (sum_y2 * sum_x_y - sum_y * sum_yx) 
+                    - sum_y3 * (sum_y3 * sum_x_y - sum_y * sum_y2x) 
+                    + sum_y2x * (sum_y3 * sum_y - sum_y2 * sum_y2))
+
+            a = det_a / det
+            b = det_b / det
+            c = det_c / det
+
+            if a < 0:
+                optimal = -b / (2 * a)
+                if optimal < y_vals[0]:
+                    optimal = y_vals[0]
+                elif optimal > y_vals[y_vals.shape[0] - 1]:
+                    optimal = y_vals[y_vals.shape[0] - 1]
                 
-                y_coeffs = np.polyfit(y_np, col_np, 2)
-                a_y = y_coeffs[0]
-                
-                if a_y < 0: 
-                    opt_y_candidate = -y_coeffs[1] / (2 * y_coeffs[0])
-                    if opt_y_candidate >= y_np[0] and opt_y_candidate <= y_np[-1]:
-                        opt_y[0] = opt_y_candidate
-                    else:
-                        opt_y[0] = y_np[max_i]
-                else:
-                    opt_y[0] = y_np[max_i]
-                    
-            except np.linalg.LinAlgError:
-                opt_y[0] = y_np[max_i]
+                opt_y[0] = optimal
+            else:
+                opt_y[0] = y_vals[max_i]
 
 
     cpdef void quad_optimize(self):
         cdef:
-            int num_params, max_steps, corr_idx, G, i, p_idx
-            double[::1] x_vals, y_vals, delta_vals
-            double[:] corr
-            double[:, ::1] params_batch, grid_corrs
-            double opt_val,opt_x, opt_y, corr_val = -1.0
+            int num_params, max_steps
+            int corr_idx, ang_idx, p_idx
+            double[::1] x_vals, y_vals, ang_vals, p_vals
             double[6] cur_rad
-            double* current_params
-            ParametricX temp_opt
+            double* cur_param
+            double[:, ::1] params_batch
+
+            double[::1] corr, corr_result
+            double opt_x, opt_y, start_x, stop_x, start_y, stop_y
+            double best_da, best_dp, a_coeff, corr_val = -1.0
+            Py_ssize_t xi, yi, idx, nx, ny, best_idx, G, i, j
             
         num_params = 0
         for i in range(2, 6):  # From index 2 to 5
             if self.rad[i] > 0 and self.n_rad[i] > 0:
                 num_params += 1
-
-        max_steps = (self.generation * (num_params + 1)) + 1
-        corr = np.full(max_steps, np.nan)
-            
-        temp_opt = ParametricX(
-            center=self.parametric_X.center,
-            shape=self.parametric_X.shape,
-            image=self.parametric_X.image
-            )
         
-        current_params = self.parametric_X.get_params_ptr()
-        self.parametric_X._correlate(current_params, &corr_val)
+        max_steps = (self.generation * (num_params + 1)) + 1
+        corr = np.full(max_steps, np.nan)    
+            
+        self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
         corr[0] = corr_val
 
         for G in range(self.generation):
-            # Update current radii
             for i in range(6):
                 cur_rad[i] = self.rad[i] / (self.shrnk_factor ** G)
             corr_idx = (G * (num_params + 1)) + 1
 
-            # Position optimization (x,y)
             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
-                x_vals = np.linspace(
-                    current_params[0] - cur_rad[0],
-                    current_params[0] + cur_rad[0] + 1e-8,
-                    2*self.n_rad[0]+1
-                )
-                y_vals = np.linspace(
-                    current_params[1] - cur_rad[1],
-                    current_params[1] + cur_rad[1] + 1e-8,
-                    2*self.n_rad[1]+1
-                )
+                cur_param = self.parametric_X.get_params_ptr()
+                print("before", (cur_param[0], cur_param[1]))
                 
-                # Create parameter grid
-                xx, yy = np.meshgrid(x_vals, y_vals)
-                params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (xx.size, 1))
-                params_batch[:, 0] = xx.ravel()
-                params_batch[:, 1] = yy.ravel()
+                x_vals = self.linspace(
+                    cur_param[0] - cur_rad[0],
+                    cur_param[0] + cur_rad[0] + 1e-8,
+                    <int>(2*(self.n_rad[0])+1)
+                    )
+                
+                y_vals = self.linspace(
+                    cur_param[1] - cur_rad[1],
+                    cur_param[1] + cur_rad[1] + 1e-8,
+                    <int>(2*(self.n_rad[1])+1)
+                    )
+                
+                nx, ny = x_vals.shape[0], y_vals.shape[0]
+                
+                params_batch = np.tile(self.parametric_X.get_params(), ((nx * ny), 1))
+                
+                for i in range(nx):
+                    for j in range(ny):
+                        idx = i * ny + j
+                        params_batch[idx, 0] = x_vals[i]
+                        params_batch[idx, 1] = y_vals[j]
 
-                # Get correlations and find optimal
-                grid_corrs = np.asarray(self.correlate_batch(params_batch, temp_opt)).reshape(xx.shape)
-                opt_x, opt_y = self.parametric_X.center
+                grid_corrs = np.asarray(
+                    self.correlate_batch(params_batch, self.parametric_X)
+                    ).reshape(nx, ny)
+
                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
-                
-                # Update parameters
+                print("after", (opt_x, opt_y))
                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
-                self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
-                corr[corr_idx] = corr_val
+                self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val) 
+                corr[corr_idx] = corr_val               
                 corr_idx += 1
 
-            # Angle optimization
+            # Vectorized angle optimization
             if self.lock_angle:
-                delta_vals = np.linspace(-cur_rad[2], cur_rad[2], 2*self.n_rad[2]+1)
-                params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+                ang_vals = self.linspace(
+                    -cur_rad[2], cur_rad[2], 
+                    <int>(2*(self.n_rad[2])+1)
+                    )
+
+                params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
+                idx = 0
+                for yi in range(ny):
+                    for xi in range(nx):
+                        idx = i * ny + j
+                        params_batch[idx, 2] += ang_vals[xi]
+                        params_batch[idx, 3] += ang_vals[yi]
+                        idx += 1
                 
-                # Explicit assignment to avoid memoryview issues
-                for i in range(len(delta_vals)):
-                    params_batch[i, 2] = current_params[2] + delta_vals[i]
-                    params_batch[i, 3] = current_params[3] + delta_vals[i]
+                ang_corrs = self.correlate_batch(params_batch, self.parametric_X)
+                self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
                 
-                ang_corrs = self.correlate_batch(params_batch, temp_opt)
-                best_da, a_coeff = 0.0, 0.0
-                self.quad_fit_1D(delta_vals, ang_corrs, &best_da, &a_coeff)
+                self.parametric_X.update_params(
+                    [2, 3],
+                    [self.parametric_X.get_params_ptr()[2] + best_da, self.parametric_X.get_params_ptr()[2] + best_da]
+                    )
                 
-                new_ang = current_params[2] + best_da
-                self.parametric_X.update_params([2, 3], [new_ang, new_ang])
                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
                 corr[corr_idx] = corr_val
                 corr_idx += 1
             else:
-                for p_idx in [2, 3]:
-                    if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
-                        delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
-                        params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
-                        
-                        for i in range(len(delta_vals)):
-                            params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
-                        
-                        p_corrs = self.correlate_batch(params_batch, temp_opt)
-                        best_dp, a_coeff = 0.0, 0.0
-                        self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
-                        
-                        new_val = current_params[p_idx] + best_dp
-                        self.parametric_X.update_params([p_idx], [new_val])
-                        self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
-                        corr[corr_idx] = corr_val
-                        corr_idx += 1
+                for ang_idx in range(2, 4):
+                    ang_vals = self.linspace(
+                        -cur_rad[ang_idx], cur_rad[ang_idx], 
+                        <int>(2*(self.n_rad[ang_idx])+1)
+                        )
 
-            # Parameter optimization (p4, p5)
-            for p_idx in [4, 5]:
-                if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
-                    delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
-                    params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+                    params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
                     
-                    for i in range(len(delta_vals)):
-                        params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
+                    idx = 0
+                    for yi in range(ny):
+                        for xi in range(nx):
+                            params_batch[idx, ang_idx] += ang_vals[xi]
                     
-                    p_corrs = self.correlate_batch(params_batch, temp_opt)
-                    best_dp, a_coeff = 0.0, 0.0
-                    self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
-                    
-                    new_val = current_params[p_idx] + best_dp
-                    self.parametric_X.update_params([p_idx], [new_val])
+                    ang_corrs = self.correlate_batch(params_batch, self.parametric_X) 
+                    self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
+
+                    self.parametric_X.update_params([ang_idx], [self.parametric_X.get_params()[ang_idx] + best_da])
+                
                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
-                    corr[corr_idx] = corr_val
+                    corr[corr_idx] = corr_val                    
                     corr_idx += 1
+
+            for p_idx in range(4, 6):
+                p_vals = self.linspace(
+                    -cur_rad[p_idx], cur_rad[p_idx], 
+                    <int>(2*(self.n_rad[p_idx])+1)
+                    )
+
+                params_batch = np.tile(self.parametric_X.get_params(), (len(p_vals), 1))
+                
+                idx = 0
+                for yi in range(ny):
+                    for xi in range(nx):
+                        params_batch[idx, p_idx] += p_vals[xi]
+                
+                p_corrs = self.correlate_batch(params_batch, self.parametric_X)
+                self.quad_fit_1D(p_vals, p_corrs, &best_dp, &a_coeff)
+                
+                self.parametric_X.update_params([p_idx], [self.parametric_X.get_params()[p_idx] + best_dp])
+                self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+                corr[corr_idx] = corr_val
+                corr_idx += 1
+
+        # if self.verbose:
+        #     print(f"Optimized parameters: {self.format_verbose(self.parametric_X.get_params())}")
+        # return corr
+
+
+    # Visualization method remains commented as in original code
+
+    # cpdef void visualize(self):
+    #     cdef:
+    #         np.ndarray img = self.parametric_X.image
+    #         np.ndarray template
+    #         (np.ndarray, tuple) template_info = self.parametric_X.get_parametric_X()
+        
+    #     if img is None:
+    #         raise ValueError("No image available for visualization")
+    #     template, (min_col, min_row) = template_info
+        
+    #     fig = plt.figure(figsize=(15, 7))
+    #     ax1 = plt.subplot(121)
+    #     plt.imshow(img, cmap='gray')
+        
+    #     cdef list extent = [
+    #         min_col - 0.5, min_col + template.shape[1] - 0.5,
+    #         min_row + template.shape[0] - 0.5, min_row - 0.5
+    #     ]
+    #     plt.imshow(template, cmap='viridis', alpha=0.7, extent=extent)
+    #     plt.scatter(
+    #         min_col + template.shape[1]/2, 
+    #         min_row + template.shape[0]/2,
+    #         c='cyan', marker='o', s=100,
+    #         edgecolors='red', linewidth=1
+    #     )
+    #     plt.title("Template Overlay on Image")
+        
+    #     ax2 = plt.subplot(122)
+    #     plt.imshow(template, cmap='viridis', 
+    #             extent=[min_col, min_col + template.shape[1],
+    #                     min_row + template.shape[0], min_row])
+    #     plt.colorbar(label='Template Intensity')
+    #     plt.title("Template Only")
+    #     plt.xlabel("X Position")
+    #     plt.ylabel("Y Position")
+
+    #     plt.tight_layout()
+    #     plt.show()

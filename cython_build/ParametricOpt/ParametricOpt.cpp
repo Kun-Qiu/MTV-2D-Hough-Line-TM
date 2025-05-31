@@ -2100,8 +2100,8 @@ static struct __pyx_vtabstruct_11ParametricX_ParametricX *__pyx_vtabptr_11Parame
 
 
 /* "ParametricOpt.pyx":21
- * @cython.boundscheck(False)
- * @cython.wraparound(False)
+ * @boundscheck(False)
+ * @wraparound(True)
  * cdef class ParameterOptimizer:             # <<<<<<<<<<<<<<
  *     def __init__(
  *             self,
@@ -2785,12 +2785,6 @@ static PyObject* __Pyx_PyInt_MultiplyCObj(PyObject *op1, PyObject *op2, long int
     (inplace ? PyNumber_InPlaceMultiply(op1, op2) : PyNumber_Multiply(op1, op2))
 #endif
 
-/* IterFinish.proto */
-static CYTHON_INLINE int __Pyx_IterFinish(void);
-
-/* UnpackItemEndCheck.proto */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected);
-
 /* PyObject_GenericGetAttrNoDict.proto */
 #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000
 static CYTHON_INLINE PyObject* __Pyx_PyObject_GenericGetAttrNoDict(PyObject* obj, PyObject* attr_name);
@@ -3095,9 +3089,6 @@ static CYTHON_INLINE PyObject *__pyx_memview_get_double(const char *itemp);
 static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *obj);
 
 /* ObjectToMemviewSlice.proto */
-static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *, int writable_flag);
-
-/* ObjectToMemviewSlice.proto */
 static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *, int writable_flag);
 
 /* RealImag.proto */
@@ -3320,12 +3311,6 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
 
 /* Module declarations from "libc.math" */
 
-/* Module declarations from "cython.view" */
-
-/* Module declarations from "cython.dataclasses" */
-
-/* Module declarations from "cython" */
-
 /* Module declarations from "ParametricOpt" */
 static PyObject *__pyx_collections_abc_Sequence = 0;
 static PyObject *generic = 0;
@@ -3386,6 +3371,7 @@ int __pyx_module_is_main_ParametricOpt = 0;
 /* Implementation of "ParametricOpt" */
 /* #### Code section: global_var ### */
 static PyObject *__pyx_builtin_range;
+static PyObject *__pyx_builtin_print;
 static PyObject *__pyx_builtin_TypeError;
 static PyObject *__pyx_builtin_OverflowError;
 static PyObject *__pyx_builtin_enumerate;
@@ -3410,7 +3396,7 @@ static const char __pyx_k_gc[] = "gc";
 static const char __pyx_k_id[] = "id";
 static const char __pyx_k_np[] = "np";
 static const char __pyx_k__11[] = ", ";
-static const char __pyx_k__33[] = "?";
+static const char __pyx_k__31[] = "?";
 static const char __pyx_k_abc[] = "abc";
 static const char __pyx_k_and[] = " and ";
 static const char __pyx_k_got[] = " (got ";
@@ -3436,21 +3422,21 @@ static const char __pyx_k_stop[] = "stop";
 static const char __pyx_k_test[] = "__test__";
 static const char __pyx_k_tile[] = "tile";
 static const char __pyx_k_ASCII[] = "ASCII";
+static const char __pyx_k_after[] = "after";
 static const char __pyx_k_class[] = "__class__";
 static const char __pyx_k_count[] = "count";
 static const char __pyx_k_dtype[] = "dtype";
 static const char __pyx_k_empty[] = "empty";
 static const char __pyx_k_error[] = "error";
 static const char __pyx_k_flags[] = "flags";
-static const char __pyx_k_image[] = "image";
 static const char __pyx_k_index[] = "index";
+static const char __pyx_k_print[] = "print";
 static const char __pyx_k_range[] = "range";
-static const char __pyx_k_ravel[] = "ravel";
 static const char __pyx_k_shape[] = "shape";
 static const char __pyx_k_start[] = "start";
 static const char __pyx_k_state[] = "state";
 static const char __pyx_k_argmax[] = "argmax";
-static const char __pyx_k_center[] = "center";
+static const char __pyx_k_before[] = "before";
 static const char __pyx_k_dict_2[] = "_dict";
 static const char __pyx_k_enable[] = "enable";
 static const char __pyx_k_encode[] = "encode";
@@ -3476,8 +3462,6 @@ static const char __pyx_k_Ellipsis[] = "Ellipsis";
 static const char __pyx_k_Sequence[] = "Sequence";
 static const char __pyx_k_getstate[] = "__getstate__";
 static const char __pyx_k_itemsize[] = "itemsize";
-static const char __pyx_k_linspace[] = "linspace";
-static const char __pyx_k_meshgrid[] = "meshgrid";
 static const char __pyx_k_pyx_type[] = "__pyx_type";
 static const char __pyx_k_register[] = "register";
 static const char __pyx_k_setstate[] = "__setstate__";
@@ -3680,12 +3664,6 @@ typedef struct {
   #if CYTHON_USE_MODULE_STATE
   #endif
   #if CYTHON_USE_MODULE_STATE
-  #endif
-  #if CYTHON_USE_MODULE_STATE
-  #endif
-  #if CYTHON_USE_MODULE_STATE
-  #endif
-  #if CYTHON_USE_MODULE_STATE
   PyObject *__pyx_type_13ParametricOpt_ParameterOptimizer;
   PyObject *__pyx_type___pyx_array;
   PyObject *__pyx_type___pyx_MemviewEnum;
@@ -3742,20 +3720,21 @@ typedef struct {
   PyObject *__pyx_kp_u__11;
   PyObject *__pyx_kp_u__2;
   PyObject *__pyx_n_s__3;
-  PyObject *__pyx_n_s__33;
+  PyObject *__pyx_n_s__31;
   PyObject *__pyx_kp_u__6;
   PyObject *__pyx_kp_u__7;
   PyObject *__pyx_n_s_abc;
+  PyObject *__pyx_n_u_after;
   PyObject *__pyx_n_s_allocate_buffer;
   PyObject *__pyx_kp_u_and;
   PyObject *__pyx_n_s_argmax;
   PyObject *__pyx_n_s_asarray;
   PyObject *__pyx_n_s_asyncio_coroutines;
   PyObject *__pyx_n_s_base;
+  PyObject *__pyx_n_u_before;
   PyObject *__pyx_n_s_c;
   PyObject *__pyx_n_u_c;
   PyObject *__pyx_n_s_ceil;
-  PyObject *__pyx_n_s_center;
   PyObject *__pyx_n_s_class;
   PyObject *__pyx_n_s_class_getitem;
   PyObject *__pyx_n_s_cline_in_traceback;
@@ -3786,7 +3765,6 @@ typedef struct {
   PyObject *__pyx_kp_u_got;
   PyObject *__pyx_kp_u_got_differing_extents_in_dimensi;
   PyObject *__pyx_n_s_id;
-  PyObject *__pyx_n_s_image;
   PyObject *__pyx_n_s_import;
   PyObject *__pyx_n_s_index;
   PyObject *__pyx_n_s_initializing;
@@ -3795,11 +3773,9 @@ typedef struct {
   PyObject *__pyx_n_s_itemsize;
   PyObject *__pyx_kp_s_itemsize_0_for_cython_array;
   PyObject *__pyx_n_s_linalg;
-  PyObject *__pyx_n_s_linspace;
   PyObject *__pyx_n_s_lock_angle;
   PyObject *__pyx_n_s_main;
   PyObject *__pyx_n_s_memview;
-  PyObject *__pyx_n_s_meshgrid;
   PyObject *__pyx_n_s_minimum;
   PyObject *__pyx_n_s_mode;
   PyObject *__pyx_n_s_name;
@@ -3818,6 +3794,7 @@ typedef struct {
   PyObject *__pyx_n_s_pickle;
   PyObject *__pyx_n_s_plt;
   PyObject *__pyx_n_s_polyfit;
+  PyObject *__pyx_n_s_print;
   PyObject *__pyx_n_s_pyx_PickleError;
   PyObject *__pyx_n_s_pyx_checksum;
   PyObject *__pyx_n_s_pyx_result;
@@ -3828,7 +3805,6 @@ typedef struct {
   PyObject *__pyx_n_s_pyx_vtable;
   PyObject *__pyx_n_s_quad_optimize;
   PyObject *__pyx_n_s_range;
-  PyObject *__pyx_n_s_ravel;
   PyObject *__pyx_n_s_reduce;
   PyObject *__pyx_n_s_reduce_cython;
   PyObject *__pyx_n_s_reduce_ex;
@@ -3867,8 +3843,6 @@ typedef struct {
   PyObject *__pyx_int_1;
   PyObject *__pyx_int_2;
   PyObject *__pyx_int_3;
-  PyObject *__pyx_int_4;
-  PyObject *__pyx_int_5;
   PyObject *__pyx_int_2356874;
   PyObject *__pyx_int_19302915;
   PyObject *__pyx_int_65191616;
@@ -3892,16 +3866,14 @@ typedef struct {
   PyObject *__pyx_tuple__20;
   PyObject *__pyx_tuple__21;
   PyObject *__pyx_tuple__22;
-  PyObject *__pyx_tuple__23;
   PyObject *__pyx_tuple__24;
   PyObject *__pyx_tuple__26;
   PyObject *__pyx_tuple__28;
-  PyObject *__pyx_tuple__30;
+  PyObject *__pyx_codeobj__23;
   PyObject *__pyx_codeobj__25;
   PyObject *__pyx_codeobj__27;
   PyObject *__pyx_codeobj__29;
-  PyObject *__pyx_codeobj__31;
-  PyObject *__pyx_codeobj__32;
+  PyObject *__pyx_codeobj__30;
 } __pyx_mstate;
 
 #if CYTHON_USE_MODULE_STATE
@@ -4016,20 +3988,21 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u__11);
   Py_CLEAR(clear_module_state->__pyx_kp_u__2);
   Py_CLEAR(clear_module_state->__pyx_n_s__3);
-  Py_CLEAR(clear_module_state->__pyx_n_s__33);
+  Py_CLEAR(clear_module_state->__pyx_n_s__31);
   Py_CLEAR(clear_module_state->__pyx_kp_u__6);
   Py_CLEAR(clear_module_state->__pyx_kp_u__7);
   Py_CLEAR(clear_module_state->__pyx_n_s_abc);
+  Py_CLEAR(clear_module_state->__pyx_n_u_after);
   Py_CLEAR(clear_module_state->__pyx_n_s_allocate_buffer);
   Py_CLEAR(clear_module_state->__pyx_kp_u_and);
   Py_CLEAR(clear_module_state->__pyx_n_s_argmax);
   Py_CLEAR(clear_module_state->__pyx_n_s_asarray);
   Py_CLEAR(clear_module_state->__pyx_n_s_asyncio_coroutines);
   Py_CLEAR(clear_module_state->__pyx_n_s_base);
+  Py_CLEAR(clear_module_state->__pyx_n_u_before);
   Py_CLEAR(clear_module_state->__pyx_n_s_c);
   Py_CLEAR(clear_module_state->__pyx_n_u_c);
   Py_CLEAR(clear_module_state->__pyx_n_s_ceil);
-  Py_CLEAR(clear_module_state->__pyx_n_s_center);
   Py_CLEAR(clear_module_state->__pyx_n_s_class);
   Py_CLEAR(clear_module_state->__pyx_n_s_class_getitem);
   Py_CLEAR(clear_module_state->__pyx_n_s_cline_in_traceback);
@@ -4060,7 +4033,6 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_kp_u_got);
   Py_CLEAR(clear_module_state->__pyx_kp_u_got_differing_extents_in_dimensi);
   Py_CLEAR(clear_module_state->__pyx_n_s_id);
-  Py_CLEAR(clear_module_state->__pyx_n_s_image);
   Py_CLEAR(clear_module_state->__pyx_n_s_import);
   Py_CLEAR(clear_module_state->__pyx_n_s_index);
   Py_CLEAR(clear_module_state->__pyx_n_s_initializing);
@@ -4069,11 +4041,9 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_itemsize);
   Py_CLEAR(clear_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
   Py_CLEAR(clear_module_state->__pyx_n_s_linalg);
-  Py_CLEAR(clear_module_state->__pyx_n_s_linspace);
   Py_CLEAR(clear_module_state->__pyx_n_s_lock_angle);
   Py_CLEAR(clear_module_state->__pyx_n_s_main);
   Py_CLEAR(clear_module_state->__pyx_n_s_memview);
-  Py_CLEAR(clear_module_state->__pyx_n_s_meshgrid);
   Py_CLEAR(clear_module_state->__pyx_n_s_minimum);
   Py_CLEAR(clear_module_state->__pyx_n_s_mode);
   Py_CLEAR(clear_module_state->__pyx_n_s_name);
@@ -4092,6 +4062,7 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_pickle);
   Py_CLEAR(clear_module_state->__pyx_n_s_plt);
   Py_CLEAR(clear_module_state->__pyx_n_s_polyfit);
+  Py_CLEAR(clear_module_state->__pyx_n_s_print);
   Py_CLEAR(clear_module_state->__pyx_n_s_pyx_PickleError);
   Py_CLEAR(clear_module_state->__pyx_n_s_pyx_checksum);
   Py_CLEAR(clear_module_state->__pyx_n_s_pyx_result);
@@ -4102,7 +4073,6 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_n_s_pyx_vtable);
   Py_CLEAR(clear_module_state->__pyx_n_s_quad_optimize);
   Py_CLEAR(clear_module_state->__pyx_n_s_range);
-  Py_CLEAR(clear_module_state->__pyx_n_s_ravel);
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce);
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_cython);
   Py_CLEAR(clear_module_state->__pyx_n_s_reduce_ex);
@@ -4141,8 +4111,6 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_int_1);
   Py_CLEAR(clear_module_state->__pyx_int_2);
   Py_CLEAR(clear_module_state->__pyx_int_3);
-  Py_CLEAR(clear_module_state->__pyx_int_4);
-  Py_CLEAR(clear_module_state->__pyx_int_5);
   Py_CLEAR(clear_module_state->__pyx_int_2356874);
   Py_CLEAR(clear_module_state->__pyx_int_19302915);
   Py_CLEAR(clear_module_state->__pyx_int_65191616);
@@ -4166,16 +4134,14 @@ static int __pyx_m_clear(PyObject *m) {
   Py_CLEAR(clear_module_state->__pyx_tuple__20);
   Py_CLEAR(clear_module_state->__pyx_tuple__21);
   Py_CLEAR(clear_module_state->__pyx_tuple__22);
-  Py_CLEAR(clear_module_state->__pyx_tuple__23);
   Py_CLEAR(clear_module_state->__pyx_tuple__24);
   Py_CLEAR(clear_module_state->__pyx_tuple__26);
   Py_CLEAR(clear_module_state->__pyx_tuple__28);
-  Py_CLEAR(clear_module_state->__pyx_tuple__30);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__23);
   Py_CLEAR(clear_module_state->__pyx_codeobj__25);
   Py_CLEAR(clear_module_state->__pyx_codeobj__27);
   Py_CLEAR(clear_module_state->__pyx_codeobj__29);
-  Py_CLEAR(clear_module_state->__pyx_codeobj__31);
-  Py_CLEAR(clear_module_state->__pyx_codeobj__32);
+  Py_CLEAR(clear_module_state->__pyx_codeobj__30);
   return 0;
 }
 #endif
@@ -4268,20 +4234,21 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u__11);
   Py_VISIT(traverse_module_state->__pyx_kp_u__2);
   Py_VISIT(traverse_module_state->__pyx_n_s__3);
-  Py_VISIT(traverse_module_state->__pyx_n_s__33);
+  Py_VISIT(traverse_module_state->__pyx_n_s__31);
   Py_VISIT(traverse_module_state->__pyx_kp_u__6);
   Py_VISIT(traverse_module_state->__pyx_kp_u__7);
   Py_VISIT(traverse_module_state->__pyx_n_s_abc);
+  Py_VISIT(traverse_module_state->__pyx_n_u_after);
   Py_VISIT(traverse_module_state->__pyx_n_s_allocate_buffer);
   Py_VISIT(traverse_module_state->__pyx_kp_u_and);
   Py_VISIT(traverse_module_state->__pyx_n_s_argmax);
   Py_VISIT(traverse_module_state->__pyx_n_s_asarray);
   Py_VISIT(traverse_module_state->__pyx_n_s_asyncio_coroutines);
   Py_VISIT(traverse_module_state->__pyx_n_s_base);
+  Py_VISIT(traverse_module_state->__pyx_n_u_before);
   Py_VISIT(traverse_module_state->__pyx_n_s_c);
   Py_VISIT(traverse_module_state->__pyx_n_u_c);
   Py_VISIT(traverse_module_state->__pyx_n_s_ceil);
-  Py_VISIT(traverse_module_state->__pyx_n_s_center);
   Py_VISIT(traverse_module_state->__pyx_n_s_class);
   Py_VISIT(traverse_module_state->__pyx_n_s_class_getitem);
   Py_VISIT(traverse_module_state->__pyx_n_s_cline_in_traceback);
@@ -4312,7 +4279,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_kp_u_got);
   Py_VISIT(traverse_module_state->__pyx_kp_u_got_differing_extents_in_dimensi);
   Py_VISIT(traverse_module_state->__pyx_n_s_id);
-  Py_VISIT(traverse_module_state->__pyx_n_s_image);
   Py_VISIT(traverse_module_state->__pyx_n_s_import);
   Py_VISIT(traverse_module_state->__pyx_n_s_index);
   Py_VISIT(traverse_module_state->__pyx_n_s_initializing);
@@ -4321,11 +4287,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_itemsize);
   Py_VISIT(traverse_module_state->__pyx_kp_s_itemsize_0_for_cython_array);
   Py_VISIT(traverse_module_state->__pyx_n_s_linalg);
-  Py_VISIT(traverse_module_state->__pyx_n_s_linspace);
   Py_VISIT(traverse_module_state->__pyx_n_s_lock_angle);
   Py_VISIT(traverse_module_state->__pyx_n_s_main);
   Py_VISIT(traverse_module_state->__pyx_n_s_memview);
-  Py_VISIT(traverse_module_state->__pyx_n_s_meshgrid);
   Py_VISIT(traverse_module_state->__pyx_n_s_minimum);
   Py_VISIT(traverse_module_state->__pyx_n_s_mode);
   Py_VISIT(traverse_module_state->__pyx_n_s_name);
@@ -4344,6 +4308,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_pickle);
   Py_VISIT(traverse_module_state->__pyx_n_s_plt);
   Py_VISIT(traverse_module_state->__pyx_n_s_polyfit);
+  Py_VISIT(traverse_module_state->__pyx_n_s_print);
   Py_VISIT(traverse_module_state->__pyx_n_s_pyx_PickleError);
   Py_VISIT(traverse_module_state->__pyx_n_s_pyx_checksum);
   Py_VISIT(traverse_module_state->__pyx_n_s_pyx_result);
@@ -4354,7 +4319,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_n_s_pyx_vtable);
   Py_VISIT(traverse_module_state->__pyx_n_s_quad_optimize);
   Py_VISIT(traverse_module_state->__pyx_n_s_range);
-  Py_VISIT(traverse_module_state->__pyx_n_s_ravel);
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce);
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_cython);
   Py_VISIT(traverse_module_state->__pyx_n_s_reduce_ex);
@@ -4393,8 +4357,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_int_1);
   Py_VISIT(traverse_module_state->__pyx_int_2);
   Py_VISIT(traverse_module_state->__pyx_int_3);
-  Py_VISIT(traverse_module_state->__pyx_int_4);
-  Py_VISIT(traverse_module_state->__pyx_int_5);
   Py_VISIT(traverse_module_state->__pyx_int_2356874);
   Py_VISIT(traverse_module_state->__pyx_int_19302915);
   Py_VISIT(traverse_module_state->__pyx_int_65191616);
@@ -4418,16 +4380,14 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
   Py_VISIT(traverse_module_state->__pyx_tuple__20);
   Py_VISIT(traverse_module_state->__pyx_tuple__21);
   Py_VISIT(traverse_module_state->__pyx_tuple__22);
-  Py_VISIT(traverse_module_state->__pyx_tuple__23);
   Py_VISIT(traverse_module_state->__pyx_tuple__24);
   Py_VISIT(traverse_module_state->__pyx_tuple__26);
   Py_VISIT(traverse_module_state->__pyx_tuple__28);
-  Py_VISIT(traverse_module_state->__pyx_tuple__30);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__23);
   Py_VISIT(traverse_module_state->__pyx_codeobj__25);
   Py_VISIT(traverse_module_state->__pyx_codeobj__27);
   Py_VISIT(traverse_module_state->__pyx_codeobj__29);
-  Py_VISIT(traverse_module_state->__pyx_codeobj__31);
-  Py_VISIT(traverse_module_state->__pyx_codeobj__32);
+  Py_VISIT(traverse_module_state->__pyx_codeobj__30);
   return 0;
 }
 #endif
@@ -4496,12 +4456,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #if CYTHON_USE_MODULE_STATE
 #endif
 #if CYTHON_USE_MODULE_STATE
-#endif
-#if CYTHON_USE_MODULE_STATE
-#endif
-#if CYTHON_USE_MODULE_STATE
-#endif
-#if CYTHON_USE_MODULE_STATE
 #define __pyx_type_13ParametricOpt_ParameterOptimizer __pyx_mstate_global->__pyx_type_13ParametricOpt_ParameterOptimizer
 #define __pyx_type___pyx_array __pyx_mstate_global->__pyx_type___pyx_array
 #define __pyx_type___pyx_MemviewEnum __pyx_mstate_global->__pyx_type___pyx_MemviewEnum
@@ -4558,20 +4512,21 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u__11 __pyx_mstate_global->__pyx_kp_u__11
 #define __pyx_kp_u__2 __pyx_mstate_global->__pyx_kp_u__2
 #define __pyx_n_s__3 __pyx_mstate_global->__pyx_n_s__3
-#define __pyx_n_s__33 __pyx_mstate_global->__pyx_n_s__33
+#define __pyx_n_s__31 __pyx_mstate_global->__pyx_n_s__31
 #define __pyx_kp_u__6 __pyx_mstate_global->__pyx_kp_u__6
 #define __pyx_kp_u__7 __pyx_mstate_global->__pyx_kp_u__7
 #define __pyx_n_s_abc __pyx_mstate_global->__pyx_n_s_abc
+#define __pyx_n_u_after __pyx_mstate_global->__pyx_n_u_after
 #define __pyx_n_s_allocate_buffer __pyx_mstate_global->__pyx_n_s_allocate_buffer
 #define __pyx_kp_u_and __pyx_mstate_global->__pyx_kp_u_and
 #define __pyx_n_s_argmax __pyx_mstate_global->__pyx_n_s_argmax
 #define __pyx_n_s_asarray __pyx_mstate_global->__pyx_n_s_asarray
 #define __pyx_n_s_asyncio_coroutines __pyx_mstate_global->__pyx_n_s_asyncio_coroutines
 #define __pyx_n_s_base __pyx_mstate_global->__pyx_n_s_base
+#define __pyx_n_u_before __pyx_mstate_global->__pyx_n_u_before
 #define __pyx_n_s_c __pyx_mstate_global->__pyx_n_s_c
 #define __pyx_n_u_c __pyx_mstate_global->__pyx_n_u_c
 #define __pyx_n_s_ceil __pyx_mstate_global->__pyx_n_s_ceil
-#define __pyx_n_s_center __pyx_mstate_global->__pyx_n_s_center
 #define __pyx_n_s_class __pyx_mstate_global->__pyx_n_s_class
 #define __pyx_n_s_class_getitem __pyx_mstate_global->__pyx_n_s_class_getitem
 #define __pyx_n_s_cline_in_traceback __pyx_mstate_global->__pyx_n_s_cline_in_traceback
@@ -4602,7 +4557,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_kp_u_got __pyx_mstate_global->__pyx_kp_u_got
 #define __pyx_kp_u_got_differing_extents_in_dimensi __pyx_mstate_global->__pyx_kp_u_got_differing_extents_in_dimensi
 #define __pyx_n_s_id __pyx_mstate_global->__pyx_n_s_id
-#define __pyx_n_s_image __pyx_mstate_global->__pyx_n_s_image
 #define __pyx_n_s_import __pyx_mstate_global->__pyx_n_s_import
 #define __pyx_n_s_index __pyx_mstate_global->__pyx_n_s_index
 #define __pyx_n_s_initializing __pyx_mstate_global->__pyx_n_s_initializing
@@ -4611,11 +4565,9 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_itemsize __pyx_mstate_global->__pyx_n_s_itemsize
 #define __pyx_kp_s_itemsize_0_for_cython_array __pyx_mstate_global->__pyx_kp_s_itemsize_0_for_cython_array
 #define __pyx_n_s_linalg __pyx_mstate_global->__pyx_n_s_linalg
-#define __pyx_n_s_linspace __pyx_mstate_global->__pyx_n_s_linspace
 #define __pyx_n_s_lock_angle __pyx_mstate_global->__pyx_n_s_lock_angle
 #define __pyx_n_s_main __pyx_mstate_global->__pyx_n_s_main
 #define __pyx_n_s_memview __pyx_mstate_global->__pyx_n_s_memview
-#define __pyx_n_s_meshgrid __pyx_mstate_global->__pyx_n_s_meshgrid
 #define __pyx_n_s_minimum __pyx_mstate_global->__pyx_n_s_minimum
 #define __pyx_n_s_mode __pyx_mstate_global->__pyx_n_s_mode
 #define __pyx_n_s_name __pyx_mstate_global->__pyx_n_s_name
@@ -4634,6 +4586,7 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_pickle __pyx_mstate_global->__pyx_n_s_pickle
 #define __pyx_n_s_plt __pyx_mstate_global->__pyx_n_s_plt
 #define __pyx_n_s_polyfit __pyx_mstate_global->__pyx_n_s_polyfit
+#define __pyx_n_s_print __pyx_mstate_global->__pyx_n_s_print
 #define __pyx_n_s_pyx_PickleError __pyx_mstate_global->__pyx_n_s_pyx_PickleError
 #define __pyx_n_s_pyx_checksum __pyx_mstate_global->__pyx_n_s_pyx_checksum
 #define __pyx_n_s_pyx_result __pyx_mstate_global->__pyx_n_s_pyx_result
@@ -4644,7 +4597,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_n_s_pyx_vtable __pyx_mstate_global->__pyx_n_s_pyx_vtable
 #define __pyx_n_s_quad_optimize __pyx_mstate_global->__pyx_n_s_quad_optimize
 #define __pyx_n_s_range __pyx_mstate_global->__pyx_n_s_range
-#define __pyx_n_s_ravel __pyx_mstate_global->__pyx_n_s_ravel
 #define __pyx_n_s_reduce __pyx_mstate_global->__pyx_n_s_reduce
 #define __pyx_n_s_reduce_cython __pyx_mstate_global->__pyx_n_s_reduce_cython
 #define __pyx_n_s_reduce_ex __pyx_mstate_global->__pyx_n_s_reduce_ex
@@ -4683,8 +4635,6 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_int_1 __pyx_mstate_global->__pyx_int_1
 #define __pyx_int_2 __pyx_mstate_global->__pyx_int_2
 #define __pyx_int_3 __pyx_mstate_global->__pyx_int_3
-#define __pyx_int_4 __pyx_mstate_global->__pyx_int_4
-#define __pyx_int_5 __pyx_mstate_global->__pyx_int_5
 #define __pyx_int_2356874 __pyx_mstate_global->__pyx_int_2356874
 #define __pyx_int_19302915 __pyx_mstate_global->__pyx_int_19302915
 #define __pyx_int_65191616 __pyx_mstate_global->__pyx_int_65191616
@@ -4708,16 +4658,14 @@ static int __pyx_m_traverse(PyObject *m, visitproc visit, void *arg) {
 #define __pyx_tuple__20 __pyx_mstate_global->__pyx_tuple__20
 #define __pyx_tuple__21 __pyx_mstate_global->__pyx_tuple__21
 #define __pyx_tuple__22 __pyx_mstate_global->__pyx_tuple__22
-#define __pyx_tuple__23 __pyx_mstate_global->__pyx_tuple__23
 #define __pyx_tuple__24 __pyx_mstate_global->__pyx_tuple__24
 #define __pyx_tuple__26 __pyx_mstate_global->__pyx_tuple__26
 #define __pyx_tuple__28 __pyx_mstate_global->__pyx_tuple__28
-#define __pyx_tuple__30 __pyx_mstate_global->__pyx_tuple__30
+#define __pyx_codeobj__23 __pyx_mstate_global->__pyx_codeobj__23
 #define __pyx_codeobj__25 __pyx_mstate_global->__pyx_codeobj__25
 #define __pyx_codeobj__27 __pyx_mstate_global->__pyx_codeobj__27
 #define __pyx_codeobj__29 __pyx_mstate_global->__pyx_codeobj__29
-#define __pyx_codeobj__31 __pyx_mstate_global->__pyx_codeobj__31
-#define __pyx_codeobj__32 __pyx_mstate_global->__pyx_codeobj__32
+#define __pyx_codeobj__30 __pyx_mstate_global->__pyx_codeobj__30
 /* #### Code section: module_code ### */
 
 /* "carray.to_py":114
@@ -20718,7 +20666,7 @@ static CYTHON_INLINE NPY_DATETIMEUNIT __pyx_f_5numpy_get_datetime64_unit(PyObjec
 }
 
 /* "ParametricOpt.pyx":22
- * @cython.wraparound(False)
+ * @wraparound(True)
  * cdef class ParameterOptimizer:
  *     def __init__(             # <<<<<<<<<<<<<<
  *             self,
@@ -20915,7 +20863,7 @@ static int __pyx_pw_13ParametricOpt_18ParameterOptimizer_1__init__(PyObject *__p
   __pyx_r = __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(((struct __pyx_obj_13ParametricOpt_ParameterOptimizer *)__pyx_v_self), __pyx_v_parametric_X, __pyx_v_uncertainty, __pyx_v_num_interval, __pyx_v_generation, __pyx_v_shrnk_factor, __pyx_v_lock_angle, __pyx_v_verbose);
 
   /* "ParametricOpt.pyx":22
- * @cython.wraparound(False)
+ * @wraparound(True)
  * cdef class ParameterOptimizer:
  *     def __init__(             # <<<<<<<<<<<<<<
  *             self,
@@ -20958,8 +20906,8 @@ static int __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(struct __pyx_o
  *             ):
  * 
  *         self.parametric_X = parametric_X             # <<<<<<<<<<<<<<
- *         cdef:
- *             tuple shape = self.parametric_X.shape
+ *         self.uncertainty = uncertainty
+ *         self.num_interval = num_interval
  */
   __Pyx_INCREF((PyObject *)__pyx_v_parametric_X);
   __Pyx_GIVEREF((PyObject *)__pyx_v_parametric_X);
@@ -20967,8 +20915,62 @@ static int __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(struct __pyx_o
   __Pyx_DECREF((PyObject *)__pyx_v_self->parametric_X);
   __pyx_v_self->parametric_X = __pyx_v_parametric_X;
 
+  /* "ParametricOpt.pyx":34
+ * 
+ *         self.parametric_X = parametric_X
+ *         self.uncertainty = uncertainty             # <<<<<<<<<<<<<<
+ *         self.num_interval = num_interval
+ *         self.generation = generation
+ */
+  __pyx_v_self->uncertainty = __pyx_v_uncertainty;
+
   /* "ParametricOpt.pyx":35
  *         self.parametric_X = parametric_X
+ *         self.uncertainty = uncertainty
+ *         self.num_interval = num_interval             # <<<<<<<<<<<<<<
+ *         self.generation = generation
+ *         self.shrnk_factor = shrnk_factor
+ */
+  __pyx_v_self->num_interval = __pyx_v_num_interval;
+
+  /* "ParametricOpt.pyx":36
+ *         self.uncertainty = uncertainty
+ *         self.num_interval = num_interval
+ *         self.generation = generation             # <<<<<<<<<<<<<<
+ *         self.shrnk_factor = shrnk_factor
+ *         self.lock_angle = lock_angle
+ */
+  __pyx_v_self->generation = __pyx_v_generation;
+
+  /* "ParametricOpt.pyx":37
+ *         self.num_interval = num_interval
+ *         self.generation = generation
+ *         self.shrnk_factor = shrnk_factor             # <<<<<<<<<<<<<<
+ *         self.lock_angle = lock_angle
+ *         self.verbose = verbose
+ */
+  __pyx_v_self->shrnk_factor = __pyx_v_shrnk_factor;
+
+  /* "ParametricOpt.pyx":38
+ *         self.generation = generation
+ *         self.shrnk_factor = shrnk_factor
+ *         self.lock_angle = lock_angle             # <<<<<<<<<<<<<<
+ *         self.verbose = verbose
+ * 
+ */
+  __pyx_v_self->lock_angle = __pyx_v_lock_angle;
+
+  /* "ParametricOpt.pyx":39
+ *         self.shrnk_factor = shrnk_factor
+ *         self.lock_angle = lock_angle
+ *         self.verbose = verbose             # <<<<<<<<<<<<<<
+ * 
+ *         cdef:
+ */
+  __pyx_v_self->verbose = __pyx_v_verbose;
+
+  /* "ParametricOpt.pyx":42
+ * 
  *         cdef:
  *             tuple shape = self.parametric_X.shape             # <<<<<<<<<<<<<<
  *             int NRPos = <int>np.ceil(self.num_interval / 2.0)
@@ -20979,19 +20981,19 @@ static int __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(struct __pyx_o
   __pyx_v_shape = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
 
-  /* "ParametricOpt.pyx":36
+  /* "ParametricOpt.pyx":43
  *         cdef:
  *             tuple shape = self.parametric_X.shape
  *             int NRPos = <int>np.ceil(self.num_interval / 2.0)             # <<<<<<<<<<<<<<
  * 
- *         self.uncertainty = uncertainty
+ *         self.rad[0] = self.uncertainty * 2
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ceil); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_ceil); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyFloat_FromDouble((((double)__pyx_v_self->num_interval) / 2.0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble((((double)__pyx_v_self->num_interval) / 2.0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -21012,70 +21014,16 @@ static int __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(struct __pyx_o
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 36, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
-  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 36, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_As_int(__pyx_t_1); if (unlikely((__pyx_t_6 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_NRPos = ((int)__pyx_t_6);
 
-  /* "ParametricOpt.pyx":38
- *             int NRPos = <int>np.ceil(self.num_interval / 2.0)
- * 
- *         self.uncertainty = uncertainty             # <<<<<<<<<<<<<<
- *         self.num_interval = num_interval
- *         self.generation = generation
- */
-  __pyx_v_self->uncertainty = __pyx_v_uncertainty;
-
-  /* "ParametricOpt.pyx":39
- * 
- *         self.uncertainty = uncertainty
- *         self.num_interval = num_interval             # <<<<<<<<<<<<<<
- *         self.generation = generation
- *         self.shrnk_factor = shrnk_factor
- */
-  __pyx_v_self->num_interval = __pyx_v_num_interval;
-
-  /* "ParametricOpt.pyx":40
- *         self.uncertainty = uncertainty
- *         self.num_interval = num_interval
- *         self.generation = generation             # <<<<<<<<<<<<<<
- *         self.shrnk_factor = shrnk_factor
- *         self.lock_angle = lock_angle
- */
-  __pyx_v_self->generation = __pyx_v_generation;
-
-  /* "ParametricOpt.pyx":41
- *         self.num_interval = num_interval
- *         self.generation = generation
- *         self.shrnk_factor = shrnk_factor             # <<<<<<<<<<<<<<
- *         self.lock_angle = lock_angle
- *         self.verbose = verbose
- */
-  __pyx_v_self->shrnk_factor = __pyx_v_shrnk_factor;
-
-  /* "ParametricOpt.pyx":42
- *         self.generation = generation
- *         self.shrnk_factor = shrnk_factor
- *         self.lock_angle = lock_angle             # <<<<<<<<<<<<<<
- *         self.verbose = verbose
- * 
- */
-  __pyx_v_self->lock_angle = __pyx_v_lock_angle;
-
-  /* "ParametricOpt.pyx":43
- *         self.shrnk_factor = shrnk_factor
- *         self.lock_angle = lock_angle
- *         self.verbose = verbose             # <<<<<<<<<<<<<<
- * 
- *         self.rad[0] = self.uncertainty * 2
- */
-  __pyx_v_self->verbose = __pyx_v_verbose;
-
   /* "ParametricOpt.pyx":45
- *         self.verbose = verbose
+ *             int NRPos = <int>np.ceil(self.num_interval / 2.0)
  * 
  *         self.rad[0] = self.uncertainty * 2             # <<<<<<<<<<<<<<
  *         self.rad[1] = self.uncertainty * 2
@@ -21260,7 +21208,7 @@ static int __pyx_pf_13ParametricOpt_18ParameterOptimizer___init__(struct __pyx_o
   (__pyx_v_self->n_rad[5]) = __pyx_t_6;
 
   /* "ParametricOpt.pyx":22
- * @cython.wraparound(False)
+ * @wraparound(True)
  * cdef class ParameterOptimizer:
  *     def __init__(             # <<<<<<<<<<<<<<
  *             self,
@@ -21540,6 +21488,7 @@ static __Pyx_memviewslice __pyx_f_13ParametricOpt_18ParameterOptimizer_linspace(
  * 
  */
     __pyx_t_8 = 0;
+    if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_arr.shape[0];
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_arr.data) + __pyx_t_8)) )) = __pyx_v_start;
 
     /* "ParametricOpt.pyx":76
@@ -21591,6 +21540,7 @@ static __Pyx_memviewslice __pyx_f_13ParametricOpt_18ParameterOptimizer_linspace(
  * 
  */
     __pyx_t_8 = __pyx_v_i;
+    if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_arr.shape[0];
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_arr.data) + __pyx_t_8)) )) = (__pyx_v_start + (__pyx_v_i * __pyx_v_step));
   }
 
@@ -21798,6 +21748,8 @@ static __Pyx_memviewslice __pyx_f_13ParametricOpt_18ParameterOptimizer_correlate
  */
     __pyx_t_10 = __pyx_v_i;
     __pyx_t_11 = 0;
+    if (__pyx_t_10 < 0) __pyx_t_10 += __pyx_v_params.shape[0];
+    if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_params.shape[1];
     __pyx_v_params_ptr = (&(*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params.data + __pyx_t_10 * __pyx_v_params.strides[0]) )) + __pyx_t_11)) ))));
 
     /* "ParametricOpt.pyx":96
@@ -21817,6 +21769,7 @@ static __Pyx_memviewslice __pyx_f_13ParametricOpt_18ParameterOptimizer_correlate
  * 
  */
     __pyx_t_11 = __pyx_v_i;
+    if (__pyx_t_11 < 0) __pyx_t_11 += __pyx_v_corrs.shape[0];
     *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corrs.data) + __pyx_t_11)) )) = __pyx_v_corr;
   }
 
@@ -21947,6 +21900,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *             double[:] corrs_view = corrs
  */
   __pyx_t_1 = 0;
+  if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_values.shape[0];
   __pyx_v_first_val = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_values.data) + __pyx_t_1)) )));
 
   /* "ParametricOpt.pyx":106
@@ -21989,6 +21943,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *                 break
  */
     __pyx_t_1 = __pyx_v_i;
+    if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_values.shape[0];
     __pyx_t_5 = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_values.data) + __pyx_t_1)) ))) != __pyx_v_first_val);
     if (__pyx_t_5) {
 
@@ -22058,7 +22013,9 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *             opt_x[0] = values[max_idx]
  */
       __pyx_t_1 = __pyx_v_i;
+      if (__pyx_t_1 < 0) __pyx_t_1 += __pyx_v_corrs.shape[0];
       __pyx_t_7 = __pyx_v_max_idx;
+      if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_corrs.shape[0];
       __pyx_t_5 = ((*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corrs.data) + __pyx_t_1)) ))) > (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corrs.data) + __pyx_t_7)) ))));
       if (__pyx_t_5) {
 
@@ -22089,6 +22046,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *             return
  */
     __pyx_t_7 = __pyx_v_max_idx;
+    if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_values.shape[0];
     (__pyx_v_opt_x[0]) = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_values.data) + __pyx_t_7)) )));
 
     /* "ParametricOpt.pyx":119
@@ -22333,7 +22291,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *                     a_coeff[0] = a
  *                 else:
  */
-              __pyx_t_11 = __Pyx_GetItemInt(__pyx_v_values_np, __pyx_v_max_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 132, __pyx_L15_error)
+              __pyx_t_11 = __Pyx_GetItemInt(__pyx_v_values_np, __pyx_v_max_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 132, __pyx_L15_error)
               __Pyx_GOTREF(__pyx_t_11);
               __pyx_t_16 = __pyx_PyFloat_AsDouble(__pyx_t_11); if (unlikely((__pyx_t_16 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 132, __pyx_L15_error)
               __Pyx_DECREF(__pyx_t_11); __pyx_t_11 = 0;
@@ -22428,7 +22386,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  *                         optimal = values_np[-1]
  * 
  */
-              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_values_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 139, __pyx_L15_error)
+              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_values_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 139, __pyx_L15_error)
               __Pyx_GOTREF(__pyx_t_13);
               __pyx_t_11 = PyObject_RichCompare(__pyx_v_optimal, __pyx_t_13, Py_GT); __Pyx_XGOTREF(__pyx_t_11); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 139, __pyx_L15_error)
               __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -22443,7 +22401,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  * 
  *                     opt_x[0] = optimal
  */
-                __pyx_t_11 = __Pyx_GetItemInt(__pyx_v_values_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 140, __pyx_L15_error)
+                __pyx_t_11 = __Pyx_GetItemInt(__pyx_v_values_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_11)) __PYX_ERR(0, 140, __pyx_L15_error)
                 __Pyx_GOTREF(__pyx_t_11);
                 __Pyx_DECREF_SET(__pyx_v_optimal, __pyx_t_11);
                 __pyx_t_11 = 0;
@@ -22572,7 +22530,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_1D(CYTHON_UNUS
  * 
  */
             if (unlikely(!__pyx_v_values_np)) { __Pyx_RaiseUnboundLocalError("values_np"); __PYX_ERR(0, 147, __pyx_L17_except_error) }
-            __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_values_np, __pyx_v_max_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 147, __pyx_L17_except_error)
+            __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_values_np, __pyx_v_max_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 147, __pyx_L17_except_error)
             __Pyx_GOTREF(__pyx_t_14);
             __pyx_t_16 = __pyx_PyFloat_AsDouble(__pyx_t_14); if (unlikely((__pyx_t_16 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 147, __pyx_L17_except_error)
             __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -22788,6 +22746,8 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_2D(CYTHON_UNUS
  */
       __pyx_t_7 = __pyx_v_i;
       __pyx_t_8 = __pyx_v_j;
+      if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_corr_matrix.shape[0];
+      if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_corr_matrix.shape[1];
       __pyx_t_9 = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_corr_matrix.data + __pyx_t_7 * __pyx_v_corr_matrix.strides[0]) )) + __pyx_t_8)) ))) > __pyx_v_max_val);
       if (__pyx_t_9) {
 
@@ -22800,6 +22760,8 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_2D(CYTHON_UNUS
  */
         __pyx_t_8 = __pyx_v_i;
         __pyx_t_7 = __pyx_v_j;
+        if (__pyx_t_8 < 0) __pyx_t_8 += __pyx_v_corr_matrix.shape[0];
+        if (__pyx_t_7 < 0) __pyx_t_7 += __pyx_v_corr_matrix.shape[1];
         __pyx_v_max_val = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_corr_matrix.data + __pyx_t_8 * __pyx_v_corr_matrix.strides[0]) )) + __pyx_t_7)) )));
 
         /* "ParametricOpt.pyx":161
@@ -22877,7 +22839,10 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_fit_2D(CYTHON_UNUS
             __PYX_INC_MEMVIEW(&__pyx_t_16, 1);
             {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_max_i;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_corr_matrix.shape[0];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_corr_matrix.strides[0];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
         __pyx_t_16.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
@@ -23058,7 +23023,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_16, 1, (PyObject *(*)(char *)) _
                 __pyx_t_9 = __pyx_t_19;
                 goto __pyx_L19_bool_binop_done;
               }
-              __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_x_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 175, __pyx_L11_error)
+              __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_x_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 175, __pyx_L11_error)
               __Pyx_GOTREF(__pyx_t_14);
               __pyx_t_13 = PyObject_RichCompare(__pyx_v_opt_x_candidate, __pyx_t_14, Py_LE); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 175, __pyx_L11_error)
               __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -23096,7 +23061,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_16, 1, (PyObject *(*)(char *)) _
  *                     opt_x[0] = x_np[max_j]
  */
               /*else*/ {
-                __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 178, __pyx_L11_error)
+                __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 178, __pyx_L11_error)
                 __Pyx_GOTREF(__pyx_t_13);
                 __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_13); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 178, __pyx_L11_error)
                 __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -23122,7 +23087,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_16, 1, (PyObject *(*)(char *)) _
  *             except np.linalg.LinAlgError:
  */
             /*else*/ {
-              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 180, __pyx_L11_error)
+              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 180, __pyx_L11_error)
               __Pyx_GOTREF(__pyx_t_13);
               __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_13); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 180, __pyx_L11_error)
               __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -23185,7 +23150,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_16, 1, (PyObject *(*)(char *)) _
  *         # Y-direction fit -----------------------------------------------------
  */
             if (unlikely(!__pyx_v_x_np)) { __Pyx_RaiseUnboundLocalError("x_np"); __PYX_ERR(0, 183, __pyx_L13_except_error) }
-            __pyx_t_17 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 183, __pyx_L13_except_error)
+            __pyx_t_17 = __Pyx_GetItemInt(__pyx_v_x_np, __pyx_v_max_j, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 183, __pyx_L13_except_error)
             __Pyx_GOTREF(__pyx_t_17);
             __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_17); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 183, __pyx_L13_except_error)
             __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
@@ -23293,7 +23258,10 @@ __pyx_t_23.strides[0] = __pyx_v_corr_matrix.strides[0];
 
 {
     Py_ssize_t __pyx_tmp_idx = __pyx_v_max_j;
+        Py_ssize_t __pyx_tmp_shape = __pyx_v_corr_matrix.shape[1];
     Py_ssize_t __pyx_tmp_stride = __pyx_v_corr_matrix.strides[1];
+        if (__pyx_tmp_idx < 0)
+            __pyx_tmp_idx += __pyx_tmp_shape;
         __pyx_t_23.data += __pyx_tmp_idx * __pyx_tmp_stride;
 }
 
@@ -23470,7 +23438,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_23, 1, (PyObject *(*)(char *)) _
                 __pyx_t_9 = __pyx_t_19;
                 goto __pyx_L34_bool_binop_done;
               }
-              __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_y_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 196, __pyx_L26_error)
+              __pyx_t_14 = __Pyx_GetItemInt(__pyx_v_y_np, -1L, long, 1, __Pyx_PyInt_From_long, 0, 1, 0); if (unlikely(!__pyx_t_14)) __PYX_ERR(0, 196, __pyx_L26_error)
               __Pyx_GOTREF(__pyx_t_14);
               __pyx_t_13 = PyObject_RichCompare(__pyx_v_opt_y_candidate, __pyx_t_14, Py_LE); __Pyx_XGOTREF(__pyx_t_13); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 196, __pyx_L26_error)
               __Pyx_DECREF(__pyx_t_14); __pyx_t_14 = 0;
@@ -23508,7 +23476,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_23, 1, (PyObject *(*)(char *)) _
  *                     opt_y[0] = y_np[max_i]
  */
               /*else*/ {
-                __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 199, __pyx_L26_error)
+                __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 199, __pyx_L26_error)
                 __Pyx_GOTREF(__pyx_t_13);
                 __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_13); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 199, __pyx_L26_error)
                 __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -23534,7 +23502,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_23, 1, (PyObject *(*)(char *)) _
  *             except np.linalg.LinAlgError:
  */
             /*else*/ {
-              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 201, __pyx_L26_error)
+              __pyx_t_13 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_13)) __PYX_ERR(0, 201, __pyx_L26_error)
               __Pyx_GOTREF(__pyx_t_13);
               __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_13); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 201, __pyx_L26_error)
               __Pyx_DECREF(__pyx_t_13); __pyx_t_13 = 0;
@@ -23600,7 +23568,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_23, 1, (PyObject *(*)(char *)) _
  * 
  */
             if (unlikely(!__pyx_v_y_np)) { __Pyx_RaiseUnboundLocalError("y_np"); __PYX_ERR(0, 204, __pyx_L28_except_error) }
-            __pyx_t_17 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 204, __pyx_L28_except_error)
+            __pyx_t_17 = __Pyx_GetItemInt(__pyx_v_y_np, __pyx_v_max_i, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 1, 0); if (unlikely(!__pyx_t_17)) __PYX_ERR(0, 204, __pyx_L28_except_error)
             __Pyx_GOTREF(__pyx_t_17);
             __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_17); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 204, __pyx_L28_except_error)
             __Pyx_DECREF(__pyx_t_17); __pyx_t_17 = 0;
@@ -23708,7 +23676,7 @@ __pyx_t_14 = __pyx_memoryview_fromslice(__pyx_t_23, 1, (PyObject *(*)(char *)) _
  * 
  *     cpdef void quad_optimize(self):             # <<<<<<<<<<<<<<
  *         cdef:
- *             int num_params, max_steps, corr_idx, G, i, p_idx
+ *             int num_params, max_steps
  */
 
 static PyObject *__pyx_pw_13ParametricOpt_18ParameterOptimizer_3quad_optimize(PyObject *__pyx_v_self, 
@@ -23722,37 +23690,40 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
   int __pyx_v_num_params;
   int __pyx_v_max_steps;
   int __pyx_v_corr_idx;
-  int __pyx_v_G;
-  int __pyx_v_i;
+  int __pyx_v_ang_idx;
   int __pyx_v_p_idx;
   __Pyx_memviewslice __pyx_v_x_vals = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_memviewslice __pyx_v_y_vals = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_delta_vals = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_corr = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_ang_vals = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_p_vals = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_cur_rad[6];
+  double *__pyx_v_cur_param;
   __Pyx_memviewslice __pyx_v_params_batch = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_grid_corrs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_corr = { 0, 0, { 0 }, { 0 }, { 0 } };
   double __pyx_v_opt_x;
   double __pyx_v_opt_y;
-  double __pyx_v_corr_val;
-  double __pyx_v_cur_rad[6];
-  double *__pyx_v_current_params;
-  struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_temp_opt = 0;
-  PyObject *__pyx_v_xx = NULL;
-  PyObject *__pyx_v_yy = NULL;
-  __Pyx_memviewslice __pyx_v_ang_corrs = { 0, 0, { 0 }, { 0 }, { 0 } };
   double __pyx_v_best_da;
-  double __pyx_v_a_coeff;
-  double __pyx_v_new_ang;
-  __Pyx_memviewslice __pyx_v_p_corrs = { 0, 0, { 0 }, { 0 }, { 0 } };
   double __pyx_v_best_dp;
-  double __pyx_v_new_val;
+  double __pyx_v_a_coeff;
+  double __pyx_v_corr_val;
+  Py_ssize_t __pyx_v_xi;
+  Py_ssize_t __pyx_v_yi;
+  Py_ssize_t __pyx_v_idx;
+  Py_ssize_t __pyx_v_nx;
+  Py_ssize_t __pyx_v_ny;
+  Py_ssize_t __pyx_v_G;
+  Py_ssize_t __pyx_v_i;
+  Py_ssize_t __pyx_v_j;
+  PyObject *__pyx_v_grid_corrs = NULL;
+  __Pyx_memviewslice __pyx_v_ang_corrs = { 0, 0, { 0 }, { 0 }, { 0 } };
+  __Pyx_memviewslice __pyx_v_p_corrs = { 0, 0, { 0 }, { 0 }, { 0 } };
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
   PyObject *__pyx_t_3 = NULL;
   PyObject *__pyx_t_4 = NULL;
   unsigned int __pyx_t_5;
-  int __pyx_t_6;
+  Py_ssize_t __pyx_t_6;
   int __pyx_t_7;
   int __pyx_t_8;
   PyObject *__pyx_t_9 = NULL;
@@ -23761,20 +23732,16 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
   Py_ssize_t __pyx_t_12;
   int __pyx_t_13;
   int __pyx_t_14;
-  int __pyx_t_15;
-  PyObject *__pyx_t_16 = NULL;
+  Py_ssize_t __pyx_t_15;
+  Py_ssize_t __pyx_t_16;
   __Pyx_memviewslice __pyx_t_17 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  PyObject *(*__pyx_t_18)(PyObject *);
-  __Pyx_memviewslice __pyx_t_19 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_t_20;
-  __Pyx_memviewslice __pyx_t_21 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  double __pyx_t_22;
+  Py_ssize_t __pyx_t_18;
+  Py_ssize_t __pyx_t_19;
+  Py_ssize_t __pyx_t_20;
+  Py_ssize_t __pyx_t_21;
+  Py_ssize_t __pyx_t_22;
   Py_ssize_t __pyx_t_23;
-  Py_ssize_t __pyx_t_24;
-  Py_ssize_t __pyx_t_25;
-  Py_ssize_t __pyx_t_26;
-  PyObject *__pyx_t_27 = NULL;
-  Py_ssize_t __pyx_t_28;
+  int __pyx_t_24;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -23831,17 +23798,17 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     #endif
   }
 
-  /* "ParametricOpt.pyx":213
- *             double[:] corr
- *             double[:, ::1] params_batch, grid_corrs
- *             double opt_val,opt_x, opt_y, corr_val = -1.0             # <<<<<<<<<<<<<<
- *             double[6] cur_rad
- *             double* current_params
+  /* "ParametricOpt.pyx":218
+ *             double[::1] corr, corr_result
+ *             double opt_x, opt_y, start_x, stop_x, start_y, stop_y
+ *             double best_da, best_dp, a_coeff, corr_val = -1.0             # <<<<<<<<<<<<<<
+ *             Py_ssize_t xi, yi, idx, nx, ny, best_idx, G, i, j
+ *             # ParametricX temp_opt
  */
   __pyx_v_corr_val = -1.0;
 
-  /* "ParametricOpt.pyx":218
- *             ParametricX temp_opt
+  /* "ParametricOpt.pyx":222
+ *             # ParametricX temp_opt
  * 
  *         num_params = 0             # <<<<<<<<<<<<<<
  *         for i in range(2, 6):  # From index 2 to 5
@@ -23849,7 +23816,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
  */
   __pyx_v_num_params = 0;
 
-  /* "ParametricOpt.pyx":219
+  /* "ParametricOpt.pyx":223
  * 
  *         num_params = 0
  *         for i in range(2, 6):  # From index 2 to 5             # <<<<<<<<<<<<<<
@@ -23859,7 +23826,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
   for (__pyx_t_6 = 2; __pyx_t_6 < 6; __pyx_t_6+=1) {
     __pyx_v_i = __pyx_t_6;
 
-    /* "ParametricOpt.pyx":220
+    /* "ParametricOpt.pyx":224
  *         num_params = 0
  *         for i in range(2, 6):  # From index 2 to 5
  *             if self.rad[i] > 0 and self.n_rad[i] > 0:             # <<<<<<<<<<<<<<
@@ -23877,7 +23844,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     __pyx_L6_bool_binop_done:;
     if (__pyx_t_7) {
 
-      /* "ParametricOpt.pyx":221
+      /* "ParametricOpt.pyx":225
  *         for i in range(2, 6):  # From index 2 to 5
  *             if self.rad[i] > 0 and self.n_rad[i] > 0:
  *                 num_params += 1             # <<<<<<<<<<<<<<
@@ -23886,7 +23853,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
  */
       __pyx_v_num_params = (__pyx_v_num_params + 1);
 
-      /* "ParametricOpt.pyx":220
+      /* "ParametricOpt.pyx":224
  *         num_params = 0
  *         for i in range(2, 6):  # From index 2 to 5
  *             if self.rad[i] > 0 and self.n_rad[i] > 0:             # <<<<<<<<<<<<<<
@@ -23896,7 +23863,7 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     }
   }
 
-  /* "ParametricOpt.pyx":223
+  /* "ParametricOpt.pyx":227
  *                 num_params += 1
  * 
  *         max_steps = (self.generation * (num_params + 1)) + 1             # <<<<<<<<<<<<<<
@@ -23905,23 +23872,23 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
  */
   __pyx_v_max_steps = ((__pyx_v_self->generation * (__pyx_v_num_params + 1)) + 1);
 
-  /* "ParametricOpt.pyx":224
+  /* "ParametricOpt.pyx":228
  * 
  *         max_steps = (self.generation * (num_params + 1)) + 1
  *         corr = np.full(max_steps, np.nan)             # <<<<<<<<<<<<<<
  * 
- *         temp_opt = ParametricX(
+ *         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_full); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_full); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_max_steps); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyInt_From_int(__pyx_v_max_steps); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_nan); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_nan); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_9);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   __pyx_t_4 = NULL;
@@ -23944,102 +23911,52 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
     __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 224, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 228, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
-  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_ds_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 224, __pyx_L1_error)
+  __pyx_t_10 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 228, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_v_corr = __pyx_t_10;
   __pyx_t_10.memview = NULL;
   __pyx_t_10.data = NULL;
 
-  /* "ParametricOpt.pyx":227
- * 
- *         temp_opt = ParametricX(
- *             center=self.parametric_X.center,             # <<<<<<<<<<<<<<
- *             shape=self.parametric_X.shape,
- *             image=self.parametric_X.image
- */
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(3); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 227, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_center, __pyx_v_self->parametric_X->center) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
-
-  /* "ParametricOpt.pyx":228
- *         temp_opt = ParametricX(
- *             center=self.parametric_X.center,
- *             shape=self.parametric_X.shape,             # <<<<<<<<<<<<<<
- *             image=self.parametric_X.image
- *             )
- */
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_shape, __pyx_v_self->parametric_X->shape) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
-
-  /* "ParametricOpt.pyx":229
- *             center=self.parametric_X.center,
- *             shape=self.parametric_X.shape,
- *             image=self.parametric_X.image             # <<<<<<<<<<<<<<
- *             )
- * 
- */
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_image, __pyx_v_self->parametric_X->image) < 0) __PYX_ERR(0, 227, __pyx_L1_error)
-
-  /* "ParametricOpt.pyx":226
+  /* "ParametricOpt.pyx":230
  *         corr = np.full(max_steps, np.nan)
  * 
- *         temp_opt = ParametricX(             # <<<<<<<<<<<<<<
- *             center=self.parametric_X.center,
- *             shape=self.parametric_X.shape,
- */
-  __pyx_t_3 = __Pyx_PyObject_Call(((PyObject *)__pyx_ptype_11ParametricX_ParametricX), __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 226, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_v_temp_opt = ((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_t_3);
-  __pyx_t_3 = 0;
-
-  /* "ParametricOpt.pyx":232
- *             )
- * 
- *         current_params = self.parametric_X.get_params_ptr()             # <<<<<<<<<<<<<<
- *         self.parametric_X._correlate(current_params, &corr_val)
- *         corr[0] = corr_val
- */
-  __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 232, __pyx_L1_error)
-  __pyx_v_current_params = __pyx_t_11;
-
-  /* "ParametricOpt.pyx":233
- * 
- *         current_params = self.parametric_X.get_params_ptr()
- *         self.parametric_X._correlate(current_params, &corr_val)             # <<<<<<<<<<<<<<
+ *         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
  *         corr[0] = corr_val
  * 
  */
-  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_v_current_params, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 233, __pyx_L1_error)
+  __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 230, __pyx_L1_error)
+  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 230, __pyx_L1_error)
 
-  /* "ParametricOpt.pyx":234
- *         current_params = self.parametric_X.get_params_ptr()
- *         self.parametric_X._correlate(current_params, &corr_val)
+  /* "ParametricOpt.pyx":231
+ * 
+ *         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  *         corr[0] = corr_val             # <<<<<<<<<<<<<<
  * 
  *         for G in range(self.generation):
  */
   __pyx_t_12 = 0;
-  *((double *) ( /* dim=0 */ (__pyx_v_corr.data + __pyx_t_12 * __pyx_v_corr.strides[0]) )) = __pyx_v_corr_val;
+  if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_corr.shape[0];
+  *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corr.data) + __pyx_t_12)) )) = __pyx_v_corr_val;
 
-  /* "ParametricOpt.pyx":236
+  /* "ParametricOpt.pyx":233
  *         corr[0] = corr_val
  * 
  *         for G in range(self.generation):             # <<<<<<<<<<<<<<
- *             # Update current radii
  *             for i in range(6):
+ *                 cur_rad[i] = self.rad[i] / (self.shrnk_factor ** G)
  */
-  __pyx_t_6 = __pyx_v_self->generation;
-  __pyx_t_13 = __pyx_t_6;
-  for (__pyx_t_14 = 0; __pyx_t_14 < __pyx_t_13; __pyx_t_14+=1) {
-    __pyx_v_G = __pyx_t_14;
+  __pyx_t_13 = __pyx_v_self->generation;
+  __pyx_t_14 = __pyx_t_13;
+  for (__pyx_t_6 = 0; __pyx_t_6 < __pyx_t_14; __pyx_t_6+=1) {
+    __pyx_v_G = __pyx_t_6;
 
-    /* "ParametricOpt.pyx":238
+    /* "ParametricOpt.pyx":234
+ * 
  *         for G in range(self.generation):
- *             # Update current radii
  *             for i in range(6):             # <<<<<<<<<<<<<<
  *                 cur_rad[i] = self.rad[i] / (self.shrnk_factor ** G)
  *             corr_idx = (G * (num_params + 1)) + 1
@@ -24047,8 +23964,8 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     for (__pyx_t_15 = 0; __pyx_t_15 < 6; __pyx_t_15+=1) {
       __pyx_v_i = __pyx_t_15;
 
-      /* "ParametricOpt.pyx":239
- *             # Update current radii
+      /* "ParametricOpt.pyx":235
+ *         for G in range(self.generation):
  *             for i in range(6):
  *                 cur_rad[i] = self.rad[i] / (self.shrnk_factor ** G)             # <<<<<<<<<<<<<<
  *             corr_idx = (G * (num_params + 1)) + 1
@@ -24057,21 +23974,21 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
       (__pyx_v_cur_rad[__pyx_v_i]) = ((__pyx_v_self->rad[__pyx_v_i]) / pow(((double)__pyx_v_self->shrnk_factor), ((double)__pyx_v_G)));
     }
 
-    /* "ParametricOpt.pyx":240
+    /* "ParametricOpt.pyx":236
  *             for i in range(6):
  *                 cur_rad[i] = self.rad[i] / (self.shrnk_factor ** G)
  *             corr_idx = (G * (num_params + 1)) + 1             # <<<<<<<<<<<<<<
  * 
- *             # Position optimization (x,y)
+ *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
  */
     __pyx_v_corr_idx = ((__pyx_v_G * (__pyx_v_num_params + 1)) + 1);
 
-    /* "ParametricOpt.pyx":243
+    /* "ParametricOpt.pyx":238
+ *             corr_idx = (G * (num_params + 1)) + 1
  * 
- *             # Position optimization (x,y)
  *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:             # <<<<<<<<<<<<<<
- *                 x_vals = np.linspace(
- *                     current_params[0] - cur_rad[0],
+ *                 cur_param = self.parametric_X.get_params_ptr()
+ *                 print("before", (cur_param[0], cur_param[1]))
  */
     __pyx_t_8 = ((__pyx_v_cur_rad[0]) > 1e-9);
     if (__pyx_t_8) {
@@ -24084,748 +24001,242 @@ static void __pyx_f_13ParametricOpt_18ParameterOptimizer_quad_optimize(struct __
     __pyx_L13_bool_binop_done:;
     if (__pyx_t_7) {
 
-      /* "ParametricOpt.pyx":244
- *             # Position optimization (x,y)
+      /* "ParametricOpt.pyx":239
+ * 
  *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
- *                 x_vals = np.linspace(             # <<<<<<<<<<<<<<
- *                     current_params[0] - cur_rad[0],
- *                     current_params[0] + cur_rad[0] + 1e-8,
+ *                 cur_param = self.parametric_X.get_params_ptr()             # <<<<<<<<<<<<<<
+ *                 print("before", (cur_param[0], cur_param[1]))
+ * 
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 239, __pyx_L1_error)
+      __pyx_v_cur_param = __pyx_t_11;
+
+      /* "ParametricOpt.pyx":240
+ *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
+ *                 cur_param = self.parametric_X.get_params_ptr()
+ *                 print("before", (cur_param[0], cur_param[1]))             # <<<<<<<<<<<<<<
+ * 
+ *                 x_vals = self.linspace(
+ */
+      __pyx_t_1 = PyFloat_FromDouble((__pyx_v_cur_param[0])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_linspace); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __pyx_t_3 = PyFloat_FromDouble((__pyx_v_cur_param[1])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 240, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-
-      /* "ParametricOpt.pyx":245
- *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
- *                 x_vals = np.linspace(
- *                     current_params[0] - cur_rad[0],             # <<<<<<<<<<<<<<
- *                     current_params[0] + cur_rad[0] + 1e-8,
- *                     2*self.n_rad[0]+1
- */
-      __pyx_t_1 = PyFloat_FromDouble(((__pyx_v_current_params[0]) - (__pyx_v_cur_rad[0]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 245, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-
-      /* "ParametricOpt.pyx":246
- *                 x_vals = np.linspace(
- *                     current_params[0] - cur_rad[0],
- *                     current_params[0] + cur_rad[0] + 1e-8,             # <<<<<<<<<<<<<<
- *                     2*self.n_rad[0]+1
- *                 )
- */
-      __pyx_t_2 = PyFloat_FromDouble((((__pyx_v_current_params[0]) + (__pyx_v_cur_rad[0])) + 1e-8)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 246, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-
-      /* "ParametricOpt.pyx":247
- *                     current_params[0] - cur_rad[0],
- *                     current_params[0] + cur_rad[0] + 1e-8,
- *                     2*self.n_rad[0]+1             # <<<<<<<<<<<<<<
- *                 )
- *                 y_vals = np.linspace(
- */
-      __pyx_t_4 = __Pyx_PyInt_From_long(((2 * (__pyx_v_self->n_rad[0])) + 1)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 247, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_16 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_9))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_9);
-        if (likely(__pyx_t_16)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-          __Pyx_INCREF(__pyx_t_16);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_9, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[4] = {__pyx_t_16, __pyx_t_1, __pyx_t_2, __pyx_t_4};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_5, 3+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 244, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      }
-
-      /* "ParametricOpt.pyx":244
- *             # Position optimization (x,y)
- *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
- *                 x_vals = np.linspace(             # <<<<<<<<<<<<<<
- *                     current_params[0] - cur_rad[0],
- *                     current_params[0] + cur_rad[0] + 1e-8,
- */
-      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 244, __pyx_L1_error)
+      __Pyx_GIVEREF(__pyx_t_1);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_1)) __PYX_ERR(0, 240, __pyx_L1_error);
+      __Pyx_GIVEREF(__pyx_t_3);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error);
+      __pyx_t_1 = 0;
+      __pyx_t_3 = 0;
+      __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 240, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_INCREF(__pyx_n_u_before);
+      __Pyx_GIVEREF(__pyx_n_u_before);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_n_u_before)) __PYX_ERR(0, 240, __pyx_L1_error);
+      __Pyx_GIVEREF(__pyx_t_9);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_9)) __PYX_ERR(0, 240, __pyx_L1_error);
+      __pyx_t_9 = 0;
+      __pyx_t_9 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_3, NULL); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 240, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
       __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_XCLEAR_MEMVIEW(&__pyx_v_x_vals, 1);
-      __pyx_v_x_vals = __pyx_t_17;
-      __pyx_t_17.memview = NULL;
-      __pyx_t_17.data = NULL;
-
-      /* "ParametricOpt.pyx":249
- *                     2*self.n_rad[0]+1
- *                 )
- *                 y_vals = np.linspace(             # <<<<<<<<<<<<<<
- *                     current_params[1] - cur_rad[1],
- *                     current_params[1] + cur_rad[1] + 1e-8,
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_np); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 249, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_linspace); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 249, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
       __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
 
-      /* "ParametricOpt.pyx":250
- *                 )
- *                 y_vals = np.linspace(
- *                     current_params[1] - cur_rad[1],             # <<<<<<<<<<<<<<
- *                     current_params[1] + cur_rad[1] + 1e-8,
- *                     2*self.n_rad[1]+1
- */
-      __pyx_t_9 = PyFloat_FromDouble(((__pyx_v_current_params[1]) - (__pyx_v_cur_rad[1]))); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 250, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-
-      /* "ParametricOpt.pyx":251
- *                 y_vals = np.linspace(
- *                     current_params[1] - cur_rad[1],
- *                     current_params[1] + cur_rad[1] + 1e-8,             # <<<<<<<<<<<<<<
- *                     2*self.n_rad[1]+1
- *                 )
- */
-      __pyx_t_2 = PyFloat_FromDouble((((__pyx_v_current_params[1]) + (__pyx_v_cur_rad[1])) + 1e-8)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 251, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-
-      /* "ParametricOpt.pyx":252
- *                     current_params[1] - cur_rad[1],
- *                     current_params[1] + cur_rad[1] + 1e-8,
- *                     2*self.n_rad[1]+1             # <<<<<<<<<<<<<<
- *                 )
+      /* "ParametricOpt.pyx":242
+ *                 print("before", (cur_param[0], cur_param[1]))
  * 
+ *                 x_vals = self.linspace(             # <<<<<<<<<<<<<<
+ *                     cur_param[0] - cur_rad[0],
+ *                     cur_param[0] + cur_rad[0] + 1e-8,
  */
-      __pyx_t_1 = __Pyx_PyInt_From_long(((2 * (__pyx_v_self->n_rad[1])) + 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 252, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_16 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_4))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_4);
-        if (likely(__pyx_t_16)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-          __Pyx_INCREF(__pyx_t_16);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_4, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[4] = {__pyx_t_16, __pyx_t_9, __pyx_t_2, __pyx_t_1};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_5, 3+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 249, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      }
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->linspace(__pyx_v_self, ((__pyx_v_cur_param[0]) - (__pyx_v_cur_rad[0])), (((__pyx_v_cur_param[0]) + (__pyx_v_cur_rad[0])) + 1e-8), ((int)((2 * (__pyx_v_self->n_rad[0])) + 1))); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 242, __pyx_L1_error)
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_x_vals, 1);
+      __pyx_v_x_vals = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
 
-      /* "ParametricOpt.pyx":249
- *                     2*self.n_rad[0]+1
- *                 )
- *                 y_vals = np.linspace(             # <<<<<<<<<<<<<<
- *                     current_params[1] - cur_rad[1],
- *                     current_params[1] + cur_rad[1] + 1e-8,
+      /* "ParametricOpt.pyx":248
+ *                     )
+ * 
+ *                 y_vals = self.linspace(             # <<<<<<<<<<<<<<
+ *                     cur_param[1] - cur_rad[1],
+ *                     cur_param[1] + cur_rad[1] + 1e-8,
  */
-      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 249, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->linspace(__pyx_v_self, ((__pyx_v_cur_param[1]) - (__pyx_v_cur_rad[1])), (((__pyx_v_cur_param[1]) + (__pyx_v_cur_rad[1])) + 1e-8), ((int)((2 * (__pyx_v_self->n_rad[1])) + 1))); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 248, __pyx_L1_error)
       __PYX_XCLEAR_MEMVIEW(&__pyx_v_y_vals, 1);
-      __pyx_v_y_vals = __pyx_t_17;
-      __pyx_t_17.memview = NULL;
-      __pyx_t_17.data = NULL;
+      __pyx_v_y_vals = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
+
+      /* "ParametricOpt.pyx":254
+ *                     )
+ * 
+ *                 nx, ny = x_vals.shape[0], y_vals.shape[0]             # <<<<<<<<<<<<<<
+ * 
+ *                 params_batch = np.tile(self.parametric_X.get_params(), ((nx * ny), 1))
+ */
+      __pyx_t_15 = (__pyx_v_x_vals.shape[0]);
+      __pyx_t_16 = (__pyx_v_y_vals.shape[0]);
+      __pyx_v_nx = __pyx_t_15;
+      __pyx_v_ny = __pyx_t_16;
 
       /* "ParametricOpt.pyx":256
+ *                 nx, ny = x_vals.shape[0], y_vals.shape[0]
  * 
- *                 # Create parameter grid
- *                 xx, yy = np.meshgrid(x_vals, y_vals)             # <<<<<<<<<<<<<<
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (xx.size, 1))
- *                 params_batch[:, 0] = xx.ravel()
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_meshgrid); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_v_x_vals, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = __pyx_memoryview_fromslice(__pyx_v_y_vals, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_9 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_9);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[3] = {__pyx_t_9, __pyx_t_4, __pyx_t_2};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 256, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      }
-      if ((likely(PyTuple_CheckExact(__pyx_t_3))) || (PyList_CheckExact(__pyx_t_3))) {
-        PyObject* sequence = __pyx_t_3;
-        Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
-        if (unlikely(size != 2)) {
-          if (size > 2) __Pyx_RaiseTooManyValuesError(2);
-          else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 256, __pyx_L1_error)
-        }
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        if (likely(PyTuple_CheckExact(sequence))) {
-          __pyx_t_1 = PyTuple_GET_ITEM(sequence, 0); 
-          __pyx_t_2 = PyTuple_GET_ITEM(sequence, 1); 
-        } else {
-          __pyx_t_1 = PyList_GET_ITEM(sequence, 0); 
-          __pyx_t_2 = PyList_GET_ITEM(sequence, 1); 
-        }
-        __Pyx_INCREF(__pyx_t_1);
-        __Pyx_INCREF(__pyx_t_2);
-        #else
-        __pyx_t_1 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        #endif
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      } else {
-        Py_ssize_t index = -1;
-        __pyx_t_4 = PyObject_GetIter(__pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __pyx_t_18 = __Pyx_PyObject_GetIterNextFunc(__pyx_t_4);
-        index = 0; __pyx_t_1 = __pyx_t_18(__pyx_t_4); if (unlikely(!__pyx_t_1)) goto __pyx_L15_unpacking_failed;
-        __Pyx_GOTREF(__pyx_t_1);
-        index = 1; __pyx_t_2 = __pyx_t_18(__pyx_t_4); if (unlikely(!__pyx_t_2)) goto __pyx_L15_unpacking_failed;
-        __Pyx_GOTREF(__pyx_t_2);
-        if (__Pyx_IternextUnpackEndCheck(__pyx_t_18(__pyx_t_4), 2) < 0) __PYX_ERR(0, 256, __pyx_L1_error)
-        __pyx_t_18 = NULL;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        goto __pyx_L16_unpacking_done;
-        __pyx_L15_unpacking_failed:;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_18 = NULL;
-        if (__Pyx_IterFinish() == 0) __Pyx_RaiseNeedMoreValuesError(index);
-        __PYX_ERR(0, 256, __pyx_L1_error)
-        __pyx_L16_unpacking_done:;
-      }
-      __Pyx_XDECREF_SET(__pyx_v_xx, __pyx_t_1);
-      __pyx_t_1 = 0;
-      __Pyx_XDECREF_SET(__pyx_v_yy, __pyx_t_2);
-      __pyx_t_2 = 0;
-
-      /* "ParametricOpt.pyx":257
- *                 # Create parameter grid
- *                 xx, yy = np.meshgrid(x_vals, y_vals)
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (xx.size, 1))             # <<<<<<<<<<<<<<
- *                 params_batch[:, 0] = xx.ravel()
- *                 params_batch[:, 1] = yy.ravel()
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_tile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_asarray); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_16 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_9))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_9);
-        if (likely(__pyx_t_16)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-          __Pyx_INCREF(__pyx_t_16);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_9, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[2] = {__pyx_t_16, __pyx_t_4};
-        __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 257, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-      }
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_v_xx, __pyx_n_s_size); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_9);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_9)) __PYX_ERR(0, 257, __pyx_L1_error);
-      __Pyx_INCREF(__pyx_int_1);
-      __Pyx_GIVEREF(__pyx_int_1);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_1)) __PYX_ERR(0, 257, __pyx_L1_error);
-      __pyx_t_9 = 0;
-      __pyx_t_9 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_9);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[3] = {__pyx_t_9, __pyx_t_2, __pyx_t_4};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 257, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      }
-      __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_19.memview)) __PYX_ERR(0, 257, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
-      __pyx_v_params_batch = __pyx_t_19;
-      __pyx_t_19.memview = NULL;
-      __pyx_t_19.data = NULL;
-
-      /* "ParametricOpt.pyx":258
- *                 xx, yy = np.meshgrid(x_vals, y_vals)
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (xx.size, 1))
- *                 params_batch[:, 0] = xx.ravel()             # <<<<<<<<<<<<<<
- *                 params_batch[:, 1] = yy.ravel()
+ *                 params_batch = np.tile(self.parametric_X.get_params(), ((nx * ny), 1))             # <<<<<<<<<<<<<<
  * 
+ *                 for i in range(nx):
  */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_xx, __pyx_n_s_ravel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 258, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_4)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_4);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 258, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      }
-      __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 258, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_21.data = __pyx_v_params_batch.data;
-      __pyx_t_21.memview = __pyx_v_params_batch.memview;
-      __PYX_INC_MEMVIEW(&__pyx_t_21, 1);
-      __pyx_t_21.shape[0] = __pyx_v_params_batch.shape[0];
-__pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
-    __pyx_t_21.suboffsets[0] = -1;
-
-{
-    Py_ssize_t __pyx_tmp_idx = 0;
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_params_batch.strides[1];
-        __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
-}
-
-{
-          double __pyx_temp_scalar = __pyx_t_20;
-          {
-              Py_ssize_t __pyx_temp_extent_0 = __pyx_t_21.shape[0];
-              Py_ssize_t __pyx_temp_stride_0 = __pyx_t_21.strides[0];
-              char *__pyx_temp_pointer_0;
-              Py_ssize_t __pyx_temp_idx_0;
-              __pyx_temp_pointer_0 = __pyx_t_21.data;
-              for (__pyx_temp_idx_0 = 0; __pyx_temp_idx_0 < __pyx_temp_extent_0; __pyx_temp_idx_0++) {
-                *((double *) __pyx_temp_pointer_0) = __pyx_temp_scalar;
-                __pyx_temp_pointer_0 += __pyx_temp_stride_0;
-              }
-          }
-      }
-      __PYX_XCLEAR_MEMVIEW(&__pyx_t_21, 1);
-      __pyx_t_21.memview = NULL; __pyx_t_21.data = NULL;
-
-      /* "ParametricOpt.pyx":259
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (xx.size, 1))
- *                 params_batch[:, 0] = xx.ravel()
- *                 params_batch[:, 1] = yy.ravel()             # <<<<<<<<<<<<<<
- * 
- *                 # Get correlations and find optimal
- */
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_yy, __pyx_n_s_ravel); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 259, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (likely(PyMethod_Check(__pyx_t_1))) {
-        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_1);
-        if (likely(__pyx_t_4)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-          __Pyx_INCREF(__pyx_t_4);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_1, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 259, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      }
-      __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_3); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 259, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_21.data = __pyx_v_params_batch.data;
-      __pyx_t_21.memview = __pyx_v_params_batch.memview;
-      __PYX_INC_MEMVIEW(&__pyx_t_21, 1);
-      __pyx_t_21.shape[0] = __pyx_v_params_batch.shape[0];
-__pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
-    __pyx_t_21.suboffsets[0] = -1;
-
-{
-    Py_ssize_t __pyx_tmp_idx = 1;
-    Py_ssize_t __pyx_tmp_stride = __pyx_v_params_batch.strides[1];
-        __pyx_t_21.data += __pyx_tmp_idx * __pyx_tmp_stride;
-}
-
-{
-          double __pyx_temp_scalar = __pyx_t_20;
-          {
-              Py_ssize_t __pyx_temp_extent_0 = __pyx_t_21.shape[0];
-              Py_ssize_t __pyx_temp_stride_0 = __pyx_t_21.strides[0];
-              char *__pyx_temp_pointer_0;
-              Py_ssize_t __pyx_temp_idx_0;
-              __pyx_temp_pointer_0 = __pyx_t_21.data;
-              for (__pyx_temp_idx_0 = 0; __pyx_temp_idx_0 < __pyx_temp_extent_0; __pyx_temp_idx_0++) {
-                *((double *) __pyx_temp_pointer_0) = __pyx_temp_scalar;
-                __pyx_temp_pointer_0 += __pyx_temp_stride_0;
-              }
-          }
-      }
-      __PYX_XCLEAR_MEMVIEW(&__pyx_t_21, 1);
-      __pyx_t_21.memview = NULL; __pyx_t_21.data = NULL;
-
-      /* "ParametricOpt.pyx":262
- * 
- *                 # Get correlations and find optimal
- *                 grid_corrs = np.asarray(self.correlate_batch(params_batch, temp_opt)).reshape(xx.shape)             # <<<<<<<<<<<<<<
- *                 opt_x, opt_y = self.parametric_X.center
- *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_17 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, __pyx_v_temp_opt); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_17, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
-      __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
-      __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
-      __pyx_t_9 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_9)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_9);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[2] = {__pyx_t_9, __pyx_t_4};
-        __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      }
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_v_xx, __pyx_n_s_shape); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_4 = NULL;
-      __pyx_t_5 = 0;
-      #if CYTHON_UNPACK_METHODS
-      if (likely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_4 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_4)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_4);
-          __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
-          __pyx_t_5 = 1;
-        }
-      }
-      #endif
-      {
-        PyObject *__pyx_callargs[2] = {__pyx_t_4, __pyx_t_1};
-        __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 262, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      }
-      __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_19.memview)) __PYX_ERR(0, 262, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __PYX_XCLEAR_MEMVIEW(&__pyx_v_grid_corrs, 1);
-      __pyx_v_grid_corrs = __pyx_t_19;
-      __pyx_t_19.memview = NULL;
-      __pyx_t_19.data = NULL;
-
-      /* "ParametricOpt.pyx":263
- *                 # Get correlations and find optimal
- *                 grid_corrs = np.asarray(self.correlate_batch(params_batch, temp_opt)).reshape(xx.shape)
- *                 opt_x, opt_y = self.parametric_X.center             # <<<<<<<<<<<<<<
- *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
- * 
- */
-      __pyx_t_3 = __pyx_v_self->parametric_X->center;
-      __Pyx_INCREF(__pyx_t_3);
-      if (likely(__pyx_t_3 != Py_None)) {
-        PyObject* sequence = __pyx_t_3;
-        Py_ssize_t size = __Pyx_PySequence_SIZE(sequence);
-        if (unlikely(size != 2)) {
-          if (size > 2) __Pyx_RaiseTooManyValuesError(2);
-          else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-          __PYX_ERR(0, 263, __pyx_L1_error)
-        }
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
-        __pyx_t_1 = PyTuple_GET_ITEM(sequence, 1); 
-        __Pyx_INCREF(__pyx_t_2);
-        __Pyx_INCREF(__pyx_t_1);
-        #else
-        __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 263, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
-        __pyx_t_1 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 263, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        #endif
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      } else {
-        __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 263, __pyx_L1_error)
-      }
-      __pyx_t_20 = __pyx_PyFloat_AsDouble(__pyx_t_2); if (unlikely((__pyx_t_20 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 263, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __pyx_t_22 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_22 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 263, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_v_opt_x = __pyx_t_20;
-      __pyx_v_opt_y = __pyx_t_22;
-
-      /* "ParametricOpt.pyx":264
- *                 grid_corrs = np.asarray(self.correlate_batch(params_batch, temp_opt)).reshape(xx.shape)
- *                 opt_x, opt_y = self.parametric_X.center
- *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)             # <<<<<<<<<<<<<<
- * 
- *                 # Update parameters
- */
-      ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_2D(__pyx_v_self, __pyx_v_x_vals, __pyx_v_y_vals, __pyx_v_grid_corrs, (&__pyx_v_opt_x), (&__pyx_v_opt_y)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 264, __pyx_L1_error)
-
-      /* "ParametricOpt.pyx":267
- * 
- *                 # Update parameters
- *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])             # <<<<<<<<<<<<<<
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                 corr[corr_idx] = corr_val
- */
-      __pyx_t_3 = PyList_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 267, __pyx_L1_error)
+      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 256, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_INCREF(__pyx_int_0);
-      __Pyx_GIVEREF(__pyx_int_0);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_3, 0, __pyx_int_0)) __PYX_ERR(0, 267, __pyx_L1_error);
-      __Pyx_INCREF(__pyx_int_1);
-      __Pyx_GIVEREF(__pyx_int_1);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_3, 1, __pyx_int_1)) __PYX_ERR(0, 267, __pyx_L1_error);
-      __pyx_t_1 = PyFloat_FromDouble(__pyx_v_opt_x); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 267, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_tile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 256, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = PyFloat_FromDouble(__pyx_v_opt_y); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 267, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __pyx_t_3 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 256, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = PyInt_FromSsize_t((__pyx_v_nx * __pyx_v_ny)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 267, __pyx_L1_error)
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 256, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_4);
-      __Pyx_GIVEREF(__pyx_t_1);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 267, __pyx_L1_error);
       __Pyx_GIVEREF(__pyx_t_2);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_2)) __PYX_ERR(0, 267, __pyx_L1_error);
-      __pyx_t_1 = 0;
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 256, __pyx_L1_error);
+      __Pyx_INCREF(__pyx_int_1);
+      __Pyx_GIVEREF(__pyx_int_1);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_int_1)) __PYX_ERR(0, 256, __pyx_L1_error);
       __pyx_t_2 = 0;
-      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_3, __pyx_t_4, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 267, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-
-      /* "ParametricOpt.pyx":268
- *                 # Update parameters
- *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
- *                 corr[corr_idx] = corr_val
- *                 corr_idx += 1
- */
-      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 268, __pyx_L1_error)
-      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 268, __pyx_L1_error)
-
-      /* "ParametricOpt.pyx":269
- *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                 corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
- *                 corr_idx += 1
- * 
- */
-      __pyx_t_12 = __pyx_v_corr_idx;
-      *((double *) ( /* dim=0 */ (__pyx_v_corr.data + __pyx_t_12 * __pyx_v_corr.strides[0]) )) = __pyx_v_corr_val;
-
-      /* "ParametricOpt.pyx":270
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                 corr[corr_idx] = corr_val
- *                 corr_idx += 1             # <<<<<<<<<<<<<<
- * 
- *             # Angle optimization
- */
-      __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
-
-      /* "ParametricOpt.pyx":243
- * 
- *             # Position optimization (x,y)
- *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:             # <<<<<<<<<<<<<<
- *                 x_vals = np.linspace(
- *                     current_params[0] - cur_rad[0],
- */
-    }
-
-    /* "ParametricOpt.pyx":273
- * 
- *             # Angle optimization
- *             if self.lock_angle:             # <<<<<<<<<<<<<<
- *                 delta_vals = np.linspace(-cur_rad[2], cur_rad[2], 2*self.n_rad[2]+1)
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- */
-    if (__pyx_v_self->lock_angle) {
-
-      /* "ParametricOpt.pyx":274
- *             # Angle optimization
- *             if self.lock_angle:
- *                 delta_vals = np.linspace(-cur_rad[2], cur_rad[2], 2*self.n_rad[2]+1)             # <<<<<<<<<<<<<<
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- * 
- */
-      __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_linspace); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_t_3 = PyFloat_FromDouble((-(__pyx_v_cur_rad[2]))); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_1 = PyFloat_FromDouble((__pyx_v_cur_rad[2])); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_9 = __Pyx_PyInt_From_long(((2 * (__pyx_v_self->n_rad[2])) + 1)); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_16 = NULL;
+      __pyx_t_2 = NULL;
       __pyx_t_5 = 0;
       #if CYTHON_UNPACK_METHODS
-      if (unlikely(PyMethod_Check(__pyx_t_2))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_2);
-        if (likely(__pyx_t_16)) {
-          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
-          __Pyx_INCREF(__pyx_t_16);
+      if (unlikely(PyMethod_Check(__pyx_t_1))) {
+        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_2)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+          __Pyx_INCREF(__pyx_t_2);
           __Pyx_INCREF(function);
-          __Pyx_DECREF_SET(__pyx_t_2, function);
+          __Pyx_DECREF_SET(__pyx_t_1, function);
           __pyx_t_5 = 1;
         }
       }
       #endif
       {
-        PyObject *__pyx_callargs[4] = {__pyx_t_16, __pyx_t_3, __pyx_t_1, __pyx_t_9};
-        __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 3+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
+        PyObject *__pyx_callargs[3] = {__pyx_t_2, __pyx_t_3, __pyx_t_4};
+        __pyx_t_9 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 256, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_9);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 274, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
       }
-      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 274, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __PYX_XCLEAR_MEMVIEW(&__pyx_v_delta_vals, 1);
-      __pyx_v_delta_vals = __pyx_t_17;
+      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_9, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 256, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
+      __pyx_v_params_batch = __pyx_t_17;
       __pyx_t_17.memview = NULL;
       __pyx_t_17.data = NULL;
 
-      /* "ParametricOpt.pyx":275
- *             if self.lock_angle:
- *                 delta_vals = np.linspace(-cur_rad[2], cur_rad[2], 2*self.n_rad[2]+1)
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))             # <<<<<<<<<<<<<<
+      /* "ParametricOpt.pyx":258
+ *                 params_batch = np.tile(self.parametric_X.get_params(), ((nx * ny), 1))
  * 
- *                 # Explicit assignment to avoid memoryview issues
+ *                 for i in range(nx):             # <<<<<<<<<<<<<<
+ *                     for j in range(ny):
+ *                         idx = i * ny + j  # C-contiguous ordering
  */
-      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 275, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_tile); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 275, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-      __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error)
+      __pyx_t_16 = __pyx_v_nx;
+      __pyx_t_15 = __pyx_t_16;
+      for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_15; __pyx_t_18+=1) {
+        __pyx_v_i = __pyx_t_18;
+
+        /* "ParametricOpt.pyx":259
+ * 
+ *                 for i in range(nx):
+ *                     for j in range(ny):             # <<<<<<<<<<<<<<
+ *                         idx = i * ny + j  # C-contiguous ordering
+ *                         params_batch[idx, 0] = x_vals[i]
+ */
+        __pyx_t_19 = __pyx_v_ny;
+        __pyx_t_20 = __pyx_t_19;
+        for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
+          __pyx_v_j = __pyx_t_21;
+
+          /* "ParametricOpt.pyx":260
+ *                 for i in range(nx):
+ *                     for j in range(ny):
+ *                         idx = i * ny + j  # C-contiguous ordering             # <<<<<<<<<<<<<<
+ *                         params_batch[idx, 0] = x_vals[i]
+ *                         params_batch[idx, 1] = y_vals[j]
+ */
+          __pyx_v_idx = ((__pyx_v_i * __pyx_v_ny) + __pyx_v_j);
+
+          /* "ParametricOpt.pyx":261
+ *                     for j in range(ny):
+ *                         idx = i * ny + j  # C-contiguous ordering
+ *                         params_batch[idx, 0] = x_vals[i]             # <<<<<<<<<<<<<<
+ *                         params_batch[idx, 1] = y_vals[j]
+ * 
+ */
+          __pyx_t_12 = __pyx_v_i;
+          if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_x_vals.shape[0];
+          __pyx_t_22 = __pyx_v_idx;
+          __pyx_t_23 = 0;
+          if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[0];
+          if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[1];
+          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_22 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_23)) )) = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_x_vals.data) + __pyx_t_12)) )));
+
+          /* "ParametricOpt.pyx":262
+ *                         idx = i * ny + j  # C-contiguous ordering
+ *                         params_batch[idx, 0] = x_vals[i]
+ *                         params_batch[idx, 1] = y_vals[j]             # <<<<<<<<<<<<<<
+ * 
+ *                 grid_corrs = np.asarray(
+ */
+          __pyx_t_12 = __pyx_v_j;
+          if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_y_vals.shape[0];
+          __pyx_t_23 = __pyx_v_idx;
+          __pyx_t_22 = 1;
+          if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[0];
+          if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[1];
+          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_23 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_22)) )) = (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_y_vals.data) + __pyx_t_12)) )));
+        }
+      }
+
+      /* "ParametricOpt.pyx":264
+ *                         params_batch[idx, 1] = y_vals[j]
+ * 
+ *                 grid_corrs = np.asarray(             # <<<<<<<<<<<<<<
+ *                     self.correlate_batch(params_batch, self.parametric_X)
+ *                     ).reshape(nx, ny)
+ */
+      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 264, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 264, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-      __pyx_t_1 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_16 = NULL;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "ParametricOpt.pyx":265
+ * 
+ *                 grid_corrs = np.asarray(
+ *                     self.correlate_batch(params_batch, self.parametric_X)             # <<<<<<<<<<<<<<
+ *                     ).reshape(nx, ny)
+ * 
+ */
+      __pyx_t_4 = ((PyObject *)__pyx_v_self->parametric_X);
+      __Pyx_INCREF(__pyx_t_4);
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, ((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_t_4)); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 265, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_4 = __pyx_memoryview_fromslice(__pyx_t_10, 1, (PyObject *(*)(char *)) __pyx_memview_get_double, (int (*)(char *, PyObject *)) __pyx_memview_set_double, 0);; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 265, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __PYX_XCLEAR_MEMVIEW(&__pyx_t_10, 1);
+      __pyx_t_10.memview = NULL; __pyx_t_10.data = NULL;
+      __pyx_t_2 = NULL;
       __pyx_t_5 = 0;
       #if CYTHON_UNPACK_METHODS
       if (unlikely(PyMethod_Check(__pyx_t_3))) {
-        __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_3);
-        if (likely(__pyx_t_16)) {
+        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_2)) {
           PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
-          __Pyx_INCREF(__pyx_t_16);
+          __Pyx_INCREF(__pyx_t_2);
           __Pyx_INCREF(function);
           __Pyx_DECREF_SET(__pyx_t_3, function);
           __pyx_t_5 = 1;
@@ -24833,24 +24244,216 @@ __pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
       }
       #endif
       {
-        PyObject *__pyx_callargs[2] = {__pyx_t_16, __pyx_t_1};
-        __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-        __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 275, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_2);
+        PyObject *__pyx_callargs[2] = {__pyx_t_2, __pyx_t_4};
+        __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 264, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
       }
-      __pyx_t_23 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-      __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_23); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error)
+
+      /* "ParametricOpt.pyx":266
+ *                 grid_corrs = np.asarray(
+ *                     self.correlate_batch(params_batch, self.parametric_X)
+ *                     ).reshape(nx, ny)             # <<<<<<<<<<<<<<
+ * 
+ *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
+ */
+      __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_reshape); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 266, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_3);
-      __pyx_t_1 = PyTuple_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 275, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __pyx_t_1 = PyInt_FromSsize_t(__pyx_v_nx); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 266, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
+      __pyx_t_4 = PyInt_FromSsize_t(__pyx_v_ny); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 266, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_2 = NULL;
+      __pyx_t_5 = 0;
+      #if CYTHON_UNPACK_METHODS
+      if (likely(PyMethod_Check(__pyx_t_3))) {
+        __pyx_t_2 = PyMethod_GET_SELF(__pyx_t_3);
+        if (likely(__pyx_t_2)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_3);
+          __Pyx_INCREF(__pyx_t_2);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_3, function);
+          __pyx_t_5 = 1;
+        }
+      }
+      #endif
+      {
+        PyObject *__pyx_callargs[3] = {__pyx_t_2, __pyx_t_1, __pyx_t_4};
+        __pyx_t_9 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
+        __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 266, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_9);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      }
+      __Pyx_XDECREF_SET(__pyx_v_grid_corrs, __pyx_t_9);
+      __pyx_t_9 = 0;
+
+      /* "ParametricOpt.pyx":268
+ *                     ).reshape(nx, ny)
+ * 
+ *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)             # <<<<<<<<<<<<<<
+ *                 print("after", (opt_x, opt_y))
+ *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
+ */
+      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_v_grid_corrs, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 268, __pyx_L1_error)
+      ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_2D(__pyx_v_self, __pyx_v_x_vals, __pyx_v_y_vals, __pyx_t_17, (&__pyx_v_opt_x), (&__pyx_v_opt_y)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 268, __pyx_L1_error)
+      __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
+      __pyx_t_17.memview = NULL; __pyx_t_17.data = NULL;
+
+      /* "ParametricOpt.pyx":269
+ * 
+ *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
+ *                 print("after", (opt_x, opt_y))             # <<<<<<<<<<<<<<
+ *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ */
+      __pyx_t_9 = PyFloat_FromDouble(__pyx_v_opt_x); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_3 = PyFloat_FromDouble(__pyx_v_opt_y); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_9);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_9)) __PYX_ERR(0, 269, __pyx_L1_error);
       __Pyx_GIVEREF(__pyx_t_3);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_t_3)) __PYX_ERR(0, 275, __pyx_L1_error);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 269, __pyx_L1_error);
+      __pyx_t_9 = 0;
+      __pyx_t_3 = 0;
+      __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __Pyx_INCREF(__pyx_n_u_after);
+      __Pyx_GIVEREF(__pyx_n_u_after);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_n_u_after)) __PYX_ERR(0, 269, __pyx_L1_error);
+      __Pyx_GIVEREF(__pyx_t_4);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4)) __PYX_ERR(0, 269, __pyx_L1_error);
+      __pyx_t_4 = 0;
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin_print, __pyx_t_3, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 269, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "ParametricOpt.pyx":270
+ *                 self.quad_fit_2D(x_vals, y_vals, grid_corrs, &opt_x, &opt_y)
+ *                 print("after", (opt_x, opt_y))
+ *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])             # <<<<<<<<<<<<<<
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ *                 corr[corr_idx] = corr_val
+ */
+      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 270, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_INCREF(__pyx_int_0);
+      __Pyx_GIVEREF(__pyx_int_0);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_int_0)) __PYX_ERR(0, 270, __pyx_L1_error);
       __Pyx_INCREF(__pyx_int_1);
       __Pyx_GIVEREF(__pyx_int_1);
-      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 1, __pyx_int_1)) __PYX_ERR(0, 275, __pyx_L1_error);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_int_1)) __PYX_ERR(0, 270, __pyx_L1_error);
+      __pyx_t_3 = PyFloat_FromDouble(__pyx_v_opt_x); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 270, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_9 = PyFloat_FromDouble(__pyx_v_opt_y); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 270, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 270, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_GIVEREF(__pyx_t_3);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3)) __PYX_ERR(0, 270, __pyx_L1_error);
+      __Pyx_GIVEREF(__pyx_t_9);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 1, __pyx_t_9)) __PYX_ERR(0, 270, __pyx_L1_error);
+      __pyx_t_3 = 0;
+      __pyx_t_9 = 0;
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_4, __pyx_t_1, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 270, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+
+      /* "ParametricOpt.pyx":271
+ *                 print("after", (opt_x, opt_y))
+ *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
+ *                 corr[corr_idx] = corr_val
+ *                 corr_idx += 1
+ */
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L1_error)
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 271, __pyx_L1_error)
+
+      /* "ParametricOpt.pyx":272
+ *                 self.parametric_X.update_params([0, 1], [opt_x, opt_y])
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ *                 corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
+ *                 corr_idx += 1
+ * 
+ */
+      __pyx_t_12 = __pyx_v_corr_idx;
+      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_corr.shape[0];
+      *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corr.data) + __pyx_t_12)) )) = __pyx_v_corr_val;
+
+      /* "ParametricOpt.pyx":273
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ *                 corr[corr_idx] = corr_val
+ *                 corr_idx += 1             # <<<<<<<<<<<<<<
+ * 
+ *             # Vectorized angle optimization
+ */
+      __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
+
+      /* "ParametricOpt.pyx":238
+ *             corr_idx = (G * (num_params + 1)) + 1
+ * 
+ *             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:             # <<<<<<<<<<<<<<
+ *                 cur_param = self.parametric_X.get_params_ptr()
+ *                 print("before", (cur_param[0], cur_param[1]))
+ */
+    }
+
+    /* "ParametricOpt.pyx":276
+ * 
+ *             # Vectorized angle optimization
+ *             if self.lock_angle:             # <<<<<<<<<<<<<<
+ *                 ang_vals = self.linspace(
+ *                     -cur_rad[2], cur_rad[2],
+ */
+    if (__pyx_v_self->lock_angle) {
+
+      /* "ParametricOpt.pyx":277
+ *             # Vectorized angle optimization
+ *             if self.lock_angle:
+ *                 ang_vals = self.linspace(             # <<<<<<<<<<<<<<
+ *                     -cur_rad[2], cur_rad[2],
+ *                     <int>(2*(self.n_rad[2])+1)
+ */
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->linspace(__pyx_v_self, (-(__pyx_v_cur_rad[2])), (__pyx_v_cur_rad[2]), ((int)((2 * (__pyx_v_self->n_rad[2])) + 1))); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 277, __pyx_L1_error)
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_vals, 1);
+      __pyx_v_ang_vals = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
+
+      /* "ParametricOpt.pyx":282
+ *                     )
+ * 
+ *                 params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))             # <<<<<<<<<<<<<<
+ *                 idx = 0
+ *                 for yi in range(ny):
+ */
+      __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_tile); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_4 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_16 = __Pyx_MemoryView_Len(__pyx_v_ang_vals); 
+      __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_16); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_2 = PyTuple_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_GIVEREF(__pyx_t_3);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_t_3)) __PYX_ERR(0, 282, __pyx_L1_error);
+      __Pyx_INCREF(__pyx_int_1);
+      __Pyx_GIVEREF(__pyx_int_1);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 1, __pyx_int_1)) __PYX_ERR(0, 282, __pyx_L1_error);
       __pyx_t_3 = 0;
       __pyx_t_3 = NULL;
       __pyx_t_5 = 0;
@@ -24867,799 +24470,659 @@ __pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
       }
       #endif
       {
-        PyObject *__pyx_callargs[3] = {__pyx_t_3, __pyx_t_2, __pyx_t_1};
-        __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
+        PyObject *__pyx_callargs[3] = {__pyx_t_3, __pyx_t_4, __pyx_t_2};
+        __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
         __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 275, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
+        if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 282, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
         __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
       }
-      __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_19.memview)) __PYX_ERR(0, 275, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_1, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 282, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
       __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
-      __pyx_v_params_batch = __pyx_t_19;
-      __pyx_t_19.memview = NULL;
-      __pyx_t_19.data = NULL;
-
-      /* "ParametricOpt.pyx":278
- * 
- *                 # Explicit assignment to avoid memoryview issues
- *                 for i in range(len(delta_vals)):             # <<<<<<<<<<<<<<
- *                     params_batch[i, 2] = current_params[2] + delta_vals[i]
- *                     params_batch[i, 3] = current_params[3] + delta_vals[i]
- */
-      __pyx_t_23 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-      __pyx_t_24 = __pyx_t_23;
-      for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_24; __pyx_t_15+=1) {
-        __pyx_v_i = __pyx_t_15;
-
-        /* "ParametricOpt.pyx":279
- *                 # Explicit assignment to avoid memoryview issues
- *                 for i in range(len(delta_vals)):
- *                     params_batch[i, 2] = current_params[2] + delta_vals[i]             # <<<<<<<<<<<<<<
- *                     params_batch[i, 3] = current_params[3] + delta_vals[i]
- * 
- */
-        __pyx_t_12 = __pyx_v_i;
-        __pyx_t_25 = __pyx_v_i;
-        __pyx_t_26 = 2;
-        *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_25 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_26)) )) = ((__pyx_v_current_params[2]) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_delta_vals.data) + __pyx_t_12)) ))));
-
-        /* "ParametricOpt.pyx":280
- *                 for i in range(len(delta_vals)):
- *                     params_batch[i, 2] = current_params[2] + delta_vals[i]
- *                     params_batch[i, 3] = current_params[3] + delta_vals[i]             # <<<<<<<<<<<<<<
- * 
- *                 ang_corrs = self.correlate_batch(params_batch, temp_opt)
- */
-        __pyx_t_12 = __pyx_v_i;
-        __pyx_t_26 = __pyx_v_i;
-        __pyx_t_25 = 3;
-        *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_26 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_25)) )) = ((__pyx_v_current_params[3]) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_delta_vals.data) + __pyx_t_12)) ))));
-      }
-
-      /* "ParametricOpt.pyx":282
- *                     params_batch[i, 3] = current_params[3] + delta_vals[i]
- * 
- *                 ang_corrs = self.correlate_batch(params_batch, temp_opt)             # <<<<<<<<<<<<<<
- *                 best_da, a_coeff = 0.0, 0.0
- *                 self.quad_fit_1D(delta_vals, ang_corrs, &best_da, &a_coeff)
- */
-      __pyx_t_17 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, __pyx_v_temp_opt); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 282, __pyx_L1_error)
-      __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_corrs, 1);
-      __pyx_v_ang_corrs = __pyx_t_17;
+      __pyx_v_params_batch = __pyx_t_17;
       __pyx_t_17.memview = NULL;
       __pyx_t_17.data = NULL;
 
       /* "ParametricOpt.pyx":283
  * 
- *                 ang_corrs = self.correlate_batch(params_batch, temp_opt)
- *                 best_da, a_coeff = 0.0, 0.0             # <<<<<<<<<<<<<<
- *                 self.quad_fit_1D(delta_vals, ang_corrs, &best_da, &a_coeff)
- * 
+ *                 params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
+ *                 idx = 0             # <<<<<<<<<<<<<<
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):
  */
-      __pyx_t_22 = 0.0;
-      __pyx_t_20 = 0.0;
-      __pyx_v_best_da = __pyx_t_22;
-      __pyx_v_a_coeff = __pyx_t_20;
+      __pyx_v_idx = 0;
 
       /* "ParametricOpt.pyx":284
- *                 ang_corrs = self.correlate_batch(params_batch, temp_opt)
- *                 best_da, a_coeff = 0.0, 0.0
- *                 self.quad_fit_1D(delta_vals, ang_corrs, &best_da, &a_coeff)             # <<<<<<<<<<<<<<
- * 
- *                 new_ang = current_params[2] + best_da
+ *                 params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
+ *                 idx = 0
+ *                 for yi in range(ny):             # <<<<<<<<<<<<<<
+ *                     for xi in range(nx):
+ *                         idx = i * ny + j
  */
-      ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_delta_vals, __pyx_v_ang_corrs, (&__pyx_v_best_da), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 284, __pyx_L1_error)
+      __pyx_t_16 = __pyx_v_ny;
+      __pyx_t_15 = __pyx_t_16;
+      for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_15; __pyx_t_18+=1) {
+        __pyx_v_yi = __pyx_t_18;
 
-      /* "ParametricOpt.pyx":286
- *                 self.quad_fit_1D(delta_vals, ang_corrs, &best_da, &a_coeff)
- * 
- *                 new_ang = current_params[2] + best_da             # <<<<<<<<<<<<<<
- *                 self.parametric_X.update_params([2, 3], [new_ang, new_ang])
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+        /* "ParametricOpt.pyx":285
+ *                 idx = 0
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):             # <<<<<<<<<<<<<<
+ *                         idx = i * ny + j
+ *                         params_batch[idx, 2] += ang_vals[xi]
  */
-      __pyx_v_new_ang = ((__pyx_v_current_params[2]) + __pyx_v_best_da);
+        __pyx_t_19 = __pyx_v_nx;
+        __pyx_t_20 = __pyx_t_19;
+        for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
+          __pyx_v_xi = __pyx_t_21;
 
-      /* "ParametricOpt.pyx":287
- * 
- *                 new_ang = current_params[2] + best_da
- *                 self.parametric_X.update_params([2, 3], [new_ang, new_ang])             # <<<<<<<<<<<<<<
- *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                 corr[corr_idx] = corr_val
+          /* "ParametricOpt.pyx":286
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):
+ *                         idx = i * ny + j             # <<<<<<<<<<<<<<
+ *                         params_batch[idx, 2] += ang_vals[xi]
+ *                         params_batch[idx, 3] += ang_vals[yi]
  */
-      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_4);
+          __pyx_v_idx = ((__pyx_v_i * __pyx_v_ny) + __pyx_v_j);
+
+          /* "ParametricOpt.pyx":287
+ *                     for xi in range(nx):
+ *                         idx = i * ny + j
+ *                         params_batch[idx, 2] += ang_vals[xi]             # <<<<<<<<<<<<<<
+ *                         params_batch[idx, 3] += ang_vals[yi]
+ *                         idx += 1
+ */
+          __pyx_t_12 = __pyx_v_xi;
+          if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_ang_vals.shape[0];
+          __pyx_t_22 = __pyx_v_idx;
+          __pyx_t_23 = 2;
+          if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[0];
+          if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[1];
+          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_22 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_23)) )) += (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_ang_vals.data) + __pyx_t_12)) )));
+
+          /* "ParametricOpt.pyx":288
+ *                         idx = i * ny + j
+ *                         params_batch[idx, 2] += ang_vals[xi]
+ *                         params_batch[idx, 3] += ang_vals[yi]             # <<<<<<<<<<<<<<
+ *                         idx += 1
+ * 
+ */
+          __pyx_t_12 = __pyx_v_yi;
+          if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_ang_vals.shape[0];
+          __pyx_t_23 = __pyx_v_idx;
+          __pyx_t_22 = 3;
+          if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[0];
+          if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[1];
+          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_23 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_22)) )) += (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_ang_vals.data) + __pyx_t_12)) )));
+
+          /* "ParametricOpt.pyx":289
+ *                         params_batch[idx, 2] += ang_vals[xi]
+ *                         params_batch[idx, 3] += ang_vals[yi]
+ *                         idx += 1             # <<<<<<<<<<<<<<
+ * 
+ *                 ang_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ */
+          __pyx_v_idx = (__pyx_v_idx + 1);
+        }
+      }
+
+      /* "ParametricOpt.pyx":291
+ *                         idx += 1
+ * 
+ *                 ang_corrs = self.correlate_batch(params_batch, self.parametric_X)             # <<<<<<<<<<<<<<
+ *                 self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
+ * 
+ */
+      __pyx_t_1 = ((PyObject *)__pyx_v_self->parametric_X);
+      __Pyx_INCREF(__pyx_t_1);
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, ((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_t_1)); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 291, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_corrs, 1);
+      __pyx_v_ang_corrs = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
+
+      /* "ParametricOpt.pyx":292
+ * 
+ *                 ang_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ *                 self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)             # <<<<<<<<<<<<<<
+ * 
+ *                 self.parametric_X.update_params(
+ */
+      ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_ang_vals, __pyx_v_ang_corrs, (&__pyx_v_best_da), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 292, __pyx_L1_error)
+
+      /* "ParametricOpt.pyx":295
+ * 
+ *                 self.parametric_X.update_params(
+ *                     [2, 3],             # <<<<<<<<<<<<<<
+ *                     [self.parametric_X.get_params_ptr()[2] + best_da, self.parametric_X.get_params_ptr()[2] + best_da]
+ *                     )
+ */
+      __pyx_t_1 = PyList_New(2); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
       __Pyx_INCREF(__pyx_int_2);
       __Pyx_GIVEREF(__pyx_int_2);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_int_2)) __PYX_ERR(0, 287, __pyx_L1_error);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 0, __pyx_int_2)) __PYX_ERR(0, 295, __pyx_L1_error);
       __Pyx_INCREF(__pyx_int_3);
       __Pyx_GIVEREF(__pyx_int_3);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_int_3)) __PYX_ERR(0, 287, __pyx_L1_error);
-      __pyx_t_9 = PyFloat_FromDouble(__pyx_v_new_ang); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_9);
-      __pyx_t_1 = PyFloat_FromDouble(__pyx_v_new_ang); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_1);
-      __pyx_t_2 = PyList_New(2); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_2);
-      __Pyx_GIVEREF(__pyx_t_9);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_9)) __PYX_ERR(0, 287, __pyx_L1_error);
-      __Pyx_GIVEREF(__pyx_t_1);
-      if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 1, __pyx_t_1)) __PYX_ERR(0, 287, __pyx_L1_error);
-      __pyx_t_9 = 0;
-      __pyx_t_1 = 0;
-      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_4, __pyx_t_2, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 287, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 1, __pyx_int_3)) __PYX_ERR(0, 295, __pyx_L1_error);
 
-      /* "ParametricOpt.pyx":288
- *                 new_ang = current_params[2] + best_da
- *                 self.parametric_X.update_params([2, 3], [new_ang, new_ang])
+      /* "ParametricOpt.pyx":296
+ *                 self.parametric_X.update_params(
+ *                     [2, 3],
+ *                     [self.parametric_X.get_params_ptr()[2] + best_da, self.parametric_X.get_params_ptr()[2] + best_da]             # <<<<<<<<<<<<<<
+ *                     )
+ * 
+ */
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 296, __pyx_L1_error)
+      __pyx_t_9 = PyFloat_FromDouble(((__pyx_t_11[2]) + __pyx_v_best_da)); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 296, __pyx_L1_error)
+      __pyx_t_2 = PyFloat_FromDouble(((__pyx_t_11[2]) + __pyx_v_best_da)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_4 = PyList_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 296, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_9);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_9)) __PYX_ERR(0, 296, __pyx_L1_error);
+      __Pyx_GIVEREF(__pyx_t_2);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 1, __pyx_t_2)) __PYX_ERR(0, 296, __pyx_L1_error);
+      __pyx_t_9 = 0;
+      __pyx_t_2 = 0;
+
+      /* "ParametricOpt.pyx":294
+ *                 self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
+ * 
+ *                 self.parametric_X.update_params(             # <<<<<<<<<<<<<<
+ *                     [2, 3],
+ *                     [self.parametric_X.get_params_ptr()[2] + best_da, self.parametric_X.get_params_ptr()[2] + best_da]
+ */
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_1, __pyx_t_4, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 294, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "ParametricOpt.pyx":299
+ *                     )
+ * 
  *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
  *                 corr[corr_idx] = corr_val
  *                 corr_idx += 1
  */
-      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L1_error)
-      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 288, __pyx_L1_error)
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 299, __pyx_L1_error)
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 299, __pyx_L1_error)
 
-      /* "ParametricOpt.pyx":289
- *                 self.parametric_X.update_params([2, 3], [new_ang, new_ang])
+      /* "ParametricOpt.pyx":300
+ * 
  *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  *                 corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
  *                 corr_idx += 1
  *             else:
  */
       __pyx_t_12 = __pyx_v_corr_idx;
-      *((double *) ( /* dim=0 */ (__pyx_v_corr.data + __pyx_t_12 * __pyx_v_corr.strides[0]) )) = __pyx_v_corr_val;
+      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_corr.shape[0];
+      *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corr.data) + __pyx_t_12)) )) = __pyx_v_corr_val;
 
-      /* "ParametricOpt.pyx":290
+      /* "ParametricOpt.pyx":301
  *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  *                 corr[corr_idx] = corr_val
  *                 corr_idx += 1             # <<<<<<<<<<<<<<
  *             else:
- *                 for p_idx in [2, 3]:
+ *                 for ang_idx in range(2, 4):
  */
       __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
 
-      /* "ParametricOpt.pyx":273
+      /* "ParametricOpt.pyx":276
  * 
- *             # Angle optimization
+ *             # Vectorized angle optimization
  *             if self.lock_angle:             # <<<<<<<<<<<<<<
- *                 delta_vals = np.linspace(-cur_rad[2], cur_rad[2], 2*self.n_rad[2]+1)
- *                 params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+ *                 ang_vals = self.linspace(
+ *                     -cur_rad[2], cur_rad[2],
  */
-      goto __pyx_L17;
+      goto __pyx_L19;
     }
 
-    /* "ParametricOpt.pyx":292
+    /* "ParametricOpt.pyx":303
  *                 corr_idx += 1
  *             else:
- *                 for p_idx in [2, 3]:             # <<<<<<<<<<<<<<
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
+ *                 for ang_idx in range(2, 4):             # <<<<<<<<<<<<<<
+ *                     ang_vals = self.linspace(
+ *                         -cur_rad[ang_idx], cur_rad[ang_idx],
  */
     /*else*/ {
-      __pyx_t_2 = __pyx_tuple__12; __Pyx_INCREF(__pyx_t_2);
-      __pyx_t_23 = 0;
-      for (;;) {
-        if (__pyx_t_23 >= 2) break;
-        #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-        __pyx_t_4 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_23); __Pyx_INCREF(__pyx_t_4); __pyx_t_23++; if (unlikely((0 < 0))) __PYX_ERR(0, 292, __pyx_L1_error)
-        #else
-        __pyx_t_4 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_23); __pyx_t_23++; if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 292, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        #endif
-        __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_4); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 292, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_v_p_idx = __pyx_t_15;
+      for (__pyx_t_24 = 2; __pyx_t_24 < 4; __pyx_t_24+=1) {
+        __pyx_v_ang_idx = __pyx_t_24;
 
-        /* "ParametricOpt.pyx":293
+        /* "ParametricOpt.pyx":304
  *             else:
- *                 for p_idx in [2, 3]:
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:             # <<<<<<<<<<<<<<
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                         params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+ *                 for ang_idx in range(2, 4):
+ *                     ang_vals = self.linspace(             # <<<<<<<<<<<<<<
+ *                         -cur_rad[ang_idx], cur_rad[ang_idx],
+ *                         <int>(2*(self.n_rad[ang_idx])+1)
  */
-        __pyx_t_8 = ((__pyx_v_cur_rad[__pyx_v_p_idx]) > 1e-9);
-        if (__pyx_t_8) {
-        } else {
-          __pyx_t_7 = __pyx_t_8;
-          goto __pyx_L23_bool_binop_done;
-        }
-        __pyx_t_8 = ((__pyx_v_self->n_rad[__pyx_v_p_idx]) > 0);
-        __pyx_t_7 = __pyx_t_8;
-        __pyx_L23_bool_binop_done:;
-        if (__pyx_t_7) {
+        __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->linspace(__pyx_v_self, (-(__pyx_v_cur_rad[__pyx_v_ang_idx])), (__pyx_v_cur_rad[__pyx_v_ang_idx]), ((int)((2 * (__pyx_v_self->n_rad[__pyx_v_ang_idx])) + 1))); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 304, __pyx_L1_error)
+        __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_vals, 1);
+        __pyx_v_ang_vals = __pyx_t_10;
+        __pyx_t_10.memview = NULL;
+        __pyx_t_10.data = NULL;
 
-          /* "ParametricOpt.pyx":294
- *                 for p_idx in [2, 3]:
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)             # <<<<<<<<<<<<<<
- *                         params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+        /* "ParametricOpt.pyx":309
+ *                         )
  * 
- */
-          __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_9 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_linspace); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_9);
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          __pyx_t_1 = PyFloat_FromDouble((-(__pyx_v_cur_rad[__pyx_v_p_idx]))); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_3 = PyFloat_FromDouble((__pyx_v_cur_rad[__pyx_v_p_idx])); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_16 = __Pyx_PyInt_From_long(((2 * (__pyx_v_self->n_rad[__pyx_v_p_idx])) + 1)); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_16);
-          __pyx_t_27 = NULL;
-          __pyx_t_5 = 0;
-          #if CYTHON_UNPACK_METHODS
-          if (unlikely(PyMethod_Check(__pyx_t_9))) {
-            __pyx_t_27 = PyMethod_GET_SELF(__pyx_t_9);
-            if (likely(__pyx_t_27)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_9);
-              __Pyx_INCREF(__pyx_t_27);
-              __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_9, function);
-              __pyx_t_5 = 1;
-            }
-          }
-          #endif
-          {
-            PyObject *__pyx_callargs[4] = {__pyx_t_27, __pyx_t_1, __pyx_t_3, __pyx_t_16};
-            __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_9, __pyx_callargs+1-__pyx_t_5, 3+__pyx_t_5);
-            __Pyx_XDECREF(__pyx_t_27); __pyx_t_27 = 0;
-            __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-            if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 294, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          }
-          __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 294, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __PYX_XCLEAR_MEMVIEW(&__pyx_v_delta_vals, 1);
-          __pyx_v_delta_vals = __pyx_t_17;
-          __pyx_t_17.memview = NULL;
-          __pyx_t_17.data = NULL;
-
-          /* "ParametricOpt.pyx":295
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                         params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))             # <<<<<<<<<<<<<<
+ *                     params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))             # <<<<<<<<<<<<<<
  * 
- *                         for i in range(len(delta_vals)):
+ *                     idx = 0
  */
-          __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_np); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_9);
-          __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_tile); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_16);
-          __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_np); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_asarray); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-          __pyx_t_3 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __pyx_t_27 = NULL;
-          __pyx_t_5 = 0;
-          #if CYTHON_UNPACK_METHODS
-          if (unlikely(PyMethod_Check(__pyx_t_1))) {
-            __pyx_t_27 = PyMethod_GET_SELF(__pyx_t_1);
-            if (likely(__pyx_t_27)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-              __Pyx_INCREF(__pyx_t_27);
-              __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_1, function);
-              __pyx_t_5 = 1;
-            }
-          }
-          #endif
-          {
-            PyObject *__pyx_callargs[2] = {__pyx_t_27, __pyx_t_3};
-            __pyx_t_9 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-            __Pyx_XDECREF(__pyx_t_27); __pyx_t_27 = 0;
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 295, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_9);
-            __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          }
-          __pyx_t_24 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-          __pyx_t_1 = PyInt_FromSsize_t(__pyx_t_24); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_1);
-          __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_GIVEREF(__pyx_t_1);
-          if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_1)) __PYX_ERR(0, 295, __pyx_L1_error);
-          __Pyx_INCREF(__pyx_int_1);
-          __Pyx_GIVEREF(__pyx_int_1);
-          if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_1)) __PYX_ERR(0, 295, __pyx_L1_error);
-          __pyx_t_1 = 0;
-          __pyx_t_1 = NULL;
-          __pyx_t_5 = 0;
-          #if CYTHON_UNPACK_METHODS
-          if (unlikely(PyMethod_Check(__pyx_t_16))) {
-            __pyx_t_1 = PyMethod_GET_SELF(__pyx_t_16);
-            if (likely(__pyx_t_1)) {
-              PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_16);
-              __Pyx_INCREF(__pyx_t_1);
-              __Pyx_INCREF(function);
-              __Pyx_DECREF_SET(__pyx_t_16, function);
-              __pyx_t_5 = 1;
-            }
-          }
-          #endif
-          {
-            PyObject *__pyx_callargs[3] = {__pyx_t_1, __pyx_t_9, __pyx_t_3};
-            __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_16, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
-            __Pyx_XDECREF(__pyx_t_1); __pyx_t_1 = 0;
-            __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-            __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-            if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 295, __pyx_L1_error)
-            __Pyx_GOTREF(__pyx_t_4);
-            __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          }
-          __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_19.memview)) __PYX_ERR(0, 295, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
-          __pyx_v_params_batch = __pyx_t_19;
-          __pyx_t_19.memview = NULL;
-          __pyx_t_19.data = NULL;
-
-          /* "ParametricOpt.pyx":297
- *                         params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- * 
- *                         for i in range(len(delta_vals)):             # <<<<<<<<<<<<<<
- *                             params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
- * 
- */
-          __pyx_t_24 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-          __pyx_t_28 = __pyx_t_24;
-          for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_28; __pyx_t_15+=1) {
-            __pyx_v_i = __pyx_t_15;
-
-            /* "ParametricOpt.pyx":298
- * 
- *                         for i in range(len(delta_vals)):
- *                             params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]             # <<<<<<<<<<<<<<
- * 
- *                         p_corrs = self.correlate_batch(params_batch, temp_opt)
- */
-            __pyx_t_12 = __pyx_v_i;
-            __pyx_t_25 = __pyx_v_i;
-            __pyx_t_26 = __pyx_v_p_idx;
-            *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_25 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_26)) )) = ((__pyx_v_current_params[__pyx_v_p_idx]) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_delta_vals.data) + __pyx_t_12)) ))));
-          }
-
-          /* "ParametricOpt.pyx":300
- *                             params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
- * 
- *                         p_corrs = self.correlate_batch(params_batch, temp_opt)             # <<<<<<<<<<<<<<
- *                         best_dp, a_coeff = 0.0, 0.0
- *                         self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
- */
-          __pyx_t_17 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, __pyx_v_temp_opt); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 300, __pyx_L1_error)
-          __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_corrs, 1);
-          __pyx_v_p_corrs = __pyx_t_17;
-          __pyx_t_17.memview = NULL;
-          __pyx_t_17.data = NULL;
-
-          /* "ParametricOpt.pyx":301
- * 
- *                         p_corrs = self.correlate_batch(params_batch, temp_opt)
- *                         best_dp, a_coeff = 0.0, 0.0             # <<<<<<<<<<<<<<
- *                         self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
- * 
- */
-          __pyx_t_20 = 0.0;
-          __pyx_t_22 = 0.0;
-          __pyx_v_best_dp = __pyx_t_20;
-          __pyx_v_a_coeff = __pyx_t_22;
-
-          /* "ParametricOpt.pyx":302
- *                         p_corrs = self.correlate_batch(params_batch, temp_opt)
- *                         best_dp, a_coeff = 0.0, 0.0
- *                         self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)             # <<<<<<<<<<<<<<
- * 
- *                         new_val = current_params[p_idx] + best_dp
- */
-          ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_delta_vals, __pyx_v_p_corrs, (&__pyx_v_best_dp), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 302, __pyx_L1_error)
-
-          /* "ParametricOpt.pyx":304
- *                         self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
- * 
- *                         new_val = current_params[p_idx] + best_dp             # <<<<<<<<<<<<<<
- *                         self.parametric_X.update_params([p_idx], [new_val])
- *                         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- */
-          __pyx_v_new_val = ((__pyx_v_current_params[__pyx_v_p_idx]) + __pyx_v_best_dp);
-
-          /* "ParametricOpt.pyx":305
- * 
- *                         new_val = current_params[p_idx] + best_dp
- *                         self.parametric_X.update_params([p_idx], [new_val])             # <<<<<<<<<<<<<<
- *                         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                         corr[corr_idx] = corr_val
- */
-          __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_p_idx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_16 = PyList_New(1); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 305, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_16);
-          __Pyx_GIVEREF(__pyx_t_4);
-          if (__Pyx_PyList_SET_ITEM(__pyx_t_16, 0, __pyx_t_4)) __PYX_ERR(0, 305, __pyx_L1_error);
-          __pyx_t_4 = 0;
-          __pyx_t_4 = PyFloat_FromDouble(__pyx_v_new_val); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 305, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __pyx_t_3 = PyList_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 305, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_GIVEREF(__pyx_t_4);
-          if (__Pyx_PyList_SET_ITEM(__pyx_t_3, 0, __pyx_t_4)) __PYX_ERR(0, 305, __pyx_L1_error);
-          __pyx_t_4 = 0;
-          ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_16, __pyx_t_3, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 305, __pyx_L1_error)
-          __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-
-          /* "ParametricOpt.pyx":306
- *                         new_val = current_params[p_idx] + best_dp
- *                         self.parametric_X.update_params([p_idx], [new_val])
- *                         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
- *                         corr[corr_idx] = corr_val
- *                         corr_idx += 1
- */
-          __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 306, __pyx_L1_error)
-          ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 306, __pyx_L1_error)
-
-          /* "ParametricOpt.pyx":307
- *                         self.parametric_X.update_params([p_idx], [new_val])
- *                         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                         corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
- *                         corr_idx += 1
- * 
- */
-          __pyx_t_12 = __pyx_v_corr_idx;
-          *((double *) ( /* dim=0 */ (__pyx_v_corr.data + __pyx_t_12 * __pyx_v_corr.strides[0]) )) = __pyx_v_corr_val;
-
-          /* "ParametricOpt.pyx":308
- *                         self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                         corr[corr_idx] = corr_val
- *                         corr_idx += 1             # <<<<<<<<<<<<<<
- * 
- *             # Parameter optimization (p4, p5)
- */
-          __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
-
-          /* "ParametricOpt.pyx":293
- *             else:
- *                 for p_idx in [2, 3]:
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:             # <<<<<<<<<<<<<<
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                         params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- */
-        }
-
-        /* "ParametricOpt.pyx":292
- *                 corr_idx += 1
- *             else:
- *                 for p_idx in [2, 3]:             # <<<<<<<<<<<<<<
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- */
-      }
-      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    }
-    __pyx_L17:;
-
-    /* "ParametricOpt.pyx":311
- * 
- *             # Parameter optimization (p4, p5)
- *             for p_idx in [4, 5]:             # <<<<<<<<<<<<<<
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- */
-    __pyx_t_2 = __pyx_tuple__13; __Pyx_INCREF(__pyx_t_2);
-    __pyx_t_23 = 0;
-    for (;;) {
-      if (__pyx_t_23 >= 2) break;
-      #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
-      __pyx_t_3 = PyTuple_GET_ITEM(__pyx_t_2, __pyx_t_23); __Pyx_INCREF(__pyx_t_3); __pyx_t_23++; if (unlikely((0 < 0))) __PYX_ERR(0, 311, __pyx_L1_error)
-      #else
-      __pyx_t_3 = __Pyx_PySequence_ITEM(__pyx_t_2, __pyx_t_23); __pyx_t_23++; if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 311, __pyx_L1_error)
-      __Pyx_GOTREF(__pyx_t_3);
-      #endif
-      __pyx_t_15 = __Pyx_PyInt_As_int(__pyx_t_3); if (unlikely((__pyx_t_15 == (int)-1) && PyErr_Occurred())) __PYX_ERR(0, 311, __pyx_L1_error)
-      __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-      __pyx_v_p_idx = __pyx_t_15;
-
-      /* "ParametricOpt.pyx":312
- *             # Parameter optimization (p4, p5)
- *             for p_idx in [4, 5]:
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:             # <<<<<<<<<<<<<<
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                     params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- */
-      __pyx_t_8 = ((__pyx_v_cur_rad[__pyx_v_p_idx]) > 1e-9);
-      if (__pyx_t_8) {
-      } else {
-        __pyx_t_7 = __pyx_t_8;
-        goto __pyx_L31_bool_binop_done;
-      }
-      __pyx_t_8 = ((__pyx_v_self->n_rad[__pyx_v_p_idx]) > 0);
-      __pyx_t_7 = __pyx_t_8;
-      __pyx_L31_bool_binop_done:;
-      if (__pyx_t_7) {
-
-        /* "ParametricOpt.pyx":313
- *             for p_idx in [4, 5]:
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)             # <<<<<<<<<<<<<<
- *                     params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- * 
- */
-        __Pyx_GetModuleGlobalName(__pyx_t_16, __pyx_n_s_np); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 313, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_16, __pyx_n_s_linspace); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 313, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-        __pyx_t_16 = PyFloat_FromDouble((-(__pyx_v_cur_rad[__pyx_v_p_idx]))); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 313, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __pyx_t_9 = PyFloat_FromDouble((__pyx_v_cur_rad[__pyx_v_p_idx])); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 313, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_9);
-        __pyx_t_1 = __Pyx_PyInt_From_long(((2 * (__pyx_v_self->n_rad[__pyx_v_p_idx])) + 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 313, __pyx_L1_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 309, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_27 = NULL;
-        __pyx_t_5 = 0;
-        #if CYTHON_UNPACK_METHODS
-        if (unlikely(PyMethod_Check(__pyx_t_4))) {
-          __pyx_t_27 = PyMethod_GET_SELF(__pyx_t_4);
-          if (likely(__pyx_t_27)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_4);
-            __Pyx_INCREF(__pyx_t_27);
-            __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_4, function);
-            __pyx_t_5 = 1;
-          }
-        }
-        #endif
-        {
-          PyObject *__pyx_callargs[4] = {__pyx_t_27, __pyx_t_16, __pyx_t_9, __pyx_t_1};
-          __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_4, __pyx_callargs+1-__pyx_t_5, 3+__pyx_t_5);
-          __Pyx_XDECREF(__pyx_t_27); __pyx_t_27 = 0;
-          __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-          __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-          if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 313, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        }
-        __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 313, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-        __PYX_XCLEAR_MEMVIEW(&__pyx_v_delta_vals, 1);
-        __pyx_v_delta_vals = __pyx_t_17;
-        __pyx_t_17.memview = NULL;
-        __pyx_t_17.data = NULL;
-
-        /* "ParametricOpt.pyx":314
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                     params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))             # <<<<<<<<<<<<<<
- * 
- *                     for i in range(len(delta_vals)):
- */
-        __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_4);
-        __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_tile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 314, __pyx_L1_error)
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_tile); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 309, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+        __pyx_t_1 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 309, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __Pyx_GetModuleGlobalName(__pyx_t_9, __pyx_n_s_np); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 314, __pyx_L1_error)
+        __pyx_t_16 = __Pyx_MemoryView_Len(__pyx_v_ang_vals); 
+        __pyx_t_9 = PyInt_FromSsize_t(__pyx_t_16); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 309, __pyx_L1_error)
         __Pyx_GOTREF(__pyx_t_9);
-        __pyx_t_16 = __Pyx_PyObject_GetAttrStr(__pyx_t_9, __pyx_n_s_asarray); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-        __pyx_t_9 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_9);
-        __pyx_t_27 = NULL;
-        __pyx_t_5 = 0;
-        #if CYTHON_UNPACK_METHODS
-        if (unlikely(PyMethod_Check(__pyx_t_16))) {
-          __pyx_t_27 = PyMethod_GET_SELF(__pyx_t_16);
-          if (likely(__pyx_t_27)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_16);
-            __Pyx_INCREF(__pyx_t_27);
-            __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_16, function);
-            __pyx_t_5 = 1;
-          }
-        }
-        #endif
-        {
-          PyObject *__pyx_callargs[2] = {__pyx_t_27, __pyx_t_9};
-          __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_16, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
-          __Pyx_XDECREF(__pyx_t_27); __pyx_t_27 = 0;
-          __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 314, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_4);
-          __Pyx_DECREF(__pyx_t_16); __pyx_t_16 = 0;
-        }
-        __pyx_t_24 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-        __pyx_t_16 = PyInt_FromSsize_t(__pyx_t_24); if (unlikely(!__pyx_t_16)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_16);
-        __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_9);
-        __Pyx_GIVEREF(__pyx_t_16);
-        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_16)) __PYX_ERR(0, 314, __pyx_L1_error);
+        __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 309, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_GIVEREF(__pyx_t_9);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_9)) __PYX_ERR(0, 309, __pyx_L1_error);
         __Pyx_INCREF(__pyx_int_1);
         __Pyx_GIVEREF(__pyx_int_1);
-        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_int_1)) __PYX_ERR(0, 314, __pyx_L1_error);
-        __pyx_t_16 = 0;
-        __pyx_t_16 = NULL;
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_int_1)) __PYX_ERR(0, 309, __pyx_L1_error);
+        __pyx_t_9 = 0;
+        __pyx_t_9 = NULL;
         __pyx_t_5 = 0;
         #if CYTHON_UNPACK_METHODS
-        if (unlikely(PyMethod_Check(__pyx_t_1))) {
-          __pyx_t_16 = PyMethod_GET_SELF(__pyx_t_1);
-          if (likely(__pyx_t_16)) {
-            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
-            __Pyx_INCREF(__pyx_t_16);
+        if (unlikely(PyMethod_Check(__pyx_t_2))) {
+          __pyx_t_9 = PyMethod_GET_SELF(__pyx_t_2);
+          if (likely(__pyx_t_9)) {
+            PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_2);
+            __Pyx_INCREF(__pyx_t_9);
             __Pyx_INCREF(function);
-            __Pyx_DECREF_SET(__pyx_t_1, function);
+            __Pyx_DECREF_SET(__pyx_t_2, function);
             __pyx_t_5 = 1;
           }
         }
         #endif
         {
-          PyObject *__pyx_callargs[3] = {__pyx_t_16, __pyx_t_4, __pyx_t_9};
-          __pyx_t_3 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
-          __Pyx_XDECREF(__pyx_t_16); __pyx_t_16 = 0;
-          __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-          __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-          if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 314, __pyx_L1_error)
-          __Pyx_GOTREF(__pyx_t_3);
+          PyObject *__pyx_callargs[3] = {__pyx_t_9, __pyx_t_1, __pyx_t_3};
+          __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
+          __Pyx_XDECREF(__pyx_t_9); __pyx_t_9 = 0;
           __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+          __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+          if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 309, __pyx_L1_error)
+          __Pyx_GOTREF(__pyx_t_4);
+          __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         }
-        __pyx_t_19 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_3, PyBUF_WRITABLE); if (unlikely(!__pyx_t_19.memview)) __PYX_ERR(0, 314, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 309, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
         __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
-        __pyx_v_params_batch = __pyx_t_19;
-        __pyx_t_19.memview = NULL;
-        __pyx_t_19.data = NULL;
-
-        /* "ParametricOpt.pyx":316
- *                     params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
- * 
- *                     for i in range(len(delta_vals)):             # <<<<<<<<<<<<<<
- *                         params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
- * 
- */
-        __pyx_t_24 = __Pyx_MemoryView_Len(__pyx_v_delta_vals); 
-        __pyx_t_28 = __pyx_t_24;
-        for (__pyx_t_15 = 0; __pyx_t_15 < __pyx_t_28; __pyx_t_15+=1) {
-          __pyx_v_i = __pyx_t_15;
-
-          /* "ParametricOpt.pyx":317
- * 
- *                     for i in range(len(delta_vals)):
- *                         params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]             # <<<<<<<<<<<<<<
- * 
- *                     p_corrs = self.correlate_batch(params_batch, temp_opt)
- */
-          __pyx_t_12 = __pyx_v_i;
-          __pyx_t_26 = __pyx_v_i;
-          __pyx_t_25 = __pyx_v_p_idx;
-          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_26 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_25)) )) = ((__pyx_v_current_params[__pyx_v_p_idx]) + (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_delta_vals.data) + __pyx_t_12)) ))));
-        }
-
-        /* "ParametricOpt.pyx":319
- *                         params_batch[i, p_idx] = current_params[p_idx] + delta_vals[i]
- * 
- *                     p_corrs = self.correlate_batch(params_batch, temp_opt)             # <<<<<<<<<<<<<<
- *                     best_dp, a_coeff = 0.0, 0.0
- *                     self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
- */
-        __pyx_t_17 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, __pyx_v_temp_opt); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 319, __pyx_L1_error)
-        __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_corrs, 1);
-        __pyx_v_p_corrs = __pyx_t_17;
+        __pyx_v_params_batch = __pyx_t_17;
         __pyx_t_17.memview = NULL;
         __pyx_t_17.data = NULL;
 
-        /* "ParametricOpt.pyx":320
+        /* "ParametricOpt.pyx":311
+ *                     params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
  * 
- *                     p_corrs = self.correlate_batch(params_batch, temp_opt)
- *                     best_dp, a_coeff = 0.0, 0.0             # <<<<<<<<<<<<<<
- *                     self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
+ *                     idx = 0             # <<<<<<<<<<<<<<
+ *                     for yi in range(ny):
+ *                         for xi in range(nx):
+ */
+        __pyx_v_idx = 0;
+
+        /* "ParametricOpt.pyx":312
+ * 
+ *                     idx = 0
+ *                     for yi in range(ny):             # <<<<<<<<<<<<<<
+ *                         for xi in range(nx):
+ *                             params_batch[idx, ang_idx] += ang_vals[xi]
+ */
+        __pyx_t_16 = __pyx_v_ny;
+        __pyx_t_15 = __pyx_t_16;
+        for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_15; __pyx_t_18+=1) {
+          __pyx_v_yi = __pyx_t_18;
+
+          /* "ParametricOpt.pyx":313
+ *                     idx = 0
+ *                     for yi in range(ny):
+ *                         for xi in range(nx):             # <<<<<<<<<<<<<<
+ *                             params_batch[idx, ang_idx] += ang_vals[xi]
  * 
  */
-        __pyx_t_22 = 0.0;
-        __pyx_t_20 = 0.0;
-        __pyx_v_best_dp = __pyx_t_22;
-        __pyx_v_a_coeff = __pyx_t_20;
+          __pyx_t_19 = __pyx_v_nx;
+          __pyx_t_20 = __pyx_t_19;
+          for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
+            __pyx_v_xi = __pyx_t_21;
+
+            /* "ParametricOpt.pyx":314
+ *                     for yi in range(ny):
+ *                         for xi in range(nx):
+ *                             params_batch[idx, ang_idx] += ang_vals[xi]             # <<<<<<<<<<<<<<
+ * 
+ *                     ang_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ */
+            __pyx_t_12 = __pyx_v_xi;
+            if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_ang_vals.shape[0];
+            __pyx_t_22 = __pyx_v_idx;
+            __pyx_t_23 = __pyx_v_ang_idx;
+            if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[0];
+            if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[1];
+            *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_22 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_23)) )) += (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_ang_vals.data) + __pyx_t_12)) )));
+          }
+        }
+
+        /* "ParametricOpt.pyx":316
+ *                             params_batch[idx, ang_idx] += ang_vals[xi]
+ * 
+ *                     ang_corrs = self.correlate_batch(params_batch, self.parametric_X)             # <<<<<<<<<<<<<<
+ *                     self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
+ * 
+ */
+        __pyx_t_4 = ((PyObject *)__pyx_v_self->parametric_X);
+        __Pyx_INCREF(__pyx_t_4);
+        __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, ((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_t_4)); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 316, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_corrs, 1);
+        __pyx_v_ang_corrs = __pyx_t_10;
+        __pyx_t_10.memview = NULL;
+        __pyx_t_10.data = NULL;
+
+        /* "ParametricOpt.pyx":317
+ * 
+ *                     ang_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ *                     self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)             # <<<<<<<<<<<<<<
+ * 
+ *                     self.parametric_X.update_params([ang_idx], [self.parametric_X.get_params()[ang_idx] + best_da])
+ */
+        ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_ang_vals, __pyx_v_ang_corrs, (&__pyx_v_best_da), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 317, __pyx_L1_error)
+
+        /* "ParametricOpt.pyx":319
+ *                     self.quad_fit_1D(ang_vals, ang_corrs, &best_da, &a_coeff)
+ * 
+ *                     self.parametric_X.update_params([ang_idx], [self.parametric_X.get_params()[ang_idx] + best_da])             # <<<<<<<<<<<<<<
+ * 
+ *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ */
+        __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_ang_idx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_2 = PyList_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_2);
+        __Pyx_GIVEREF(__pyx_t_4);
+        if (__Pyx_PyList_SET_ITEM(__pyx_t_2, 0, __pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error);
+        __pyx_t_4 = 0;
+        __pyx_t_4 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_3 = __Pyx_GetItemInt(__pyx_t_4, __pyx_v_ang_idx, int, 1, __Pyx_PyInt_From_int, 0, 1, 0); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_3);
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_4 = PyFloat_FromDouble(__pyx_v_best_da); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __pyx_t_1 = PyNumber_Add(__pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_1);
+        __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+        __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_GIVEREF(__pyx_t_1);
+        if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 319, __pyx_L1_error);
+        __pyx_t_1 = 0;
+        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_2, __pyx_t_4, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 319, __pyx_L1_error)
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
         /* "ParametricOpt.pyx":321
- *                     p_corrs = self.correlate_batch(params_batch, temp_opt)
- *                     best_dp, a_coeff = 0.0, 0.0
- *                     self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)             # <<<<<<<<<<<<<<
+ *                     self.parametric_X.update_params([ang_idx], [self.parametric_X.get_params()[ang_idx] + best_da])
  * 
- *                     new_val = current_params[p_idx] + best_dp
- */
-        ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_delta_vals, __pyx_v_p_corrs, (&__pyx_v_best_dp), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L1_error)
-
-        /* "ParametricOpt.pyx":323
- *                     self.quad_fit_1D(delta_vals, p_corrs, &best_dp, &a_coeff)
- * 
- *                     new_val = current_params[p_idx] + best_dp             # <<<<<<<<<<<<<<
- *                     self.parametric_X.update_params([p_idx], [new_val])
- *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- */
-        __pyx_v_new_val = ((__pyx_v_current_params[__pyx_v_p_idx]) + __pyx_v_best_dp);
-
-        /* "ParametricOpt.pyx":324
- * 
- *                     new_val = current_params[p_idx] + best_dp
- *                     self.parametric_X.update_params([p_idx], [new_val])             # <<<<<<<<<<<<<<
- *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
- *                     corr[corr_idx] = corr_val
- */
-        __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_p_idx); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 324, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_1);
-        __Pyx_GIVEREF(__pyx_t_3);
-        if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error);
-        __pyx_t_3 = 0;
-        __pyx_t_3 = PyFloat_FromDouble(__pyx_v_new_val); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_9 = PyList_New(1); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 324, __pyx_L1_error)
-        __Pyx_GOTREF(__pyx_t_9);
-        __Pyx_GIVEREF(__pyx_t_3);
-        if (__Pyx_PyList_SET_ITEM(__pyx_t_9, 0, __pyx_t_3)) __PYX_ERR(0, 324, __pyx_L1_error);
-        __pyx_t_3 = 0;
-        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_1, __pyx_t_9, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 324, __pyx_L1_error)
-        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
-
-        /* "ParametricOpt.pyx":325
- *                     new_val = current_params[p_idx] + best_dp
- *                     self.parametric_X.update_params([p_idx], [new_val])
  *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
  *                     corr[corr_idx] = corr_val
  *                     corr_idx += 1
  */
-        __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 325, __pyx_L1_error)
-        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 325, __pyx_L1_error)
+        __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L1_error)
+        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 321, __pyx_L1_error)
 
-        /* "ParametricOpt.pyx":326
- *                     self.parametric_X.update_params([p_idx], [new_val])
+        /* "ParametricOpt.pyx":322
+ * 
  *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  *                     corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
  *                     corr_idx += 1
+ * 
  */
         __pyx_t_12 = __pyx_v_corr_idx;
-        *((double *) ( /* dim=0 */ (__pyx_v_corr.data + __pyx_t_12 * __pyx_v_corr.strides[0]) )) = __pyx_v_corr_val;
+        if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_corr.shape[0];
+        *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corr.data) + __pyx_t_12)) )) = __pyx_v_corr_val;
 
-        /* "ParametricOpt.pyx":327
+        /* "ParametricOpt.pyx":323
  *                     self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
  *                     corr[corr_idx] = corr_val
  *                     corr_idx += 1             # <<<<<<<<<<<<<<
+ * 
+ *             for p_idx in range(4, 6):
  */
         __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
+      }
+    }
+    __pyx_L19:;
 
-        /* "ParametricOpt.pyx":312
- *             # Parameter optimization (p4, p5)
- *             for p_idx in [4, 5]:
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:             # <<<<<<<<<<<<<<
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- *                     params_batch = np.tile(np.asarray(self.parametric_X.get_params()), (len(delta_vals), 1))
+    /* "ParametricOpt.pyx":325
+ *                     corr_idx += 1
+ * 
+ *             for p_idx in range(4, 6):             # <<<<<<<<<<<<<<
+ *                 p_vals = self.linspace(
+ *                     -cur_rad[p_idx], cur_rad[p_idx],
  */
+    for (__pyx_t_24 = 4; __pyx_t_24 < 6; __pyx_t_24+=1) {
+      __pyx_v_p_idx = __pyx_t_24;
+
+      /* "ParametricOpt.pyx":326
+ * 
+ *             for p_idx in range(4, 6):
+ *                 p_vals = self.linspace(             # <<<<<<<<<<<<<<
+ *                     -cur_rad[p_idx], cur_rad[p_idx],
+ *                     <int>(2*(self.n_rad[p_idx])+1)
+ */
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->linspace(__pyx_v_self, (-(__pyx_v_cur_rad[__pyx_v_p_idx])), (__pyx_v_cur_rad[__pyx_v_p_idx]), ((int)((2 * (__pyx_v_self->n_rad[__pyx_v_p_idx])) + 1))); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 326, __pyx_L1_error)
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_vals, 1);
+      __pyx_v_p_vals = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
+
+      /* "ParametricOpt.pyx":331
+ *                     )
+ * 
+ *                 params_batch = np.tile(self.parametric_X.get_params(), (len(p_vals), 1))             # <<<<<<<<<<<<<<
+ * 
+ *                 idx = 0
+ */
+      __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_tile); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+      __pyx_t_2 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __pyx_t_16 = __Pyx_MemoryView_Len(__pyx_v_p_vals); 
+      __pyx_t_3 = PyInt_FromSsize_t(__pyx_t_16); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_3);
+      __pyx_t_9 = PyTuple_New(2); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_GIVEREF(__pyx_t_3);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 0, __pyx_t_3)) __PYX_ERR(0, 331, __pyx_L1_error);
+      __Pyx_INCREF(__pyx_int_1);
+      __Pyx_GIVEREF(__pyx_int_1);
+      if (__Pyx_PyTuple_SET_ITEM(__pyx_t_9, 1, __pyx_int_1)) __PYX_ERR(0, 331, __pyx_L1_error);
+      __pyx_t_3 = 0;
+      __pyx_t_3 = NULL;
+      __pyx_t_5 = 0;
+      #if CYTHON_UNPACK_METHODS
+      if (unlikely(PyMethod_Check(__pyx_t_1))) {
+        __pyx_t_3 = PyMethod_GET_SELF(__pyx_t_1);
+        if (likely(__pyx_t_3)) {
+          PyObject* function = PyMethod_GET_FUNCTION(__pyx_t_1);
+          __Pyx_INCREF(__pyx_t_3);
+          __Pyx_INCREF(function);
+          __Pyx_DECREF_SET(__pyx_t_1, function);
+          __pyx_t_5 = 1;
+        }
+      }
+      #endif
+      {
+        PyObject *__pyx_callargs[3] = {__pyx_t_3, __pyx_t_2, __pyx_t_9};
+        __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_1, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
+        __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
+        __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
+        __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+        if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 331, __pyx_L1_error)
+        __Pyx_GOTREF(__pyx_t_4);
+        __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      }
+      __pyx_t_17 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_4, PyBUF_WRITABLE); if (unlikely(!__pyx_t_17.memview)) __PYX_ERR(0, 331, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
+      __pyx_v_params_batch = __pyx_t_17;
+      __pyx_t_17.memview = NULL;
+      __pyx_t_17.data = NULL;
+
+      /* "ParametricOpt.pyx":333
+ *                 params_batch = np.tile(self.parametric_X.get_params(), (len(p_vals), 1))
+ * 
+ *                 idx = 0             # <<<<<<<<<<<<<<
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):
+ */
+      __pyx_v_idx = 0;
+
+      /* "ParametricOpt.pyx":334
+ * 
+ *                 idx = 0
+ *                 for yi in range(ny):             # <<<<<<<<<<<<<<
+ *                     for xi in range(nx):
+ *                         params_batch[idx, p_idx] += p_vals[xi]
+ */
+      __pyx_t_16 = __pyx_v_ny;
+      __pyx_t_15 = __pyx_t_16;
+      for (__pyx_t_18 = 0; __pyx_t_18 < __pyx_t_15; __pyx_t_18+=1) {
+        __pyx_v_yi = __pyx_t_18;
+
+        /* "ParametricOpt.pyx":335
+ *                 idx = 0
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):             # <<<<<<<<<<<<<<
+ *                         params_batch[idx, p_idx] += p_vals[xi]
+ * 
+ */
+        __pyx_t_19 = __pyx_v_nx;
+        __pyx_t_20 = __pyx_t_19;
+        for (__pyx_t_21 = 0; __pyx_t_21 < __pyx_t_20; __pyx_t_21+=1) {
+          __pyx_v_xi = __pyx_t_21;
+
+          /* "ParametricOpt.pyx":336
+ *                 for yi in range(ny):
+ *                     for xi in range(nx):
+ *                         params_batch[idx, p_idx] += p_vals[xi]             # <<<<<<<<<<<<<<
+ * 
+ *                 p_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ */
+          __pyx_t_12 = __pyx_v_xi;
+          if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_p_vals.shape[0];
+          __pyx_t_23 = __pyx_v_idx;
+          __pyx_t_22 = __pyx_v_p_idx;
+          if (__pyx_t_23 < 0) __pyx_t_23 += __pyx_v_params_batch.shape[0];
+          if (__pyx_t_22 < 0) __pyx_t_22 += __pyx_v_params_batch.shape[1];
+          *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_params_batch.data + __pyx_t_23 * __pyx_v_params_batch.strides[0]) )) + __pyx_t_22)) )) += (*((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_p_vals.data) + __pyx_t_12)) )));
+        }
       }
 
-      /* "ParametricOpt.pyx":311
+      /* "ParametricOpt.pyx":338
+ *                         params_batch[idx, p_idx] += p_vals[xi]
  * 
- *             # Parameter optimization (p4, p5)
- *             for p_idx in [4, 5]:             # <<<<<<<<<<<<<<
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
+ *                 p_corrs = self.correlate_batch(params_batch, self.parametric_X)             # <<<<<<<<<<<<<<
+ *                 self.quad_fit_1D(p_vals, p_corrs, &best_dp, &a_coeff)
+ * 
  */
+      __pyx_t_4 = ((PyObject *)__pyx_v_self->parametric_X);
+      __Pyx_INCREF(__pyx_t_4);
+      __pyx_t_10 = ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->correlate_batch(__pyx_v_self, __pyx_v_params_batch, ((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_t_4)); if (unlikely(!__pyx_t_10.memview)) __PYX_ERR(0, 338, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_corrs, 1);
+      __pyx_v_p_corrs = __pyx_t_10;
+      __pyx_t_10.memview = NULL;
+      __pyx_t_10.data = NULL;
+
+      /* "ParametricOpt.pyx":339
+ * 
+ *                 p_corrs = self.correlate_batch(params_batch, self.parametric_X)
+ *                 self.quad_fit_1D(p_vals, p_corrs, &best_dp, &a_coeff)             # <<<<<<<<<<<<<<
+ * 
+ *                 self.parametric_X.update_params([p_idx], [self.parametric_X.get_params()[p_idx] + best_dp])
+ */
+      ((struct __pyx_vtabstruct_13ParametricOpt_ParameterOptimizer *)__pyx_v_self->__pyx_vtab)->quad_fit_1D(__pyx_v_self, __pyx_v_p_vals, __pyx_v_p_corrs, (&__pyx_v_best_dp), (&__pyx_v_a_coeff)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 339, __pyx_L1_error)
+
+      /* "ParametricOpt.pyx":341
+ *                 self.quad_fit_1D(p_vals, p_corrs, &best_dp, &a_coeff)
+ * 
+ *                 self.parametric_X.update_params([p_idx], [self.parametric_X.get_params()[p_idx] + best_dp])             # <<<<<<<<<<<<<<
+ * 
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ */
+      __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_p_idx); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_1 = PyList_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_1);
+      __Pyx_GIVEREF(__pyx_t_4);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_1, 0, __pyx_t_4)) __PYX_ERR(0, 341, __pyx_L1_error);
+      __pyx_t_4 = 0;
+      __pyx_t_4 = ((PyObject *)((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params(__pyx_v_self->parametric_X, 0)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_9 = __Pyx_GetItemInt(__pyx_t_4, __pyx_v_p_idx, int, 1, __Pyx_PyInt_From_int, 0, 1, 0); if (unlikely(!__pyx_t_9)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_9);
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_4 = PyFloat_FromDouble(__pyx_v_best_dp); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __pyx_t_2 = PyNumber_Add(__pyx_t_9, __pyx_t_4); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_2);
+      __Pyx_DECREF(__pyx_t_9); __pyx_t_9 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+      __pyx_t_4 = PyList_New(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_GOTREF(__pyx_t_4);
+      __Pyx_GIVEREF(__pyx_t_2);
+      if (__Pyx_PyList_SET_ITEM(__pyx_t_4, 0, __pyx_t_2)) __PYX_ERR(0, 341, __pyx_L1_error);
+      __pyx_t_2 = 0;
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->update_params(__pyx_v_self->parametric_X, __pyx_t_1, __pyx_t_4, 0); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 341, __pyx_L1_error)
+      __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
+      __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
+
+      /* "ParametricOpt.pyx":343
+ *                 self.parametric_X.update_params([p_idx], [self.parametric_X.get_params()[p_idx] + best_dp])
+ * 
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)             # <<<<<<<<<<<<<<
+ *                 corr[corr_idx] = corr_val
+ *                 corr_idx += 1
+ */
+      __pyx_t_11 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->get_params_ptr(__pyx_v_self->parametric_X); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 343, __pyx_L1_error)
+      ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->parametric_X->__pyx_vtab)->_correlate(__pyx_v_self->parametric_X, __pyx_t_11, (&__pyx_v_corr_val)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 343, __pyx_L1_error)
+
+      /* "ParametricOpt.pyx":344
+ * 
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ *                 corr[corr_idx] = corr_val             # <<<<<<<<<<<<<<
+ *                 corr_idx += 1
+ * 
+ */
+      __pyx_t_12 = __pyx_v_corr_idx;
+      if (__pyx_t_12 < 0) __pyx_t_12 += __pyx_v_corr.shape[0];
+      *((double *) ( /* dim=0 */ ((char *) (((double *) __pyx_v_corr.data) + __pyx_t_12)) )) = __pyx_v_corr_val;
+
+      /* "ParametricOpt.pyx":345
+ *                 self.parametric_X._correlate(self.parametric_X.get_params_ptr(), &corr_val)
+ *                 corr[corr_idx] = corr_val
+ *                 corr_idx += 1             # <<<<<<<<<<<<<<
+ * 
+ *         # if self.verbose:
+ */
+      __pyx_v_corr_idx = (__pyx_v_corr_idx + 1);
     }
-    __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
 
   /* "ParametricOpt.pyx":207
@@ -25667,7 +25130,7 @@ __pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
  * 
  *     cpdef void quad_optimize(self):             # <<<<<<<<<<<<<<
  *         cdef:
- *             int num_params, max_steps, corr_idx, G, i, p_idx
+ *             int num_params, max_steps
  */
 
   /* function exit code */
@@ -25679,22 +25142,16 @@ __pyx_t_21.strides[0] = __pyx_v_params_batch.strides[0];
   __Pyx_XDECREF(__pyx_t_4);
   __Pyx_XDECREF(__pyx_t_9);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_10, 1);
-  __Pyx_XDECREF(__pyx_t_16);
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_17, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_t_19, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_t_21, 1);
-  __Pyx_XDECREF(__pyx_t_27);
   __Pyx_AddTraceback("ParametricOpt.ParameterOptimizer.quad_optimize", __pyx_clineno, __pyx_lineno, __pyx_filename);
   __pyx_L0:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_x_vals, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_y_vals, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_delta_vals, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_corr, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_vals, 1);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_vals, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_params_batch, 1);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_grid_corrs, 1);
-  __Pyx_XDECREF((PyObject *)__pyx_v_temp_opt);
-  __Pyx_XDECREF(__pyx_v_xx);
-  __Pyx_XDECREF(__pyx_v_yy);
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_corr, 1);
+  __Pyx_XDECREF(__pyx_v_grid_corrs);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_ang_corrs, 1);
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_p_corrs, 1);
   __Pyx_RefNannyFinishContext();
@@ -26377,7 +25834,7 @@ static PyObject *__pyx_pf_13ParametricOpt___pyx_unpickle_ParameterOptimizer(CYTH
  */
   __pyx_t_1 = __Pyx_PyInt_From_long(__pyx_v___pyx_checksum); if (unlikely(!__pyx_t_1)) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_t_1, __pyx_tuple__14, Py_NE)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(1, 4, __pyx_L1_error)
+  __pyx_t_2 = (__Pyx_PySequence_ContainsTF(__pyx_t_1, __pyx_tuple__12, Py_NE)); if (unlikely((__pyx_t_2 < 0))) __PYX_ERR(1, 4, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (__pyx_t_2) {
 
@@ -27902,20 +27359,21 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u__11, __pyx_k__11, sizeof(__pyx_k__11), 0, 1, 0, 0},
     {&__pyx_kp_u__2, __pyx_k__2, sizeof(__pyx_k__2), 0, 1, 0, 0},
     {&__pyx_n_s__3, __pyx_k__3, sizeof(__pyx_k__3), 0, 0, 1, 1},
-    {&__pyx_n_s__33, __pyx_k__33, sizeof(__pyx_k__33), 0, 0, 1, 1},
+    {&__pyx_n_s__31, __pyx_k__31, sizeof(__pyx_k__31), 0, 0, 1, 1},
     {&__pyx_kp_u__6, __pyx_k__6, sizeof(__pyx_k__6), 0, 1, 0, 0},
     {&__pyx_kp_u__7, __pyx_k__7, sizeof(__pyx_k__7), 0, 1, 0, 0},
     {&__pyx_n_s_abc, __pyx_k_abc, sizeof(__pyx_k_abc), 0, 0, 1, 1},
+    {&__pyx_n_u_after, __pyx_k_after, sizeof(__pyx_k_after), 0, 1, 0, 1},
     {&__pyx_n_s_allocate_buffer, __pyx_k_allocate_buffer, sizeof(__pyx_k_allocate_buffer), 0, 0, 1, 1},
     {&__pyx_kp_u_and, __pyx_k_and, sizeof(__pyx_k_and), 0, 1, 0, 0},
     {&__pyx_n_s_argmax, __pyx_k_argmax, sizeof(__pyx_k_argmax), 0, 0, 1, 1},
     {&__pyx_n_s_asarray, __pyx_k_asarray, sizeof(__pyx_k_asarray), 0, 0, 1, 1},
     {&__pyx_n_s_asyncio_coroutines, __pyx_k_asyncio_coroutines, sizeof(__pyx_k_asyncio_coroutines), 0, 0, 1, 1},
     {&__pyx_n_s_base, __pyx_k_base, sizeof(__pyx_k_base), 0, 0, 1, 1},
+    {&__pyx_n_u_before, __pyx_k_before, sizeof(__pyx_k_before), 0, 1, 0, 1},
     {&__pyx_n_s_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 0, 1, 1},
     {&__pyx_n_u_c, __pyx_k_c, sizeof(__pyx_k_c), 0, 1, 0, 1},
     {&__pyx_n_s_ceil, __pyx_k_ceil, sizeof(__pyx_k_ceil), 0, 0, 1, 1},
-    {&__pyx_n_s_center, __pyx_k_center, sizeof(__pyx_k_center), 0, 0, 1, 1},
     {&__pyx_n_s_class, __pyx_k_class, sizeof(__pyx_k_class), 0, 0, 1, 1},
     {&__pyx_n_s_class_getitem, __pyx_k_class_getitem, sizeof(__pyx_k_class_getitem), 0, 0, 1, 1},
     {&__pyx_n_s_cline_in_traceback, __pyx_k_cline_in_traceback, sizeof(__pyx_k_cline_in_traceback), 0, 0, 1, 1},
@@ -27946,7 +27404,6 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_kp_u_got, __pyx_k_got, sizeof(__pyx_k_got), 0, 1, 0, 0},
     {&__pyx_kp_u_got_differing_extents_in_dimensi, __pyx_k_got_differing_extents_in_dimensi, sizeof(__pyx_k_got_differing_extents_in_dimensi), 0, 1, 0, 0},
     {&__pyx_n_s_id, __pyx_k_id, sizeof(__pyx_k_id), 0, 0, 1, 1},
-    {&__pyx_n_s_image, __pyx_k_image, sizeof(__pyx_k_image), 0, 0, 1, 1},
     {&__pyx_n_s_import, __pyx_k_import, sizeof(__pyx_k_import), 0, 0, 1, 1},
     {&__pyx_n_s_index, __pyx_k_index, sizeof(__pyx_k_index), 0, 0, 1, 1},
     {&__pyx_n_s_initializing, __pyx_k_initializing, sizeof(__pyx_k_initializing), 0, 0, 1, 1},
@@ -27955,11 +27412,9 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_itemsize, __pyx_k_itemsize, sizeof(__pyx_k_itemsize), 0, 0, 1, 1},
     {&__pyx_kp_s_itemsize_0_for_cython_array, __pyx_k_itemsize_0_for_cython_array, sizeof(__pyx_k_itemsize_0_for_cython_array), 0, 0, 1, 0},
     {&__pyx_n_s_linalg, __pyx_k_linalg, sizeof(__pyx_k_linalg), 0, 0, 1, 1},
-    {&__pyx_n_s_linspace, __pyx_k_linspace, sizeof(__pyx_k_linspace), 0, 0, 1, 1},
     {&__pyx_n_s_lock_angle, __pyx_k_lock_angle, sizeof(__pyx_k_lock_angle), 0, 0, 1, 1},
     {&__pyx_n_s_main, __pyx_k_main, sizeof(__pyx_k_main), 0, 0, 1, 1},
     {&__pyx_n_s_memview, __pyx_k_memview, sizeof(__pyx_k_memview), 0, 0, 1, 1},
-    {&__pyx_n_s_meshgrid, __pyx_k_meshgrid, sizeof(__pyx_k_meshgrid), 0, 0, 1, 1},
     {&__pyx_n_s_minimum, __pyx_k_minimum, sizeof(__pyx_k_minimum), 0, 0, 1, 1},
     {&__pyx_n_s_mode, __pyx_k_mode, sizeof(__pyx_k_mode), 0, 0, 1, 1},
     {&__pyx_n_s_name, __pyx_k_name, sizeof(__pyx_k_name), 0, 0, 1, 1},
@@ -27978,6 +27433,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_pickle, __pyx_k_pickle, sizeof(__pyx_k_pickle), 0, 0, 1, 1},
     {&__pyx_n_s_plt, __pyx_k_plt, sizeof(__pyx_k_plt), 0, 0, 1, 1},
     {&__pyx_n_s_polyfit, __pyx_k_polyfit, sizeof(__pyx_k_polyfit), 0, 0, 1, 1},
+    {&__pyx_n_s_print, __pyx_k_print, sizeof(__pyx_k_print), 0, 0, 1, 1},
     {&__pyx_n_s_pyx_PickleError, __pyx_k_pyx_PickleError, sizeof(__pyx_k_pyx_PickleError), 0, 0, 1, 1},
     {&__pyx_n_s_pyx_checksum, __pyx_k_pyx_checksum, sizeof(__pyx_k_pyx_checksum), 0, 0, 1, 1},
     {&__pyx_n_s_pyx_result, __pyx_k_pyx_result, sizeof(__pyx_k_pyx_result), 0, 0, 1, 1},
@@ -27988,7 +27444,6 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
     {&__pyx_n_s_pyx_vtable, __pyx_k_pyx_vtable, sizeof(__pyx_k_pyx_vtable), 0, 0, 1, 1},
     {&__pyx_n_s_quad_optimize, __pyx_k_quad_optimize, sizeof(__pyx_k_quad_optimize), 0, 0, 1, 1},
     {&__pyx_n_s_range, __pyx_k_range, sizeof(__pyx_k_range), 0, 0, 1, 1},
-    {&__pyx_n_s_ravel, __pyx_k_ravel, sizeof(__pyx_k_ravel), 0, 0, 1, 1},
     {&__pyx_n_s_reduce, __pyx_k_reduce, sizeof(__pyx_k_reduce), 0, 0, 1, 1},
     {&__pyx_n_s_reduce_cython, __pyx_k_reduce_cython, sizeof(__pyx_k_reduce_cython), 0, 0, 1, 1},
     {&__pyx_n_s_reduce_ex, __pyx_k_reduce_ex, sizeof(__pyx_k_reduce_ex), 0, 0, 1, 1},
@@ -28029,6 +27484,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 79, __pyx_L1_error)
+  __pyx_builtin_print = __Pyx_GetBuiltinName(__pyx_n_s_print); if (!__pyx_builtin_print) __PYX_ERR(0, 240, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 83, __pyx_L1_error)
   __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(1, 83, __pyx_L1_error)
   __pyx_builtin_enumerate = __Pyx_GetBuiltinName(__pyx_n_s_enumerate); if (!__pyx_builtin_enumerate) __PYX_ERR(1, 86, __pyx_L1_error)
@@ -28108,28 +27564,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "ParametricOpt.pyx":292
- *                 corr_idx += 1
- *             else:
- *                 for p_idx in [2, 3]:             # <<<<<<<<<<<<<<
- *                     if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                         delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- */
-  __pyx_tuple__12 = PyTuple_Pack(2, __pyx_int_2, __pyx_int_3); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 292, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__12);
-  __Pyx_GIVEREF(__pyx_tuple__12);
-
-  /* "ParametricOpt.pyx":311
- * 
- *             # Parameter optimization (p4, p5)
- *             for p_idx in [4, 5]:             # <<<<<<<<<<<<<<
- *                 if cur_rad[p_idx] > 1e-9 and self.n_rad[p_idx] > 0:
- *                     delta_vals = np.linspace(-cur_rad[p_idx], cur_rad[p_idx], 2*self.n_rad[p_idx]+1)
- */
-  __pyx_tuple__13 = PyTuple_Pack(2, __pyx_int_4, __pyx_int_5); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 311, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__13);
-  __Pyx_GIVEREF(__pyx_tuple__13);
-
   /* "(tree fragment)":4
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
@@ -28137,9 +27571,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         from pickle import PickleError as __pyx_PickleError
  *         raise __pyx_PickleError, "Incompatible checksums (0x%x vs (0x023f68a, 0x3e2bec0, 0x1268a03) = (generation, lock_angle, n_rad, num_interval, parametric_X, rad, shrnk_factor, uncertainty, verbose))" % __pyx_checksum
  */
-  __pyx_tuple__14 = PyTuple_Pack(3, __pyx_int_2356874, __pyx_int_65191616, __pyx_int_19302915); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 4, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__14);
-  __Pyx_GIVEREF(__pyx_tuple__14);
+  __pyx_tuple__12 = PyTuple_Pack(3, __pyx_int_2356874, __pyx_int_65191616, __pyx_int_19302915); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(1, 4, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__12);
+  __Pyx_GIVEREF(__pyx_tuple__12);
 
   /* "View.MemoryView":100
  * cdef object __pyx_collections_abc_Sequence "__pyx_collections_abc_Sequence"
@@ -28148,12 +27582,12 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
  *     else:
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_n_s_sys); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(1, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__15);
-  __Pyx_GIVEREF(__pyx_tuple__15);
-  __pyx_tuple__16 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_3); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(1, 100, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__16);
-  __Pyx_GIVEREF(__pyx_tuple__16);
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_n_s_sys); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__13);
+  __Pyx_GIVEREF(__pyx_tuple__13);
+  __pyx_tuple__14 = PyTuple_Pack(2, __pyx_int_3, __pyx_int_3); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(1, 100, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__14);
+  __Pyx_GIVEREF(__pyx_tuple__14);
 
   /* "View.MemoryView":101
  * try:
@@ -28162,9 +27596,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  *     else:
  *         __pyx_collections_abc_Sequence = __import__("collections").Sequence
  */
-  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_collections_abc); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(1, 101, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__17);
-  __Pyx_GIVEREF(__pyx_tuple__17);
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_s_collections_abc); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(1, 101, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__15);
+  __Pyx_GIVEREF(__pyx_tuple__15);
 
   /* "View.MemoryView":103
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
@@ -28173,9 +27607,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * except:
  * 
  */
-  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_n_s_collections); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(1, 103, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__18);
-  __Pyx_GIVEREF(__pyx_tuple__18);
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_n_s_collections); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(1, 103, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__16);
+  __Pyx_GIVEREF(__pyx_tuple__16);
 
   /* "View.MemoryView":309
  *         return self.name
@@ -28184,9 +27618,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(1, 309, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__19);
-  __Pyx_GIVEREF(__pyx_tuple__19);
+  __pyx_tuple__17 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct_or_indirect); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(1, 309, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__17);
+  __Pyx_GIVEREF(__pyx_tuple__17);
 
   /* "View.MemoryView":310
  * 
@@ -28195,9 +27629,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 310, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__20);
-  __Pyx_GIVEREF(__pyx_tuple__20);
+  __pyx_tuple__18 = PyTuple_Pack(1, __pyx_kp_s_strided_and_direct); if (unlikely(!__pyx_tuple__18)) __PYX_ERR(1, 310, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__18);
+  __Pyx_GIVEREF(__pyx_tuple__18);
 
   /* "View.MemoryView":311
  * cdef generic = Enum("<strided and direct or indirect>")
@@ -28206,9 +27640,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 311, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__21);
-  __Pyx_GIVEREF(__pyx_tuple__21);
+  __pyx_tuple__19 = PyTuple_Pack(1, __pyx_kp_s_strided_and_indirect); if (unlikely(!__pyx_tuple__19)) __PYX_ERR(1, 311, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__19);
+  __Pyx_GIVEREF(__pyx_tuple__19);
 
   /* "View.MemoryView":314
  * 
@@ -28217,9 +27651,9 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_tuple__22 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(1, 314, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__22);
-  __Pyx_GIVEREF(__pyx_tuple__22);
+  __pyx_tuple__20 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_direct); if (unlikely(!__pyx_tuple__20)) __PYX_ERR(1, 314, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__20);
+  __Pyx_GIVEREF(__pyx_tuple__20);
 
   /* "View.MemoryView":315
  * 
@@ -28228,41 +27662,41 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * 
  * 
  */
-  __pyx_tuple__23 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__23)) __PYX_ERR(1, 315, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__23);
-  __Pyx_GIVEREF(__pyx_tuple__23);
+  __pyx_tuple__21 = PyTuple_Pack(1, __pyx_kp_s_contiguous_and_indirect); if (unlikely(!__pyx_tuple__21)) __PYX_ERR(1, 315, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__21);
+  __Pyx_GIVEREF(__pyx_tuple__21);
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_Enum(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_tuple__24 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__24);
-  __Pyx_GIVEREF(__pyx_tuple__24);
-  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__22 = PyTuple_Pack(5, __pyx_n_s_pyx_type, __pyx_n_s_pyx_checksum, __pyx_n_s_pyx_state, __pyx_n_s_pyx_PickleError, __pyx_n_s_pyx_result); if (unlikely(!__pyx_tuple__22)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__22);
+  __Pyx_GIVEREF(__pyx_tuple__22);
+  __pyx_codeobj__23 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__23)) __PYX_ERR(1, 1, __pyx_L1_error)
 
   /* "ParametricOpt.pyx":207
  * 
  * 
  *     cpdef void quad_optimize(self):             # <<<<<<<<<<<<<<
  *         cdef:
- *             int num_params, max_steps, corr_idx, G, i, p_idx
+ *             int num_params, max_steps
  */
-  __pyx_tuple__26 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(0, 207, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__26);
-  __Pyx_GIVEREF(__pyx_tuple__26);
-  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricOpt_ParametricOpt_pyx, __pyx_n_s_quad_optimize, 207, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_tuple__24 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__24)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__24);
+  __Pyx_GIVEREF(__pyx_tuple__24);
+  __pyx_codeobj__25 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricOpt_ParametricOpt_pyx, __pyx_n_s_quad_optimize, 207, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__25)) __PYX_ERR(0, 207, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
  *     cdef tuple state
  *     cdef object _dict
  */
-  __pyx_tuple__28 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_state, __pyx_n_s_dict_2, __pyx_n_s_use_setstate); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 1, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__28);
-  __Pyx_GIVEREF(__pyx_tuple__28);
-  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_reduce_cython, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_tuple__26 = PyTuple_Pack(4, __pyx_n_s_self, __pyx_n_s_state, __pyx_n_s_dict_2, __pyx_n_s_use_setstate); if (unlikely(!__pyx_tuple__26)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__26);
+  __Pyx_GIVEREF(__pyx_tuple__26);
+  __pyx_codeobj__27 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 4, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__26, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_reduce_cython, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__27)) __PYX_ERR(1, 1, __pyx_L1_error)
 
   /* "(tree fragment)":16
  *     else:
@@ -28270,17 +27704,17 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_unpickle_ParameterOptimizer__set_state(self, __pyx_state)
  */
-  __pyx_tuple__30 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_pyx_state); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(1, 16, __pyx_L1_error)
-  __Pyx_GOTREF(__pyx_tuple__30);
-  __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_setstate_cython, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(1, 16, __pyx_L1_error)
+  __pyx_tuple__28 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_pyx_state); if (unlikely(!__pyx_tuple__28)) __PYX_ERR(1, 16, __pyx_L1_error)
+  __Pyx_GOTREF(__pyx_tuple__28);
+  __Pyx_GIVEREF(__pyx_tuple__28);
+  __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_setstate_cython, 16, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 16, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __pyx_unpickle_ParameterOptimizer(__pyx_type, long __pyx_checksum, __pyx_state):             # <<<<<<<<<<<<<<
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__24, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_ParameterOptimize, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_codeobj__30 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__22, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_ParameterOptimize, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__30)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_RefNannyFinishContext();
   return 0;
   __pyx_L1_error:;
@@ -28296,8 +27730,6 @@ static CYTHON_SMALL_CODE int __Pyx_InitConstants(void) {
   __pyx_int_1 = PyInt_FromLong(1); if (unlikely(!__pyx_int_1)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2 = PyInt_FromLong(2); if (unlikely(!__pyx_int_2)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_3 = PyInt_FromLong(3); if (unlikely(!__pyx_int_3)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_4 = PyInt_FromLong(4); if (unlikely(!__pyx_int_4)) __PYX_ERR(0, 1, __pyx_L1_error)
-  __pyx_int_5 = PyInt_FromLong(5); if (unlikely(!__pyx_int_5)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_2356874 = PyInt_FromLong(2356874L); if (unlikely(!__pyx_int_2356874)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_19302915 = PyInt_FromLong(19302915L); if (unlikely(!__pyx_int_19302915)) __PYX_ERR(0, 1, __pyx_L1_error)
   __pyx_int_65191616 = PyInt_FromLong(65191616L); if (unlikely(!__pyx_int_65191616)) __PYX_ERR(0, 1, __pyx_L1_error)
@@ -28944,12 +28376,12 @@ if (!__Pyx_RefNanny) {
  *         __pyx_collections_abc_Sequence = __import__("collections.abc").abc.Sequence
  *     else:
  */
-      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 100, __pyx_L2_error)
+      __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_GOTREF(__pyx_t_4);
       __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_version_info); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_GOTREF(__pyx_t_5);
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-      __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_tuple__16, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 100, __pyx_L2_error)
+      __pyx_t_4 = PyObject_RichCompare(__pyx_t_5, __pyx_tuple__14, Py_GE); __Pyx_XGOTREF(__pyx_t_4); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
       __pyx_t_6 = __Pyx_PyObject_IsTrue(__pyx_t_4); if (unlikely((__pyx_t_6 < 0))) __PYX_ERR(1, 100, __pyx_L2_error)
       __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -28962,7 +28394,7 @@ if (!__Pyx_RefNanny) {
  *     else:
  *         __pyx_collections_abc_Sequence = __import__("collections").Sequence
  */
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 101, __pyx_L2_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 101, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_4);
         __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_abc); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 101, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_5);
@@ -28993,7 +28425,7 @@ if (!__Pyx_RefNanny) {
  * 
  */
       /*else*/ {
-        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 103, __pyx_L2_error)
+        __pyx_t_4 = __Pyx_PyObject_Call(__pyx_builtin___import__, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 103, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_4);
         __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_Sequence); if (unlikely(!__pyx_t_5)) __PYX_ERR(1, 103, __pyx_L2_error)
         __Pyx_GOTREF(__pyx_t_5);
@@ -29158,7 +28590,7 @@ if (!__Pyx_RefNanny) {
  * cdef strided = Enum("<strided and direct>") # default
  * cdef indirect = Enum("<strided and indirect>")
  */
-  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 309, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__17, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 309, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XGOTREF(generic);
   __Pyx_DECREF_SET(generic, __pyx_t_7);
@@ -29172,7 +28604,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect = Enum("<strided and indirect>")
  * 
  */
-  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 310, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__18, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 310, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XGOTREF(strided);
   __Pyx_DECREF_SET(strided, __pyx_t_7);
@@ -29186,7 +28618,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 311, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__19, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 311, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XGOTREF(indirect);
   __Pyx_DECREF_SET(indirect, __pyx_t_7);
@@ -29200,7 +28632,7 @@ if (!__Pyx_RefNanny) {
  * cdef indirect_contiguous = Enum("<contiguous and indirect>")
  * 
  */
-  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__22, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 314, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__20, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 314, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XGOTREF(contiguous);
   __Pyx_DECREF_SET(contiguous, __pyx_t_7);
@@ -29214,7 +28646,7 @@ if (!__Pyx_RefNanny) {
  * 
  * 
  */
-  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__23, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 315, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_Call(((PyObject *)__pyx_MemviewEnum_type), __pyx_tuple__21, NULL); if (unlikely(!__pyx_t_7)) __PYX_ERR(1, 315, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
   __Pyx_XGOTREF(indirect_contiguous);
   __Pyx_DECREF_SET(indirect_contiguous, __pyx_t_7);
@@ -29439,7 +28871,7 @@ if (!__Pyx_RefNanny) {
  * 
  * from utility.py_import import np, plt             # <<<<<<<<<<<<<<
  * from libc.math cimport atan, fabs, INFINITY
- * 
+ * from cython cimport boundscheck, wraparound
  */
   __pyx_t_7 = PyList_New(2); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 5, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_7);
@@ -29467,9 +28899,9 @@ if (!__Pyx_RefNanny) {
  * 
  *     cpdef void quad_optimize(self):             # <<<<<<<<<<<<<<
  *         cdef:
- *             int num_params, max_steps, corr_idx, G, i, p_idx
+ *             int num_params, max_steps
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_3quad_optimize, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer_quad_optimize, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__27)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_3quad_optimize, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer_quad_optimize, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__25)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_13ParametricOpt_ParameterOptimizer, __pyx_n_s_quad_optimize, __pyx_t_4) < 0) __PYX_ERR(0, 207, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -29480,7 +28912,7 @@ if (!__Pyx_RefNanny) {
  *     cdef tuple state
  *     cdef object _dict
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_5__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer___reduce_cyth, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_5__reduce_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer___reduce_cyth, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__27)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_13ParametricOpt_ParameterOptimizer, __pyx_n_s_reduce_cython, __pyx_t_4) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -29492,7 +28924,7 @@ if (!__Pyx_RefNanny) {
  * def __setstate_cython__(self, __pyx_state):             # <<<<<<<<<<<<<<
  *     __pyx_unpickle_ParameterOptimizer__set_state(self, __pyx_state)
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_7__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer___setstate_cy, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 16, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_18ParameterOptimizer_7__setstate_cython__, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParameterOptimizer___setstate_cy, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__29)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 16, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_13ParametricOpt_ParameterOptimizer, __pyx_n_s_setstate_cython, __pyx_t_4) < 0) __PYX_ERR(1, 16, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -29503,7 +28935,7 @@ if (!__Pyx_RefNanny) {
  *     cdef object __pyx_PickleError
  *     cdef object __pyx_result
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_1__pyx_unpickle_ParameterOptimizer, 0, __pyx_n_s_pyx_unpickle_ParameterOptimize, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 1, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_13ParametricOpt_1__pyx_unpickle_ParameterOptimizer, 0, __pyx_n_s_pyx_unpickle_ParameterOptimize, NULL, __pyx_n_s_ParametricOpt, __pyx_d, ((PyObject *)__pyx_codeobj__30)); if (unlikely(!__pyx_t_4)) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   if (PyDict_SetItem(__pyx_d, __pyx_n_s_pyx_unpickle_ParameterOptimize, __pyx_t_4) < 0) __PYX_ERR(1, 1, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
@@ -32425,31 +31857,6 @@ static PyObject* __Pyx_PyInt_MultiplyCObj(PyObject *op1, PyObject *op2, long int
     return (inplace ? PyNumber_InPlaceMultiply : PyNumber_Multiply)(op1, op2);
 }
 #endif
-
-/* IterFinish */
-static CYTHON_INLINE int __Pyx_IterFinish(void) {
-    PyObject* exc_type;
-    __Pyx_PyThreadState_declare
-    __Pyx_PyThreadState_assign
-    exc_type = __Pyx_PyErr_CurrentExceptionType();
-    if (unlikely(exc_type)) {
-        if (unlikely(!__Pyx_PyErr_GivenExceptionMatches(exc_type, PyExc_StopIteration)))
-            return -1;
-        __Pyx_PyErr_Clear();
-        return 0;
-    }
-    return 0;
-}
-
-/* UnpackItemEndCheck */
-static int __Pyx_IternextUnpackEndCheck(PyObject *retval, Py_ssize_t expected) {
-    if (unlikely(retval)) {
-        Py_DECREF(retval);
-        __Pyx_RaiseTooManyValuesError(expected);
-        return -1;
-    }
-    return __Pyx_IterFinish();
-}
 
 /* PyObject_GenericGetAttrNoDict */
 #if CYTHON_USE_TYPE_SLOTS && CYTHON_USE_PYTYPE_LOOKUP && PY_VERSION_HEX < 0x03070000
@@ -35532,29 +34939,6 @@ static CYTHON_INLINE int __pyx_memview_set_double(const char *itemp, PyObject *o
 }
 
 /* ObjectToMemviewSlice */
-  static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_ds_double(PyObject *obj, int writable_flag) {
-    __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
-    __Pyx_BufFmt_StackElem stack[1];
-    int axes_specs[] = { (__Pyx_MEMVIEW_DIRECT | __Pyx_MEMVIEW_STRIDED) };
-    int retcode;
-    if (obj == Py_None) {
-        result.memview = (struct __pyx_memoryview_obj *) Py_None;
-        return result;
-    }
-    retcode = __Pyx_ValidateAndInit_memviewslice(axes_specs, 0,
-                                                 PyBUF_RECORDS_RO | writable_flag, 1,
-                                                 &__Pyx_TypeInfo_double, stack,
-                                                 &result, obj);
-    if (unlikely(retcode == -1))
-        goto __pyx_fail;
-    return result;
-__pyx_fail:
-    result.memview = NULL;
-    result.data = NULL;
-    return result;
-}
-
-/* ObjectToMemviewSlice */
   static CYTHON_INLINE __Pyx_memviewslice __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(PyObject *obj, int writable_flag) {
     __Pyx_memviewslice result = { 0, 0, { 0 }, { 0 }, { 0 } };
     __Pyx_BufFmt_StackElem stack[1];
@@ -37307,7 +36691,7 @@ __Pyx_PyType_GetName(PyTypeObject* tp)
     if (unlikely(name == NULL) || unlikely(!PyUnicode_Check(name))) {
         PyErr_Clear();
         Py_XDECREF(name);
-        name = __Pyx_NewRef(__pyx_n_s__33);
+        name = __Pyx_NewRef(__pyx_n_s__31);
     }
     return name;
 }

@@ -1,8 +1,13 @@
-import cv2
+from utility.py_import import os, cv2, np, plt, cm
 from skimage.morphology import skeletonize
-import numpy as np
-import matplotlib.pyplot as plt
-from matplotlib import cm
+
+def save_plt(img, filename, cmap='gray'):
+        plt.figure()
+        plt.imshow(img, cmap=cmap)
+        plt.axis('off')
+        plt.savefig(filename, 
+                   bbox_inches='tight', pad_inches=0, dpi=300)
+        plt.close()
 
 
 def skeletonize_img(image, blur_window=(5,5)):
@@ -27,14 +32,16 @@ def skeletonize_img(image, blur_window=(5,5)):
 
     # Create a gradient mask to isolate specific regions
     grad_x = cv2.Sobel(ot, cv2.CV_64F, 1, 0, ksize=5)
-    grad_y = cv2.Sobel(ot, cv2.CV_64F, 0, 1, ksize=5)
+    grad_y = cv2.Sobel(ot, cv2.CV_64F, 0, 1, ksize=5)   
     grad_magnitude = np.sqrt(grad_x ** 2 + grad_y ** 2)
     gradient_mask = (grad_magnitude == 0)
     dark_mask = (ot == 0)
     mask = gradient_mask & dark_mask
 
     adaptive_thresh[mask] = 0
-    return adaptive_thresh, skeletonize(adaptive_thresh).astype(np.uint8)
+    skeleton = skeletonize(adaptive_thresh).astype(np.uint8)
+    
+    return adaptive_thresh, skeleton
 
 
 def stereo_transform(im):

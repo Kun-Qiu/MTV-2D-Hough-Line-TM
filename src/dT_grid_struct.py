@@ -13,11 +13,11 @@ class DTGridStruct:
     iteration : int = 10
     epsilon   : float = 0.03
 
-    shape       : Tuple[int, int] = field(init=False)
-    grid        : np.ndarray = field(init=False)
-    params      : np.ndarray = field(init=False)
-    image       : np.ndarray = field(init=False)
-    shifts      : Tuple[float, float] = field(init=False)
+    shape  : Tuple[int, int] = field(init=False)
+    grid   : np.ndarray = field(init=False)
+    params : np.ndarray = field(init=False)
+    image  : np.ndarray = field(init=False)
+    shifts : Tuple[float, float] = field(init=False)
 
     def __post_init__(self):
         self.shape = self.T0_grid.shape
@@ -50,6 +50,7 @@ class DTGridStruct:
         
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
         prev_pts = np.stack(self.T0_grid.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2)
+        print(prev_pts)
         
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, iterations, epsilon)
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(

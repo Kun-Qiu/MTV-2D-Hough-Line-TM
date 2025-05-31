@@ -1,6 +1,6 @@
 from utility.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
 # from src.parametric_X import ParametricX
-from cython_build.parametric_x.parametric_X import ParametricX
+from cython_build.ParametricX import ParametricX
 
 @dataclass
 class ParameterOptimizer:

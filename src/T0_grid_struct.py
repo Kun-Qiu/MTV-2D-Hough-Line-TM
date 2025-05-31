@@ -1,5 +1,5 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple
-from utility.image_utility import skeletonize_img, stereo_transform
+from utility.py_import import np, cv2, dataclass, field, Tuple, plt
+from utility.image_utility import skeletonize_img, stereo_transform, save_plt
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -38,9 +38,8 @@ class T0GridStruct:
             endpoint=True
             )
         
-        self.image       = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+        self.image     = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         # self.image     = stereo_transform(self.image)
-
         _, self.image_skel  = skeletonize_img(self.image)
 
         ############################
@@ -106,6 +105,7 @@ class T0GridStruct:
                     self.uncertainty[i, j] = np.sqrt(
                         np.array([sigma_xy[0, 0], sigma_xy[1,1]])
                         ) * np.sqrt(5.991)
+                    
         print("Grid populated with intersections of lines.")
 
 

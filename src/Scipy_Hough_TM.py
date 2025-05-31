@@ -3,7 +3,8 @@ import matplotlib.tri as tri
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 # from src.parametric_X import ParametricX
-from cython_build.parametric_x.parametric_X import ParametricX
+from cython_build.ParametricX import ParametricX
+# from cython_build.ParametricOpt import ParameterOptimizer
 from src.parametric_opt import ParameterOptimizer
 
 @dataclass
@@ -57,7 +58,7 @@ class HoughTM:
             )
 
         self.disp_field = np.empty(shape, dtype=object)
-        self._optimize(self.grid_T0)
+        self._optimize(self.grid_T0, visualize=False)
         self._optimize(self.grid_dT, visualize=False)
         self.solve_bool = False
         
@@ -80,17 +81,18 @@ class HoughTM:
                             pred_uncertainty[0], 
                             pred_uncertainty[1] 
                             ])
-                    
+               
                     optimizer = ParameterOptimizer(
                         parametricX_obj, uncertainty=self.uncertainty, 
                         num_interval=self.num_interval,
                         lock_angle=False, verbose=self.verbose
                         )
-                    
+
                     optimizer.quad_optimize()
                     if visualize:
                         optimizer.visualize()
                     grid_obj.grid[i, j] = parametricX_obj.get_params()[0:2]
+                 
                     # grid_obj.grid[i,j] = parametricX_obj.params[0:2]
         print("Optimization complete.")
 
@@ -130,28 +132,27 @@ class HoughTM:
     def get_vorticity(self, dt:float=1) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_vorticity().")
-        
+    
         rows, cols = self.grid_T0.shape
-        vort_field = np.full((rows, cols, 3), np.nan)  # (x, y, w)
-        vel_field  = self.get_velocity(dt=dt)
+        field = np.full((rows, cols, 3), np.nan)
+        vorticity = np.full((rows, cols), np.nan)
 
-        x, y   = vel_field[..., 0], vel_field[..., 1]
-        vx, vy = vel_field[..., 2], vel_field[..., 3]
-        vort_field[..., 0] = x
-        vort_field[..., 1] = y
+        vel = self.get_velocity(dt)
+        vx = vel[..., 2] 
+        vy = vel[..., 3]
 
-        #Todo, not uniform spacing
-        # Compute spatial grid spacing (assumes uniform spacing)
-        dx      = np.gradient(x, axis=1)  
-        dy      = np.gradient(y, axis=0)
-        dx[dx == 0], dy[dy == 0] = 1e-8, 1e-8  
+        vorticity[1:-1, 1:-1] = (
+            vx[:-2, 1:-1] -  # vx[i-1, j]
+            vx[2:, 1:-1] +   # -vx[i+1, j]
+            vy[1:-1, 2:] -   # vy[i, j+1]
+            vy[1:-1, :-2]    # -vy[i, j-1]
+        ) / 2
 
-        du_dy   = np.gradient(vx, axis=0) / dy  
-        dv_dx   = np.gradient(vy, axis=1) / dx 
-        ω_z     = dv_dx - du_dy
-
-        vort_field[..., 2] = ω_z
-        return vort_field 
+        field[..., 0] = self.disp_field[..., 0]  # x
+        field[..., 1] = self.disp_field[..., 1]  # y
+        field[..., 2] = vorticity  # vorticity
+    
+        return field 
 
 
     def plot_intersections(self):

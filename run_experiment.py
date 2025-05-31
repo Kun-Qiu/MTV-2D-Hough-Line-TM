@@ -33,7 +33,7 @@ if __name__ == "__main__":
         snr_rmses = {key: [] for key in test_type}
         
         # Process each of the 10 folders for this SNR
-        for folder_num in range(2):
+        for folder_num in range(10):
             base_dir = f"data/Synthetic_Data/Image/SNR_{snr}/{folder_num}" 
             
             src_path = os.path.join(base_dir, "src.png")
@@ -42,7 +42,7 @@ if __name__ == "__main__":
 
                 solver = HoughTM(
                     src_path, img_path, num_lines=10, fwhm=4, 
-                    temp_scale=0.67, num_interval=5, 
+                    temp_scale=0.67, num_interval=30, uncertainty=3,
                     verbose=False
                 )
                 solver.solve()

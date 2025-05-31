@@ -12,8 +12,8 @@ def compute_cdf(errors):
 
 
 if __name__ == "__main__":
-    test_dir = "data/Synthetic_Data/Image/SNR_2/2"
-    image_dir = "data/Synthetic_Data/Image/SNR_2/2"
+    test_dir = "data/Synthetic_Data/Image/SNR_4/2"
+    image_dir = "data/Synthetic_Data/Image/SNR_4/2"
 
     test_type = {
         "uniform": "uniform_flow.npy",
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     }
     src_path = os.path.join(image_dir, "src.png")
     uncertainties = np.arange(3, 4, 2)  # [1, 3, 5]
-    num_intervals = np.arange(10, 21, 5)  # [10, 15]
+    num_intervals = np.arange(10, 36, 5)
 
     results = {
         flow_type: {
@@ -53,7 +53,7 @@ if __name__ == "__main__":
                 start_time = time.time()
                 solver = HoughTM(
                     src_path, img_path, num_lines=10, fwhm=4, 
-                    temp_scale=0.67, uncertainty=uncertainty, 
+                    temp_scale=0.7, uncertainty=3,
                     num_interval=num_int, verbose=False
                 )
                 

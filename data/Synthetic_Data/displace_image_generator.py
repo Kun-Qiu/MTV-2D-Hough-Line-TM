@@ -1,8 +1,8 @@
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-from grid_image_generator import create_centered_grid
-import flow_pattern as fp 
+from data.Synthetic_Data.grid_image_generator import create_centered_grid
+import data.Synthetic_Data.flow_pattern as fp 
 import os
 import random as rd
 

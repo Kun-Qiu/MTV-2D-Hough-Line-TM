@@ -1,6 +1,6 @@
 from utility.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
-# from src.parametric_X import ParametricX
 from cython_build.ParametricX import ParametricX
+
 
 @dataclass
 class ParameterOptimizer:
@@ -10,7 +10,6 @@ class ParameterOptimizer:
     generation  : int = 3
     shrnk_factor: int = 2
 
-    lock_angle: bool = False
     verbose   : bool = False
 
     rad   : Tuple[float, float, float, float, float, float] = field(init=False)
@@ -46,200 +45,151 @@ class ParameterOptimizer:
         return ', '.join([f'{x:.2f}' for x in arr])
 
 
-    def __correlate_batch(self, params_array: np.ndarray, temp_opt: ParametricX) -> np.ndarray:
+    def __correlate_batch(self, params_array: np.ndarray) -> np.ndarray:
         return np.array([
-            temp_opt.correlate(p)['correlation'] for p in params_array
+            self.parametric_X.correlate(p)['correlation'] for p in params_array
             ])
 
 
     def quad_optimize(self) -> np.ndarray:
-        num_params = len([
-            r for r, nr in zip(self.rad[2:], self.n_rad[2:]) 
-            if r > 0 and nr > 0
-            ])
-        
-        max_steps = (self.generation * (num_params + 1)) + 1
-        corr = np.full(max_steps, np.nan) # 1D array for each template
+        """
+        Perform a quadratic optimization on the parameters of the ParametricX instance.
+        """
         
         try:
             warnings.filterwarnings("error")
             
-            temp_opt = ParametricX(
-                center=self.parametric_X.center,
-                shape=self.parametric_X.shape,
-                image=self.parametric_X.image
-                )
-            
-            cur_corr = self.parametric_X.correlate(self.parametric_X.get_params())
-            corr[0] = cur_corr['correlation']
-
             for G in range(self.generation):
                 cur_rad = self.rad / (self.shrnk_factor ** G)
-                corr_idx = (G * (num_params + 1)) + 1
 
-                if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
-                    x_vals = np.linspace(
-                        self.parametric_X.get_params()[0] - cur_rad[0],
-                        self.parametric_X.get_params()[0] + cur_rad[0] + 1e-8,
-                        num=int(2*(self.n_rad[0])+1)
-                        )
-                    
-                    y_vals = np.linspace(
-                        self.parametric_X.get_params()[1] - cur_rad[1],
-                        self.parametric_X.get_params()[1] + cur_rad[1] + 1e-8,
-                        num=int(2*(self.n_rad[1])+1)
-                        )
-                    
-                    xx, yy = np.meshgrid(x_vals, y_vals)
-                    params_batch = np.tile(self.parametric_X.get_params(), (xx.size, 1))
-                    params_batch[:, 0] = xx.ravel()
-                    params_batch[:, 1] = yy.ravel()
+                x_vals = np.linspace(
+                    self.parametric_X.get_params()[0] - cur_rad[0],
+                    self.parametric_X.get_params()[0] + cur_rad[0] + 1e-8,
+                    num=int(2*(self.n_rad[0])+1)
+                    )
+                
+                y_vals = np.linspace(
+                    self.parametric_X.get_params()[1] - cur_rad[1],
+                    self.parametric_X.get_params()[1] + cur_rad[1] + 1e-8,
+                    num=int(2*(self.n_rad[1])+1)
+                    )
+                
+                xx, yy = np.meshgrid(x_vals, y_vals)
+                params_batch = np.tile(self.parametric_X.get_params(), (xx.size, 1))
+                params_batch[:, 0] = xx.ravel()
+                params_batch[:, 1] = yy.ravel()
 
-                    grid_corrs = self.__correlate_batch(params_batch, temp_opt).reshape(xx.shape)
-                    opt_x, opt_y = self._quad_fit_2D(
-                        x_vals, y_vals, grid_corrs, 
-                        (x_vals[0], x_vals[-1]), 
-                        (y_vals[0], y_vals[-1])
-                        )
-                    self.parametric_X.update_params([0, 1], [opt_x, opt_y])
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
-                    corr_idx += 1
+                grid_corrs = self.__correlate_batch(params_batch).reshape(xx.shape)
+                opt_x, opt_y = self._quad_fit_2D(
+                    x_vals, y_vals, grid_corrs
+                    )
+                self.parametric_X.update_params([0, 1], [opt_x, opt_y])
 
-                # Vectorized angle optimization
-                if self.lock_angle:
-                    ang_vals = np.linspace(
-                        -cur_rad[2], cur_rad[2], 
-                        num=int(2*(self.n_rad[2])+1)
+                for idx in [2, 3, 4, 5]:
+                    vals = np.linspace(
+                        -cur_rad[idx], cur_rad[idx], 
+                        num=int(2*(self.n_rad[idx])+1)
                         )
+                    params_batch = np.tile(self.parametric_X.get_params(), (len(vals), 1))
+                    params_batch[:, idx] += vals
+                    corrs = self.__correlate_batch(params_batch)
                     
-                    params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
-                    params_batch[:, 2] += ang_vals
-                    params_batch[:, 3] += ang_vals
-                    ang_corrs = self.__correlate_batch(params_batch, temp_opt)
-                    
-                    best_da, a_coeff = self._quad_fit_1D(ang_vals, ang_corrs)
-                    if (a_coeff >= 0) or (best_da < ang_vals[0]) or (best_da > ang_vals[-1]):
-                        best_da = ang_vals[np.argmax(ang_corrs)]
-                    
-                    a1 = self.parametric_X.get_params()[2] + best_da
-                    self.parametric_X.update_params([2, 3], [a1, a1])
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
-                    corr_idx += 1
-                else:
-                    for ang_idx in [2, 3]:
-                        ang_vals = np.linspace(
-                            -cur_rad[ang_idx], cur_rad[ang_idx], 
-                            num=int(2*(self.n_rad[ang_idx])+1)
-                            )
-                        params_batch = np.tile(self.parametric_X.get_params(), (len(ang_vals), 1))
-                        params_batch[:, ang_idx] += ang_vals
-                        ang_corrs = self.__correlate_batch(params_batch, temp_opt)
-                        
-                        best_da, a_coeff = self._quad_fit_1D(ang_vals, ang_corrs)
-                        if (a_coeff >= 0) or (best_da < ang_vals[0]) or (best_da > ang_vals[-1]):
-                            best_da = ang_vals[np.argmax(ang_corrs)]
-                        
-                        a1 = self.parametric_X.get_params()[ang_idx] + best_da
-                        self.parametric_X.update_params([ang_idx], [a1])
-                        corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
-                        corr_idx += 1
-
-                for p_idx in [4, 5]:
-                    p_vals = np.linspace(
-                        -cur_rad[p_idx], cur_rad[p_idx], 
-                        num=int(2*(self.n_rad[p_idx])+1)
-                        )
-                    params_batch = np.tile(self.parametric_X.get_params(), (len(p_vals), 1))
-                    params_batch[:, p_idx] += p_vals
-                    p_corrs = self.__correlate_batch(params_batch, temp_opt)
-                    
-                    best_dp, a_coeff = self._quad_fit_1D(p_vals, p_corrs)
-                    if (a_coeff >= 0) or (best_dp < p_vals[0]) or (best_dp > p_vals[-1]):
-                        best_dp = p_vals[np.argmax(p_corrs)]
-                    
-                    a1 = self.parametric_X.get_params()[p_idx] + best_dp
-                    self.parametric_X.update_params([p_idx], [a1])
-                    corr[corr_idx] = self.parametric_X.correlate(self.parametric_X.get_params())['correlation']
-                    corr_idx += 1
+                    opt_dval = self._quad_fit_1D(vals, corrs)
+                    opt_val = self.parametric_X.get_params()[idx] + opt_dval
+                    self.parametric_X.update_params([idx], [opt_val])
+            
+            # return self.parametric_X.get_params()
 
         except Warning as w:
             print(f"Warning encountered during optimization: {w}")
+            # return np.array([np.nan, np.nan, 0, 0, 0, 0], dtype=float)
         except Exception as e:
             print(f"Error encountered during optimization: {e}")
             raise
         finally:
             warnings.filterwarnings("default")
         
-        if self.verbose:
-            print(f"Optimized parameters: {self.__format_verbose(self.parametric_X.get_params())}")
-        return corr
+        return self.parametric_X.get_params()
 
 
-    def _quad_fit_1D(self, values: np.ndarray, corrs: np.ndarray) -> Tuple[float, float]:
-        """Optimized quadratic fit for 1D parameter optimization"""
-        if np.all(values == values[0]) or len(values) < 3:
-            return values[np.argmax(corrs)], None
+    def _quad_fit_1D(self, values: np.ndarray, corrs: np.ndarray) -> float:
+        """
+        Optimized quadratic fit for 1D parameter optimization
+        """
         
         try:
             coeffs = np.polyfit(values, corrs, 2)
             a = coeffs[0]
-            if a >= 0:
-                return values[np.argmax(corrs)], a
+            optimal = -coeffs[1]/(2 * a)
+
+            if a >= 0 or optimal < values[0] or optimal > values[-1]:
+                return values[np.argmax(corrs)]
             
-            optimal = -coeffs[1]/(2*coeffs[0])
-            return optimal, a
+            return optimal
         except np.linalg.LinAlgError:
-            return values[np.argmax(corrs)], None
+            return values[np.argmax(corrs)]
 
     
     def _quad_fit_2D(
-            self, x_vals: np.ndarray, y_vals: np.ndarray, 
-            corr_matrix: np.ndarray, x_lim: Tuple[float, float], 
-            y_lim: Tuple[float, float]
+            self, x_vals: np.ndarray, y_vals: np.ndarray, corr_matrix: np.ndarray
             ) -> Tuple[float, float]:
         
+        """
+        Optimized quadratic fit for 2D parameter optimization
+        """
         max_idx = np.unravel_index(np.argmax(corr_matrix), corr_matrix.shape)
-        x_coeffs = np.polyfit(x_vals, corr_matrix[max_idx[0], :], 2)
-        y_coeffs = np.polyfit(y_vals, corr_matrix[:, max_idx[1]], 2)
 
-        if x_coeffs[0] < 0:
-            opt_x_candidate = -x_coeffs[1] / (2 * x_coeffs[0])
-            if x_lim[0] <= opt_x_candidate <= x_lim[1]:
-                opt_x = opt_x_candidate
+        try:
+            x_coeffs = np.polyfit(x_vals, corr_matrix[max_idx[0], :], 2)
+            y_coeffs = np.polyfit(y_vals, corr_matrix[:, max_idx[1]], 2)
+
+            a_x, a_y = x_coeffs[0], y_coeffs[0]
+            if a_x < 0:
+                x_star = -x_coeffs[1] / (2 * a_x)
+                if x_vals[0] <= x_star <= x_vals[-1]:
+                    opt_x = x_star
+                else:
+                    opt_x = x_vals[max_idx[1]]
             else:
                 opt_x = x_vals[max_idx[1]]
-        else:
-            opt_x = x_vals[max_idx[1]]
-        
-        # Calculate optimal y with boundary check
-        if y_coeffs[0] < 0:
-            opt_y_candidate = -y_coeffs[1] / (2 * y_coeffs[0])
-            if y_lim[0] <= opt_y_candidate <= y_lim[1]:
-                opt_y = opt_y_candidate
+            
+            if a_y < 0:
+                y_star = -y_coeffs[1] / (2 * a_y)
+                if y_vals[0] <= y_star <= y_vals[-1]:
+                    opt_y = y_star
+                else:
+                    opt_y = y_vals[max_idx[0]]
             else:
                 opt_y = y_vals[max_idx[0]]
-        else:
-            opt_y = y_vals[max_idx[0]]
         
+        except np.linalg.LinAlgError:
+            opt_x = x_vals[max_idx[1]]
+            opt_y = y_vals[max_idx[0]]
+
         return opt_x, opt_y
     
+
     def visualize(self) -> None:
+        """
+        Visualize the current state of the ParametricX instance with the 
+        template overlay on the image.
+        """
+
         img = self.parametric_X.image
         if img is None:
             raise ValueError("No image available for visualization")
         
         template, (min_col, min_row) = self.parametric_X.get_parametric_X()
         
-        # Create figure
         fig = plt.figure(figsize=(15, 7))
         ax1 = plt.subplot(121)
         plt.imshow(img, cmap='gray')
         
         extent = [
-            min_col - 0.5,  # left
-            min_col + template.shape[1] - 0.5,  # right
-            min_row + template.shape[0] - 0.5,  # bottom
-            min_row - 0.5  # top
+            min_col - 0.5, 
+            min_col + template.shape[1] - 0.5,  
+            min_row + template.shape[0] - 0.5,  
+            min_row - 0.5 
         ]
         
         plt.imshow(template, cmap='viridis', alpha=0.7, extent=extent)
@@ -260,7 +210,6 @@ class ParameterOptimizer:
 
         plt.tight_layout()
         plt.show()
-        return None
 
 
 if __name__ == "__main__":

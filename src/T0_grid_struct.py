@@ -1,5 +1,5 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple, plt
-from utility.image_utility import skeletonize_img, stereo_transform, save_plt
+from utility.image_utility import skeletonize_img, save_plt
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -32,14 +32,14 @@ class T0GridStruct:
         self.template    = np.empty(self.shape, dtype=object)
         self.params      = np.empty(self.shape, dtype=object)
         self.uncertainty = np.empty(self.shape, dtype=object)
+
         self.test_angles = np.linspace(
             -np.pi / 2, np.pi / 2, 
             self.density * 360, 
             endpoint=True
             )
         
-        self.image     = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
-        # self.image     = stereo_transform(self.image)
+        self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         _, self.image_skel  = skeletonize_img(self.image)
 
         ############################
@@ -50,8 +50,16 @@ class T0GridStruct:
     
 
     def _is_within_bounds(self, x: int, y: int) -> bool:
-        height, width = np.shape(self.image)
-        return 0 <= x < width and 0 <= y < height
+        height, width = self.image.shape[:2]
+        if not (0 <= x < width and 0 <= y < height):
+            return False
+        
+        if not hasattr(self, '_image_stats'):
+            self._image_stats = (np.mean(self.image), np.std(self.image))
+        
+        mean, _ = self._image_stats
+        x, y = int(round(x)), int(round(y))
+        return self.image[y, x] > mean
 
 
     @staticmethod
@@ -70,7 +78,6 @@ class T0GridStruct:
             x, y = np.linalg.solve(A, b)
             return (x, y)
         except np.linalg.LinAlgError:
-            # Lines are parallel, no intersection
             return None
 
 
@@ -84,11 +91,12 @@ class T0GridStruct:
         for i, pos_line in enumerate(sort_lines(pos_lines)):
             for j, neg_line in enumerate(sort_lines(neg_lines)):
                 intersection = self._find_intersection(pos_line, neg_line)
-                if intersection is None or not self._is_within_bounds(intersection[0], 
-                                                                      intersection[1]):
+                if intersection is None or not self._is_within_bounds(
+                                            intersection[0], intersection[1]
+                                            ):
                     intersection = (np.nan, np.nan)
 
-                self.grid[i, j]  = intersection
+                self.grid[i, j] = intersection
 
                 if self.solve_uncert:
                     angular_bin = np.pi / (self.density * 360)
@@ -105,8 +113,6 @@ class T0GridStruct:
                     self.uncertainty[i, j] = np.sqrt(
                         np.array([sigma_xy[0, 0], sigma_xy[1,1]])
                         ) * np.sqrt(5.991)
-                    
-        print("Grid populated with intersections of lines.")
 
 
     def _hough_line_transform(self, slope_thresh:float=0.1):
@@ -122,7 +128,8 @@ class T0GridStruct:
 
             slope = np.tan(angle + np.pi / 2) 
 
-            if abs(slope) > slope_thresh: # Assume no horizontal lines
+            if abs(slope) > slope_thresh: 
+                # Assume no horizontal lines
                 if slope >= 0:
                     lines_pos = np.vstack((lines_pos, [angle, dist]))
                 else:
@@ -209,8 +216,6 @@ class T0GridStruct:
 
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
                 self.params[i, j] = np.array([ang1, ang2, length])
-
-        print("Templates generated for the grid intersections.")
         return None
     
 

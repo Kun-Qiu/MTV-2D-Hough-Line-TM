@@ -1,11 +1,9 @@
 from utility.py_import import np, plt, tri, dataclass, field, Tuple
-import matplotlib.tri as tri
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
-# from src.parametric_X import ParametricX
 from cython_build.ParametricX import ParametricX
-# from cython_build.ParametricOpt import ParameterOptimizer
 from src.parametric_opt import ParameterOptimizer
+
 
 @dataclass
 class HoughTM:
@@ -23,7 +21,7 @@ class HoughTM:
     win_size  : Tuple[int, int] = (31, 31)
     max_level : int = 5
     iteration : int = 10
-    epsilon   : float = 0.03
+    epsilon   : float = 0.001
     verbose   : bool = False
 
     displacement: np.ndarray = field(init=False)
@@ -47,7 +45,8 @@ class HoughTM:
             density=self.density,
             temp_scale=self.temp_scale
             )
-        
+        # self._optimize(self.grid_T0)
+
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
             self.path_mov, 
@@ -56,19 +55,19 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
+        # self._optimize(self.grid_dT)
 
         self.disp_field = np.empty(shape, dtype=object)
-        self._optimize(self.grid_T0, visualize=False)
-        self._optimize(self.grid_dT, visualize=False)
         self.solve_bool = False
         
 
-    def _optimize(self, grid_obj, visualize=False) -> None:
+    def _optimize(self, grid_obj) -> None:
         for i in range(grid_obj.shape[0]):
             for j in range(grid_obj.shape[1]):
                 if grid_obj.grid[i, j] is not None and grid_obj.params[i, j] is not None:
                     x, y  = grid_obj.grid[i, j]
                     ang1, ang2, leg_len = grid_obj.params[i, j]
+
                     parametricX_obj = ParametricX(
                         center=(int(round(x)), int(round(y))), 
                         shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
@@ -84,17 +83,12 @@ class HoughTM:
                
                     optimizer = ParameterOptimizer(
                         parametricX_obj, uncertainty=self.uncertainty, 
-                        num_interval=self.num_interval,
-                        lock_angle=False, verbose=self.verbose
+                        num_interval=self.num_interval, verbose=self.verbose
                         )
 
-                    optimizer.quad_optimize()
-                    if visualize:
-                        optimizer.visualize()
-                    grid_obj.grid[i, j] = parametricX_obj.get_params()[0:2]
-                 
-                    # grid_obj.grid[i,j] = parametricX_obj.params[0:2]
-        print("Optimization complete.")
+                    parameter_star = optimizer.quad_optimize()
+                    grid_obj.grid[i, j] = parameter_star[0:2]
+        return None
 
 
     def solve(self) -> None:
@@ -216,10 +210,7 @@ class HoughTM:
         unit_vx = np.divide(vx, vel_mag, where=vel_mag != 0, out=np.zeros_like(vx))
         unit_vy = np.divide(vy, vel_mag, where=vel_mag != 0, out=np.zeros_like(vy))
 
-        # Modify `valid_mask` to capture all valid data
         valid_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(dx) & np.isfinite(dy) & np.isfinite(vx) & np.isfinite(vy) & np.isfinite(vort)
-
-        # Debugging: Check how many valid points exist
         valid_count = np.sum(valid_mask)
         print(f"Valid points count: {valid_count}")
         
@@ -229,7 +220,6 @@ class HoughTM:
         # Triangulation for contour plots
         triang = tri.Triangulation(x[valid_mask], y[valid_mask])
 
-        # Create figure with 3 subplots
         fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
         # Plot 1: Displacement Magnitude
@@ -263,19 +253,3 @@ class HoughTM:
         # Display plots
         plt.tight_layout()
         plt.show()
-
-
-def process_cell(args):
-        i, j, x, y, ang1, ang2, leg_len, image, verbose = args
-        parametricX_obj = ParametricX(
-            center=(int(round(x)), int(round(y))), 
-            shape=(ang1, ang2, 0.5, 4, leg_len),
-            image=image
-            )
-        
-        optimizer = ParameterOptimizer(
-            parametricX_obj, uncertainty=3, num_interval=10,
-            lock_angle=False, verbose=verbose
-            )
-        optimizer.quad_optimize()
-        return (i, j, parametricX_obj.params[0:2])

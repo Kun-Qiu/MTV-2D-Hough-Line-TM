@@ -1,11 +1,10 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple, plt
 from src.T0_grid_struct import T0GridStruct
-from utility.image_utility import stereo_transform
 
 @dataclass
 class DTGridStruct:
-    T0_grid     : T0GridStruct
-    image_path  : str
+    T0_grid    : T0GridStruct
+    image_path : str
 
     # Default Parameters
     win_size  : Tuple[int, int] = (31, 31)
@@ -17,7 +16,6 @@ class DTGridStruct:
     grid   : np.ndarray = field(init=False)
     params : np.ndarray = field(init=False)
     image  : np.ndarray = field(init=False)
-    shifts : Tuple[float, float] = field(init=False)
 
     def __post_init__(self):
         self.shape = self.T0_grid.shape
@@ -30,7 +28,6 @@ class DTGridStruct:
         self.image = cv2.imread(
             self.image_path, cv2.IMREAD_GRAYSCALE
             )
-        # self.image = stereo_transform(self.image)
         
         ############################
         ### Initialize the grids ###
@@ -40,41 +37,55 @@ class DTGridStruct:
             self.iteration, self.epsilon
             )
         
-
+    
     def _populate_grid_LK(
-            self, winSize: Tuple[int, int]=(31,31), 
-            maxLevel: int=5,
-            iterations :int=10, 
-            epsilon: float=0.03
-            ) -> None:
-        
+        self,
+        winSize: Tuple[int, int] = (31, 31),
+        maxLevel: int = 7,
+        iterations: int = 10,
+        epsilon: float = 0.01
+        ) -> None:
+
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
+        valid_indices = np.where(valid_mask)
         prev_pts = np.stack(self.T0_grid.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2)
-        print(prev_pts)
-        
+
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, iterations, epsilon)
+        next_img = self.image.copy()
+
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-            prevImg=self.T0_grid.image, 
-            nextImg=self.image, 
+            prevImg=self.T0_grid.image,
+            nextImg=next_img, 
             prevPts=prev_pts, 
             nextPts=None, 
             winSize=winSize, 
             maxLevel=maxLevel, 
-            criteria=criteria
+            criteria=criteria,
+            minEigThreshold=0.001
             )
         
-        valid_indices = np.where(valid_mask)
+        # Update grid
         tracked_idx = 0
-        for i, j in zip(*valid_indices):
-            if status[tracked_idx]:  # If tracking was successful
-                self.grid[i, j] = next_pts[tracked_idx].reshape(-1)
-            else:
-                self.grid[i, j] = None  # Mark as untracked
-            tracked_idx += 1
+        condition = (
+            tracked_idx < len(status) and 
+            status[tracked_idx] and 
+            self.__within_bounds(next_pts[tracked_idx])
+            )
         
-        print(f"Successfully tracked {np.sum(status)}/{len(status)} points")
-        return None
+        for i, j in zip(*valid_indices):
+            if condition:
+                self.grid[i][j] = next_pts[tracked_idx].ravel()
+            else:
+                self.grid[i][j] = None
+            tracked_idx += 1
+            return
+
     
+    def __within_bounds(self, pt: np.ndarray) -> bool:
+        x, y = pt.ravel()
+        height, width = self.image.shape[:2]
+        return 0 <= x < width and 0 <= y < height
+
 
     def visualize(self) -> None:
         fig, ax = plt.subplots(figsize=(10, 10))

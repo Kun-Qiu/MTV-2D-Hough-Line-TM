@@ -1,10 +1,8 @@
 from utility.py_import import np, plt, tri, dataclass, field, Tuple
-import matplotlib.tri as tri
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
-from src.parametric_X import ParametricX
+from cython_build.ParametricX import ParametricX
 from src.parametric_opt import ParameterOptimizer
-import multiprocessing as mp
 
 
 @dataclass
@@ -23,8 +21,9 @@ class HoughTM:
     win_size  : Tuple[int, int] = (31, 31)
     max_level : int = 5
     iteration : int = 10
-    epsilon   : float = 0.03
+    epsilon   : float = 0.001
     verbose   : bool = False
+    optimize  : bool = False
 
     displacement: np.ndarray = field(init=False)
     solve_bool  : bool = field(init=False)
@@ -47,7 +46,9 @@ class HoughTM:
             density=self.density,
             temp_scale=self.temp_scale
             )
-        
+        if self.optimize:
+            self._optimize(self.grid_T0, False)
+
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
             self.path_mov, 
@@ -56,21 +57,22 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
+        if self.optimize:
+            self._optimize(self.grid_dT, False)
 
         self.disp_field = np.empty(shape, dtype=object)
-        self._optimize(self.grid_T0)
-        self._optimize(self.grid_dT, visualize=False)
         self.solve_bool = False
         
 
-    def _optimize(self, grid_obj, visualize=False) -> None:
+    def _optimize(self, grid_obj, v) -> None:
         for i in range(grid_obj.shape[0]):
             for j in range(grid_obj.shape[1]):
                 if grid_obj.grid[i, j] is not None and grid_obj.params[i, j] is not None:
                     x, y  = grid_obj.grid[i, j]
                     ang1, ang2, leg_len = grid_obj.params[i, j]
+
                     parametricX_obj = ParametricX(
-                        center=(int(round(x)), int(round(y))), 
+                        center=(x, y), 
                         shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
                         image=grid_obj.image
                         )
@@ -81,18 +83,17 @@ class HoughTM:
                             pred_uncertainty[0], 
                             pred_uncertainty[1] 
                             ])
-                    
+               
                     optimizer = ParameterOptimizer(
                         parametricX_obj, uncertainty=self.uncertainty, 
-                        num_interval=self.num_interval,
-                        lock_angle=False, verbose=self.verbose
+                        num_interval=self.num_interval, verbose=self.verbose
                         )
-                    
-                    optimizer.quad_optimize()
-                    if visualize:
+
+                    parameter_star = optimizer.quad_optimize()
+                    if v:
                         optimizer.visualize()
-                    grid_obj.grid[i, j] = parametricX_obj.params[0:2]
-        print("Optimization complete.")
+                    grid_obj.grid[i, j] = parameter_star[0:2]
+        return None
 
 
     def solve(self) -> None:
@@ -130,28 +131,27 @@ class HoughTM:
     def get_vorticity(self, dt:float=1) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_vorticity().")
-        
+    
         rows, cols = self.grid_T0.shape
-        vort_field = np.full((rows, cols, 3), np.nan)  # (x, y, w)
-        vel_field  = self.get_velocity(dt=dt)
+        field = np.full((rows, cols, 3), np.nan)
+        vorticity = np.full((rows, cols), np.nan)
 
-        x, y   = vel_field[..., 0], vel_field[..., 1]
-        vx, vy = vel_field[..., 2], vel_field[..., 3]
-        vort_field[..., 0] = x
-        vort_field[..., 1] = y
+        vel = self.get_velocity(dt)
+        vx = vel[..., 2] 
+        vy = vel[..., 3]
 
-        #Todo, not uniform spacing
-        # Compute spatial grid spacing (assumes uniform spacing)
-        dx      = np.gradient(x, axis=1)  
-        dy      = np.gradient(y, axis=0)
-        dx[dx == 0], dy[dy == 0] = 1e-8, 1e-8  
+        vorticity[1:-1, 1:-1] = (
+            vx[:-2, 1:-1] -  # vx[i-1, j]
+            vx[2:, 1:-1] +   # -vx[i+1, j]
+            vy[1:-1, 2:] -   # vy[i, j+1]
+            vy[1:-1, :-2]    # -vy[i, j-1]
+        ) / 2
 
-        du_dy   = np.gradient(vx, axis=0) / dy  
-        dv_dx   = np.gradient(vy, axis=1) / dx 
-        ω_z     = dv_dx - du_dy
-
-        vort_field[..., 2] = ω_z
-        return vort_field 
+        field[..., 0] = self.disp_field[..., 0]  # x
+        field[..., 1] = self.disp_field[..., 1]  # y
+        field[..., 2] = vorticity  # vorticity
+    
+        return field 
 
 
     def plot_intersections(self):
@@ -196,7 +196,6 @@ class HoughTM:
         if not self.solve_bool:
             raise ValueError("Call solve() before plotting fields.")
 
-        # Compute velocity and vorticity
         vorticity = self.get_vorticity(dt)
         vel_field = self.get_velocity(dt)
         
@@ -205,7 +204,6 @@ class HoughTM:
         dx, dy = self.disp_field[..., 2], self.disp_field[..., 3]
         vort = vorticity[..., 2]
 
-        # Compute magnitudes
         disp_mag = np.sqrt(dx**2 + dy**2)
         vel_mag = np.sqrt(vx**2 + vy**2)
 
@@ -215,28 +213,21 @@ class HoughTM:
         unit_vx = np.divide(vx, vel_mag, where=vel_mag != 0, out=np.zeros_like(vx))
         unit_vy = np.divide(vy, vel_mag, where=vel_mag != 0, out=np.zeros_like(vy))
 
-        # Modify `valid_mask` to capture all valid data
         valid_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(dx) & np.isfinite(dy) & np.isfinite(vx) & np.isfinite(vy) & np.isfinite(vort)
-
-        # Debugging: Check how many valid points exist
         valid_count = np.sum(valid_mask)
-        print(f"Valid points count: {valid_count}")
         
         if valid_count == 0:
             raise ValueError("All data points are invalid (NaN or Inf). Check the input data.")
 
-        # Triangulation for contour plots
         triang = tri.Triangulation(x[valid_mask], y[valid_mask])
-
-        # Create figure with 3 subplots
         fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
         # Plot 1: Displacement Magnitude
         disp_plot = axs[0].tricontourf(triang, disp_mag[valid_mask], cmap='viridis', levels=100)
         axs[0].quiver(x[valid_mask], y[valid_mask], unit_dx[valid_mask], unit_dy[valid_mask],
                     angles='xy', scale_units='xy', scale=0.1, color='black')
-        fig.colorbar(disp_plot, ax=axs[0], label="Displacement Magnitude")
-        axs[0].set_title("Displacement Magnitude")
+        fig.colorbar(disp_plot, ax=axs[0])
+        axs[0].set_title("Displacement")
         axs[0].set_xlabel("X")
         axs[0].set_ylabel("Y")
         axs[0].axis('equal')
@@ -245,36 +236,17 @@ class HoughTM:
         vel_plot = axs[1].tricontourf(triang, vel_mag[valid_mask], cmap='viridis', levels=100)
         axs[1].quiver(x[valid_mask], y[valid_mask], unit_vx[valid_mask], unit_vy[valid_mask],
                     angles='xy', scale_units='xy', scale=0.1, color='blue')
-        fig.colorbar(vel_plot, ax=axs[1], label="Velocity Magnitude")
-        axs[1].set_title("Velocity Field")
+        fig.colorbar(vel_plot, ax=axs[1])
+        axs[1].set_title("Velocity")
         axs[1].set_xlabel("X")
-        axs[1].set_ylabel("Y")
         axs[1].axis('equal')
 
         # Plot 3: Vorticity Field
         vort_plot = axs[2].tricontourf(triang, vort[valid_mask], cmap='coolwarm', levels=100)
-        fig.colorbar(vort_plot, ax=axs[2], label="Vorticity")
-        axs[2].set_title("Vorticity Field")
+        fig.colorbar(vort_plot, ax=axs[2])
+        axs[2].set_title("Vorticity")
         axs[2].set_xlabel("X")
-        axs[2].set_ylabel("Y")
         axs[2].axis('equal')
 
-        # Display plots
         plt.tight_layout()
         plt.show()
-
-
-def process_cell(args):
-        i, j, x, y, ang1, ang2, leg_len, image, verbose = args
-        parametricX_obj = ParametricX(
-            center=(int(round(x)), int(round(y))), 
-            shape=(ang1, ang2, 0.5, 4, leg_len),
-            image=image
-            )
-        
-        optimizer = ParameterOptimizer(
-            parametricX_obj, uncertainty=3, num_interval=10,
-            lock_angle=False, verbose=verbose
-            )
-        optimizer.quad_optimize()
-        return (i, j, parametricX_obj.params[0:2])

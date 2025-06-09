@@ -82,6 +82,7 @@ def create_centered_grid(image_size, fwhm, spacing, angle, line_intensity=0.5, n
         x1 = center_x + offset - int(center_y / np.tan(radians))
         x2 = center_x + offset + int(center_y / np.tan(radians))
         draw_gaussian_line(image, (x1, 0), (x2, h), fwhm, line_intensity)
+        
         # Opposite direction
         x1 = center_x + offset + int(center_y / np.tan(radians))
         x2 = center_x + offset - int(center_y / np.tan(radians))
@@ -94,16 +95,18 @@ def create_centered_grid(image_size, fwhm, spacing, angle, line_intensity=0.5, n
 
 if __name__ == "__main__":
 
-    fwhm        = 4             # Full width at half maximum for the Gaussian lines
-    spacing     = 20            # Reduced spacing for denser lines
-    angle       = 60            # Angle for intersecting lines
-    image_size  = (256, 256)    # Size of the image
-    num_lines   = 10            # Number of lines
-    snr         = 8             # SNR value
+    fwhm        = 4            # Full width at half maximum for the Gaussian lines
+    spacing     = 20           # Reduced spacing for denser lines
+    angle       = 60           # Angle for intersecting lines
+    image_size  = (256, 256)   # Size of the image
+    num_lines   = 10           # Number of lines
+    snr         = 8            # SNR value
 
     # Generate the grid image
-    image = create_centered_grid(image_size, fwhm, spacing, angle, 
-                                line_intensity=0.5, num_lines=num_lines, snr=snr)
+    image = create_centered_grid(
+        image_size, fwhm, spacing, angle, 
+        line_intensity=0.5, num_lines=num_lines, snr=snr
+        )
 
     plt.figure(figsize=(6, 6))
     plt.title("Centered Gaussian Grid Image")

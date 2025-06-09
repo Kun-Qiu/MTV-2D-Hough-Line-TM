@@ -12,8 +12,8 @@ def compute_cdf(errors):
 
 
 if __name__ == "__main__":
-    test_dir = "data/Synthetic_Data/Image/SNR_2/2"
-    image_dir = "data/Synthetic_Data/Image/SNR_2/2"
+    test_dir = "data/Synthetic_Data/Image/SNR_8/2"
+    image_dir = "data/Synthetic_Data/Image/SNR_8/2"
 
     test_type = {
         "uniform": "uniform_flow.npy",
@@ -22,11 +22,12 @@ if __name__ == "__main__":
     }
 
     img_type = {
-        "uniform": "displaced_uniform.png"#,
-        # "poiseuille": "displaced_poiseuille.png",
-        # "lamb_oseen": "displaced_lamb_oseen.png"
+        "uniform": "displaced_uniform.png",
+        "poiseuille": "displaced_poiseuille.png",
+        "lamb_oseen": "displaced_lamb_oseen.png"
     }
     src_path = os.path.join(image_dir, "src.png")
+    
 
     cdf_values = {}
     confidence_intervals = {}
@@ -36,7 +37,8 @@ if __name__ == "__main__":
         img_path = os.path.join(image_dir, value)
         solver = HoughTM(
             src_path, img_path, num_lines=10, fwhm=4, 
-            temp_scale=0.67, uncertainty=3, verbose=False
+            temp_scale=0.8, uncertainty=3, num_interval=35, 
+            verbose=False
             )
 
         solver.solve()

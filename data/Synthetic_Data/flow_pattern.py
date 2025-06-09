@@ -1,5 +1,18 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import cv2
+
+def save_file(field, base_filename):
+    """Save displacement field in both .npy and OpenCV .yml formats"""
+    np.save(base_filename + ".npy", field)
+    
+    fs = cv2.FileStorage(base_filename + ".yml", cv2.FILE_STORAGE_WRITE)
+    fs.write("displacement_field", field)
+    fs.release()
+
+    print(f"Saved files: {base_filename}.npy and {base_filename}.yml")
+    return 
+
 
 def poiseuille_flow(U, shape=(256, 256), filename=None, show=False):
     """
@@ -42,8 +55,7 @@ def poiseuille_flow(U, shape=(256, 256), filename=None, show=False):
         plt.show()
 
     if filename != None:
-        np.save(filename, field)
-        print(f"Velocity field saved to {filename}")
+        save_file(field, filename)
 
     return field
 
@@ -99,8 +111,7 @@ def lamb_oseen_vortex(shape=(256, 256), gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=2
 
     field = np.stack((u_x, u_y), axis=-1)
     if filename != None:
-        np.save(filename, field)
-        print(f"Velocity field saved to {filename}")
+        save_file(field, filename)
 
     return field
 
@@ -145,8 +156,7 @@ def uniform_flow(x_translate, y_translate, shape=(256, 256), filename=None, show
         plt.show()
     
     if filename != None:
-        np.save(filename, field)
-        print(f"Velocity field saved to {filename}")
+        save_file(field, filename)
     
     return field
 

@@ -1,6 +1,7 @@
 from utility.py_import import os, cv2, np, plt, cm
 from skimage.morphology import skeletonize
 
+
 def save_plt(img, filename, cmap='gray'):
         plt.figure()
         plt.imshow(img, cmap=cmap)

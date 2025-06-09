@@ -23,6 +23,7 @@ class HoughTM:
     iteration : int = 10
     epsilon   : float = 0.001
     verbose   : bool = False
+    optimize  : bool = False
 
     displacement: np.ndarray = field(init=False)
     solve_bool  : bool = field(init=False)
@@ -45,7 +46,8 @@ class HoughTM:
             density=self.density,
             temp_scale=self.temp_scale
             )
-        # self._optimize(self.grid_T0)
+        if self.optimize:
+            self._optimize(self.grid_T0, False)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -55,13 +57,14 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
-        # self._optimize(self.grid_dT)
+        if self.optimize:
+            self._optimize(self.grid_dT, False)
 
         self.disp_field = np.empty(shape, dtype=object)
         self.solve_bool = False
         
 
-    def _optimize(self, grid_obj) -> None:
+    def _optimize(self, grid_obj, v) -> None:
         for i in range(grid_obj.shape[0]):
             for j in range(grid_obj.shape[1]):
                 if grid_obj.grid[i, j] is not None and grid_obj.params[i, j] is not None:
@@ -69,7 +72,7 @@ class HoughTM:
                     ang1, ang2, leg_len = grid_obj.params[i, j]
 
                     parametricX_obj = ParametricX(
-                        center=(int(round(x)), int(round(y))), 
+                        center=(x, y), 
                         shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
                         image=grid_obj.image
                         )
@@ -87,6 +90,8 @@ class HoughTM:
                         )
 
                     parameter_star = optimizer.quad_optimize()
+                    if v:
+                        optimizer.visualize()
                     grid_obj.grid[i, j] = parameter_star[0:2]
         return None
 
@@ -191,7 +196,6 @@ class HoughTM:
         if not self.solve_bool:
             raise ValueError("Call solve() before plotting fields.")
 
-        # Compute velocity and vorticity
         vorticity = self.get_vorticity(dt)
         vel_field = self.get_velocity(dt)
         
@@ -200,7 +204,6 @@ class HoughTM:
         dx, dy = self.disp_field[..., 2], self.disp_field[..., 3]
         vort = vorticity[..., 2]
 
-        # Compute magnitudes
         disp_mag = np.sqrt(dx**2 + dy**2)
         vel_mag = np.sqrt(vx**2 + vy**2)
 
@@ -212,22 +215,19 @@ class HoughTM:
 
         valid_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(dx) & np.isfinite(dy) & np.isfinite(vx) & np.isfinite(vy) & np.isfinite(vort)
         valid_count = np.sum(valid_mask)
-        print(f"Valid points count: {valid_count}")
         
         if valid_count == 0:
             raise ValueError("All data points are invalid (NaN or Inf). Check the input data.")
 
-        # Triangulation for contour plots
         triang = tri.Triangulation(x[valid_mask], y[valid_mask])
-
         fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
         # Plot 1: Displacement Magnitude
         disp_plot = axs[0].tricontourf(triang, disp_mag[valid_mask], cmap='viridis', levels=100)
         axs[0].quiver(x[valid_mask], y[valid_mask], unit_dx[valid_mask], unit_dy[valid_mask],
                     angles='xy', scale_units='xy', scale=0.1, color='black')
-        fig.colorbar(disp_plot, ax=axs[0], label="Displacement Magnitude")
-        axs[0].set_title("Displacement Magnitude")
+        fig.colorbar(disp_plot, ax=axs[0])
+        axs[0].set_title("Displacement")
         axs[0].set_xlabel("X")
         axs[0].set_ylabel("Y")
         axs[0].axis('equal')
@@ -236,20 +236,17 @@ class HoughTM:
         vel_plot = axs[1].tricontourf(triang, vel_mag[valid_mask], cmap='viridis', levels=100)
         axs[1].quiver(x[valid_mask], y[valid_mask], unit_vx[valid_mask], unit_vy[valid_mask],
                     angles='xy', scale_units='xy', scale=0.1, color='blue')
-        fig.colorbar(vel_plot, ax=axs[1], label="Velocity Magnitude")
-        axs[1].set_title("Velocity Field")
+        fig.colorbar(vel_plot, ax=axs[1])
+        axs[1].set_title("Velocity")
         axs[1].set_xlabel("X")
-        axs[1].set_ylabel("Y")
         axs[1].axis('equal')
 
         # Plot 3: Vorticity Field
         vort_plot = axs[2].tricontourf(triang, vort[valid_mask], cmap='coolwarm', levels=100)
-        fig.colorbar(vort_plot, ax=axs[2], label="Vorticity")
-        axs[2].set_title("Vorticity Field")
+        fig.colorbar(vort_plot, ax=axs[2])
+        axs[2].set_title("Vorticity")
         axs[2].set_xlabel("X")
-        axs[2].set_ylabel("Y")
         axs[2].axis('equal')
 
-        # Display plots
         plt.tight_layout()
         plt.show()

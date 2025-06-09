@@ -24,7 +24,6 @@ cdef class ParametricX:
         self.c_params[4] = shape[2]   # rel_intens
         self.c_params[5] = shape[3]   # lin_wid
         self.c_params[6] = shape[4]   # leg_len
-        
 
 
     cdef void validate_inputs(self) except *:

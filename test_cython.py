@@ -1,5 +1,5 @@
 from utility.py_import import cv2, np, plt
-from cython_build.parametric_x.parametric_X import ParametricX
+from cython_build.ParametricX import ParametricX
 from src.parametric_X import ParametricX as PX2
 import time as t
 
@@ -12,6 +12,7 @@ def benchmark(iterations_list, fwhm=4):
     speed_ratios = []
     
     for n_iter in iterations_list:
+        params = list([110, 123, np.pi/6, np.pi/6, 0.5, 4, 38*0.7])
         # Benchmark Cython
         start = t.time()
         for _ in range(n_iter):
@@ -20,6 +21,7 @@ def benchmark(iterations_list, fwhm=4):
                 (np.pi/6, np.pi/6, 0.5, fwhm, 38*0.7), 
                 img
             )
+            parameter_X.correlate(params)
         end = t.time()
         cython_time = end - start
         cython_times.append(cython_time)
@@ -32,6 +34,7 @@ def benchmark(iterations_list, fwhm=4):
                 (np.pi/6, np.pi/6, 0.5, fwhm, 38*0.7), 
                 img
             )
+            parameter_Y.correlate(params)
         end = t.time()
         python_time = end - start
         python_times.append(python_time)
@@ -80,7 +83,8 @@ if __name__ == "__main__":
     # Define the range of iterations to test
     image_dir = os.path.abspath("data/Synthetic_Data/Image/SNR_1/0/displaced_lamb_oseen.png")
     img = cv2.imread(image_dir, cv2.IMREAD_GRAYSCALE)
-    # iterations_list = [1000000]
+    base = 1000
+    iterations_list = [base, base*5, base*10, base*50, base*100]
 
     # Run benchmarks
     # cython_times, python_times, speed_ratios = benchmark(iterations_list)
@@ -94,6 +98,14 @@ if __name__ == "__main__":
         (np.pi/6, np.pi/6, 0.5, 4, 38*0.7), 
         img
     )
-    params = list([110, 123, np.pi/6, np.pi/6, 0.5, 4, 38*0.7])
-    print(parameter_X.correlate(params))
+    params = (110, 123, np.pi/6, np.pi/6, 0.5, 4, 38*0.7)
+
+    # parameter_Y = PX2(
+    #             (110, 123), 
+    #             (np.pi/6, np.pi/6, 0.5, 4, 38*0.7), 
+    #             img
+    #         )
+    print(parameter_X.correlate(np.array(params)))
+    # print(parameter_Y.correlate(list(params))['correlation'])
     parameter_X.visualize()
+    # parameter_Y.visualize()

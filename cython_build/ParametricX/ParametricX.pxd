@@ -16,6 +16,8 @@ cdef class ParametricX:
     
     cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil
 
+    cdef double bilinear_interpolate(self, double x, double y) nogil
+
     cdef void _correlate(self, double* params, double* corr) nogil
 
     cdef double* get_params_ptr(self) nogil

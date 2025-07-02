@@ -1,6 +1,6 @@
 from utility.py_import import plt, np, os, cv2
 from src.Scipy_Hough_TM import HoughTM
-from utility.image_utility import stereo_transform
+from utility.image_utility import stereo_transform, save_plt
 
 
 if __name__ == "__main__":
@@ -9,13 +9,13 @@ if __name__ == "__main__":
 
     test_type = {
         "uniform": "uniform_flow.npy",
-        "poiseuille": "poiseuille_flow.npy",
+        # "poiseuille": "poiseuille_flow.npy"#,
         "lamb_oseen": "lamb_oseen_flow.npy"
     }
 
     img_type = {
         "uniform": "displaced_uniform.png",
-        "poiseuille": "displaced_poiseuille.png",
+        # "poiseuille": "displaced_poiseuille.png"#,
         "lamb_oseen": "displaced_lamb_oseen.png"
     }
 
@@ -29,9 +29,9 @@ if __name__ == "__main__":
         for key, value in img_type.items():
             img_path = os.path.join(image_dir, f"{i}/{value}")
             solver = HoughTM(
-                src_path, img_path, num_lines=10, fwhm=4, 
-                temp_scale=0.67, uncertainty=3, num_interval=40, 
-                verbose=False, max_level=5
+                src_path, img_path, num_lines=10, fwhm=10, 
+                temp_scale=0.67, uncertainty=5, num_interval=10, 
+                verbose=False, max_level=3, optimize=True
                 )
 
             solver.solve()
@@ -52,9 +52,9 @@ if __name__ == "__main__":
             x_coords = np.arange(ground_truth.shape[1])
 
             interp_dx = RegularGridInterpolator((y_coords, x_coords), ground_truth[..., 0], 
-                                            method='linear', bounds_error=False, fill_value=np.nan)
+                                            method='cubic', bounds_error=False, fill_value=np.nan)
             interp_dy = RegularGridInterpolator((y_coords, x_coords), ground_truth[..., 1], 
-                                            method='linear', bounds_error=False, fill_value=np.nan)
+                                            method='cubic', bounds_error=False, fill_value=np.nan)
             
             points = np.column_stack((y_indices, x_indices))
             gt_dx = interp_dx(points)

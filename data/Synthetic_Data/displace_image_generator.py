@@ -68,7 +68,7 @@ def displace_image(image, flow_field):
     map_y = (Y - flow_field[..., 1]).astype(np.float32)
     displaced_image = cv2.remap(
         image, map_x, map_y, 
-        interpolation=cv2.INTER_LINEAR, 
+        interpolation=cv2.INTER_CUBIC, 
         borderMode=cv2.BORDER_CONSTANT
         )
 
@@ -76,13 +76,13 @@ def displace_image(image, flow_field):
 
 
 if __name__ == "__main__":
-    fwhm       = 4          # Full width at half maximum for the Gaussian lines
-    spacing    = 20         # Reduced spacing for denser lines
-    angle      = 60         # Angle for intersecting lines
-    image_size = (256, 256) # Size of the image
-    num_lines  = 10         # Number of lines
-    snrs       = [1, 2, 4, 8, 16]          # SNR value
-    num_sets   = 10
+    fwhm       = 10             # Full width at half maximum for the Gaussian lines
+    spacing    = 30             # Reduced spacing for denser lines
+    angle      = 60             # Angle for intersecting lines
+    image_size = (512, 512)     # Size of the image
+    num_lines  = 10             # Number of lines
+    snrs       = [1, 2, 4, 8, 16]  # SNR value
+    num_sets   = 20
 
     pwd = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.join(pwd, "Image")

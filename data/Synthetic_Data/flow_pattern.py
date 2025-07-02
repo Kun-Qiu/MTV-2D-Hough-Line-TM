@@ -9,8 +9,6 @@ def save_file(field, base_filename):
     fs = cv2.FileStorage(base_filename + ".yml", cv2.FILE_STORAGE_WRITE)
     fs.write("displacement_field", field)
     fs.release()
-
-    print(f"Saved files: {base_filename}.npy and {base_filename}.yml")
     return 
 
 

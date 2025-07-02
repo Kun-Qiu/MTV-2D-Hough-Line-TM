@@ -12,16 +12,15 @@ if __name__ == "__main__":
     }
 
     img_type = {
-        "uniform": "displaced_uniform.png",
-        "poiseuille": "displaced_poiseuille.png",
-        "lamb_oseen": "displaced_lamb_oseen.png"
+        "uniform": "displaced_stereo_uniform.png",
+        "poiseuille": "displaced_stereo_poiseuille.png",
+        "lamb_oseen": "displaced_stereo_lamb_oseen.png"
     }
 
     all_errors = {key: [] for key in test_type}
     rmse_data = {key: {} for key in test_type}
     snrs = [1, 2, 4, 8, 16]
-    # snrs = [8]
-    num_runs = 5
+    num_runs = 10
 
     total_start = time.time()
     pbar = tqdm(total=len(snrs) * len(img_type) * num_runs, desc="Overall Progress")
@@ -33,18 +32,16 @@ if __name__ == "__main__":
         for folder_num in range(num_runs):
             base_dir = f"data/Synthetic_Data/Image/SNR_{snr}/{folder_num}" 
             
-            src_path = os.path.join(base_dir, "src.png")
+            src_path = os.path.join(base_dir, "stereo_src.png")
             for key, value in img_type.items():
                 img_path = os.path.join(base_dir, value)
 
                 solver = HoughTM(
-                    src_path, img_path, num_lines=10, fwhm=10, 
+                    src_path, img_path, num_lines=10, fwhm=4, 
                     temp_scale=0.67, num_interval=40, uncertainty=3,
                     verbose=False, max_level=3, optimize=False
                 )
                 solver.solve()
-                # solver.plot_fields()
-
                 valid_mask = ~np.isnan(solver.disp_field).any(axis=2)
                 valid_field = solver.disp_field[valid_mask, :] 
                 
@@ -54,20 +51,24 @@ if __name__ == "__main__":
                 npy_file = os.path.join(base_dir, test_type[key])
                 ground_truth = np.load(npy_file)
 
-                from scipy.interpolate import RectBivariateSpline
+                from scipy.interpolate import RegularGridInterpolator
                 y_coords = np.arange(ground_truth.shape[0])
                 x_coords = np.arange(ground_truth.shape[1])
 
                 if ground_truth.ndim == 3:
-                    spline_dx = RectBivariateSpline(y_coords, x_coords, ground_truth[..., 0])
-                    spline_dy = RectBivariateSpline(y_coords, x_coords, ground_truth[..., 1])
+                    interp_dx = RegularGridInterpolator((y_coords, x_coords), ground_truth[..., 0], 
+                                                    method='cubic', bounds_error=False, fill_value=np.nan)
+                    interp_dy = RegularGridInterpolator((y_coords, x_coords), ground_truth[..., 1], 
+                                                    method='cubic', bounds_error=False, fill_value=np.nan)
                     
-                    gt_dx = spline_dx(y_indices, x_indices, grid=False)
-                    gt_dy = spline_dy(y_indices, x_indices, grid=False)
+                    points = np.column_stack((y_indices, x_indices))
+                    gt_dx = interp_dx(points)
+                    gt_dy = interp_dy(points)
                     extracted_gt = np.column_stack((gt_dx, gt_dy))
                 else:
-                    spline = RectBivariateSpline(y_coords, x_coords, ground_truth)
-                    extracted_gt = spline(y_indices, x_indices, grid=False)
+                    interp = RegularGridInterpolator((y_coords, x_coords), ground_truth, 
+                                                method='linear', bounds_error=False, fill_value=np.nan)
+                    extracted_gt = interp(np.column_stack((y_indices, x_indices)))
                 
                 valid_interp = ~np.isnan(extracted_gt).any(axis=1)
                 errors = np.linalg.norm(valid_field[valid_interp, 2:] - extracted_gt[valid_interp], axis=1)

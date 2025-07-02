@@ -53,7 +53,7 @@ def stereo_transform(im):
     :param im  :    Input Image
     :return    :    Distorted Image   
     """
-
+    
     height, width = im.shape[:2]
     src_pts = np.float32([
         [0, 0],

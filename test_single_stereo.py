@@ -8,12 +8,12 @@ if __name__ == "__main__":
     image_dir = "data/Synthetic_Data/Image/SNR_4"
 
     test_type = {
-        "uniform": "uniform_flow.npy",
+        # "uniform": "uniform_flow.npy",
         "poiseuille": "poiseuille_flow.npy"
     }
 
     img_type = {
-        "uniform": "displaced_stereo_uniform.png",
+        # "uniform": "displaced_stereo_uniform.png",
         "poiseuille": "displaced_stereo_poiseuille.png"
     }
 
@@ -28,13 +28,13 @@ if __name__ == "__main__":
             img_path = os.path.join(image_dir, f"{i}/{value}")
             solver = HoughTM(
                 src_path, img_path, num_lines=10, fwhm=4, 
-                temp_scale=0.67, uncertainty=3, num_interval=35, 
-                verbose=False, max_level=5
+                temp_scale=0.67, uncertainty=3, num_interval=40, 
+                verbose=False, max_level=5, optimize=False
                 )
 
             solver.solve()
-            # solver.plot_intersections()
-            # solver.plot_fields(dt=1)
+            solver.plot_intersections()
+            solver.plot_fields(dt=1)
 
             valid_mask = ~np.isnan(solver.disp_field).any(axis=2)
             valid_field = solver.disp_field[valid_mask, :] 

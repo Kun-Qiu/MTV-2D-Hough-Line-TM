@@ -1,5 +1,6 @@
 from utility.py_import import np, plt, cv2, warnings, dataclass, field, Tuple
 from cython_build.ParametricX import ParametricX
+from scipy.optimize import minimize
 
 
 @dataclass
@@ -51,6 +52,64 @@ class ParameterOptimizer:
             ])
 
 
+    def quad_optimize_gradient(self) -> np.ndarray:
+        try:
+            x = self.parametric_X.get_params()
+            x0 = x[:6]
+            leg_len = x[6]
+
+            # bounds = [
+            #     (x0[0] - self.rad[0], x0[0] + self.rad[0]),  # x
+            #     (x0[1] - self.rad[1], x0[1] + self.rad[1]),  # y
+            #     (x0[2] - self.rad[2], x0[2] + self.rad[2]),  # θ1
+            #     (x0[3] - self.rad[3], x0[3] + self.rad[3]),  # θ2
+            #     (x0[4] - self.rad[4], x0[4] + self.rad[4]),  # I
+            #     (x0[5] - self.rad[5], x0[5] + self.rad[5])   # FWHM
+            #     ]
+            bounds = [
+                (x0[0] - 1.0, x0[0] + 1.0),  # x (±1 pixel)
+                (x0[1] - 1.0, x0[1] + 1.0),  # y (±1 pixel)
+                (x0[2] - np.radians(5), x0[2] + np.radians(5)),  # θ1
+                (x0[3] - np.radians(5), x0[3] + np.radians(5)),  # θ2
+                (max(0, x0[4] * 0.9), x0[4] * 1.1),  # I (10% variation)
+                (max(0.1, x0[5] * 0.9), x0[5] * 1.1)   # FWHM (10% variation)
+                ]
+            
+            def objective(params: np.ndarray) -> float:
+                try:
+                    full_params = np.concatenate([params, [leg_len]])
+                    corr = self.parametric_X.correlate(full_params)['correlation']
+                    if not np.isfinite(corr):
+                        return 1e6 
+                    return -corr 
+                except:
+                    return 1e6
+            
+            result = minimize(
+                objective,
+                x0,
+                method='L-BFGS-B',
+                bounds=bounds,
+                options={
+                    'maxiter': 100, 
+                    'ftol': 1e-6,    # function tolerance
+                    'gtol': 1e-6,    # gradient tolerance
+                    'eps': 1e-5 
+                    }
+                )
+
+            if result.success:
+                self.parametric_X.update_params(np.arange(len(x0)), result.x)
+            else:
+                print(f"Optimization failed: {result.message}")
+        
+        except Exception as e:
+            print(f"Error in gradient descent: {e}")
+            raise
+
+        return self.parametric_X.get_params()
+    
+
     def quad_optimize(self) -> np.ndarray:
         try:
             warnings.filterwarnings("error")
@@ -98,6 +157,7 @@ class ParameterOptimizer:
             print(f"Warning encountered during optimization: {w}")
         except Exception as e:
             print(f"Error encountered during optimization: {e}")
+            print(self.parametric_X.shape)
             raise
         finally:
             warnings.filterwarnings("default")
@@ -157,24 +217,6 @@ class ParameterOptimizer:
                 return x_s, y_s
 
         return opt_x, opt_y
-
-        # try:
-        #     coeffs, *_ = np.linalg.lstsq(A, corr_matrix.ravel(), rcond=None)
-        #     c3, c4, c5 = coeffs[3], coeffs[4], coeffs[5]
-            
-        #     if c3 < 0 and c4 < 0 and (4*c3*c4 - c5**2) > 0:
-        #         # Solve linear system for optimum
-        #         H = [[2*c3, c5], [c5, 2*c4]]
-        #         b = [-coeffs[1], -coeffs[2]]
-        #         x_opt, y_opt = np.linalg.solve(H, b)
-        #         if (x_vals[0] <= x_opt <= x_vals[-1] and 
-        #             y_vals[0] <= y_opt <= y_vals[-1]):
-        #             return x_opt, y_opt
-        # except np.linalg.LinAlgError:
-        #     pass
-        
-        # max_idx = np.unravel_index(np.argmax(corr_matrix), corr_matrix.shape)
-        # return x_vals[max_idx[1]], y_vals[max_idx[0]]
     
 
     def visualize(self) -> None:

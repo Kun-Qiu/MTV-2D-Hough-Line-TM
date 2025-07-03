@@ -1,5 +1,5 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple, plt
-from utility.image_utility import skeletonize_img, save_plt
+from utility.py_import import np, cv2, dataclass, field, Tuple
+from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -12,7 +12,6 @@ class T0GridStruct:
     shape       : Tuple[int, int]
     image_path  : str
     num_lines   : int
-    solve_uncert: bool 
 
     threshold   : float = 0.2
     density     : int = 10
@@ -42,11 +41,8 @@ class T0GridStruct:
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         _, self.image_skel  = skeletonize_img(self.image)
 
-        ############################
-        ### Initialize the grids ###
-        ############################
         self._populate_grid()
-        self._generate_template(scale=self.temp_scale)
+        # self._generate_template(scale=self.temp_scale)
     
 
     def _is_within_bounds(self, x: int, y: int) -> bool:
@@ -67,8 +63,8 @@ class T0GridStruct:
         theta1, rho1 = line1
         theta2, rho2 = line2
 
+        # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
         A = np.array([
-            # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
             [np.cos(theta1), np.sin(theta1)],
             [np.cos(theta2), np.sin(theta2)]
             ])
@@ -82,37 +78,21 @@ class T0GridStruct:
 
 
     def _populate_grid(self) -> None:
-        """
-        Populate the grid with the intersection points of positive and negative lines
-        if lines are given.
-        """
+        # Populate grid with intersection pts of pos and neg lines
         pos_lines, neg_lines = self._hough_line_transform(slope_thresh=0.1)
 
         for i, pos_line in enumerate(sort_lines(pos_lines)):
+            if i >= self.shape[0]:
+                continue
             for j, neg_line in enumerate(sort_lines(neg_lines)):
+                if j >= self.shape[1]:
+                    continue
                 intersection = self._find_intersection(pos_line, neg_line)
-                if intersection is None or not self._is_within_bounds(
+                if intersection is not None or self._is_within_bounds(
                                             intersection[0], intersection[1]
                                             ):
-                    intersection = (np.nan, np.nan)
-
-                self.grid[i, j] = intersection
-
-                if self.solve_uncert:
-                    angular_bin = np.pi / (self.density * 360)
-                    sigma_params = np.diag([
-                        1,                  # 1 pixel resolution for scipy hough
-                        (angular_bin) ** 2,
-                        1,              
-                        (angular_bin) ** 2
-                        ])
-                    J = self.__jacobian(pos_line, neg_line)
-
-                    # Chi Square 95 % with 2 degree of freedom --> 5.991
-                    sigma_xy = J @ sigma_params @ J.T
-                    self.uncertainty[i, j] = np.sqrt(
-                        np.array([sigma_xy[0, 0], sigma_xy[1,1]])
-                        ) * np.sqrt(5.991)
+                    self.grid[i, j] = intersection
+        return
 
 
     def _hough_line_transform(self, slope_thresh:float=0.1):
@@ -169,7 +149,6 @@ class T0GridStruct:
                         max_dist2 = dist
                         dx_max2, dy_max2 = dx, dy
 
-
         # Y and X distance are flipped in this implementation
         angle1 = np.arctan2(dx_max1, dy_max1) if max_dist1 > 0 else 0.0
         angle2 = np.arctan2(dx_max2, dy_max2) if max_dist2 > 0 else 0.0
@@ -183,6 +162,7 @@ class T0GridStruct:
         half_width = min(abs(dx_max1), abs(dx_max2))
         half_height = min(abs(dy_max1), abs(dy_max2))
         half_sizes = np.array([half_width, half_height])
+
         return (half_sizes, [angle1, angle2], min(lengths))
     
 
@@ -210,43 +190,10 @@ class T0GridStruct:
                 x_max = int(x_center + rect_half_width)
                 y_max = int(y_center + rect_half_height)
 
-                if (x_min < 0 or y_min < 0 or x_max > width or y_max > height):
+                if (x_min < 0 or y_min < 0 or x_max > width or y_max > height or length <= 0):
                     # Skip if the crop region is near the image boundary
                     continue
 
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
                 self.params[i, j] = np.array([ang1, ang2, length])
-        return None
-    
-
-    def __jacobian(self, line1: np.ndarray, line2: np.ndarray) -> np.ndarray:
-        theta1, rho1 = line1
-        theta2, rho2 = line2
-        delta_theta = theta2 - theta1
-        sin_dtheta = np.sin(delta_theta)
-        cos_dtheta = np.cos(delta_theta)
-
-        if np.abs(sin_dtheta) < 1e-10:
-            raise ValueError("Lines are nearly parallel (sin(delta_theta) ≈ 0)")
-        
-        # Precompute terms for x and y derivatives
-        x_num = rho1 * np.sin(theta2) - rho2 * np.sin(theta1)
-        y_num = rho2 * np.cos(theta1) - rho1 * np.cos(theta2)
-        
-        # Partial derivatives for x
-        dx_drho1 = np.sin(theta2) / sin_dtheta
-        dx_drho2 = -np.sin(theta1) / sin_dtheta
-        dx_dtheta1 = (-rho2 * np.cos(theta1) * sin_dtheta + x_num * cos_dtheta) / (sin_dtheta ** 2)
-        dx_dtheta2 = (rho1 * np.cos(theta2) * sin_dtheta - x_num * cos_dtheta) / (sin_dtheta ** 2)
-        
-        # Partial derivatives for y
-        dy_drho1 = -np.cos(theta2) / sin_dtheta
-        dy_drho2 = np.cos(theta1) / sin_dtheta
-        dy_dtheta1 = (-rho2 * np.sin(theta1) * sin_dtheta + y_num * cos_dtheta) / (sin_dtheta ** 2)
-        dy_dtheta2 = (rho1 * np.sin(theta2) * sin_dtheta - y_num * cos_dtheta) / (sin_dtheta ** 2)
-        
-        return np.array([
-            [dx_drho1, dx_dtheta1, dx_drho2, dx_dtheta2],
-            [dy_drho1, dy_dtheta1, dy_drho2, dy_dtheta2]
-        ])
-    
+        return 

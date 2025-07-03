@@ -4,7 +4,7 @@
 from utility.py_import import plt, np
 
 cimport numpy as np
-from libc.math cimport sqrt, log, cos, sin, exp, isnan, INFINITY, fmax, fmin, round
+from libc.math cimport sqrt, log, cos, sin, exp, isnan, INFINITY, fmax, fmin, round, floor, ceil
 from cython cimport boundscheck, wraparound
 
 @boundscheck(False)
@@ -46,87 +46,101 @@ cdef class ParametricX:
 
     cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil:
         cdef:
-            double* p = params 
-            double x = p[0], y = p[1], ang1 = p[2], ang2 = p[3]
-            double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]
+            double center_x = params[0], center_y = params[1], 
+            double ang1 = params[2], ang2 = params[3]
+            double rel_intens = params[4], lin_wid = params[5], leg_len = params[6]
+            
             int size = template.shape[0] 
-            int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
-            int half_len = size // 2
+            double half_size = (size - 1) / 2
             double c1 = cos(ang1), s1 = sin(ang1)
             double c2 = cos(ang2), s2 = sin(ang2)
             double sigma = lin_wid / (2 * sqrt(2 * log(2)))
             double sigma_sq = sigma * sigma
+            double inv_2_sigma_sq = 1.0 / (2 * sigma_sq)
             double xx, yy, rot1, rot2, leg1, leg2 
             Py_ssize_t i, j
         
         for i in range(size):
             for j in range(size):
-                xx = j - half_len  
-                yy = i - half_len
+                xx = j - half_size
+                yy = i - half_size
+                
                 rot1 = c1 * xx + s1 * yy
                 rot2 = c2 * xx - s2 * yy
-                leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))
-                leg2 = exp(-(rot2 * rot2) / (2 * sigma_sq))
+
+                leg1 = exp(-rot1 * rot1 * inv_2_sigma_sq)
+                leg2 = exp(-rot2 * rot2 * inv_2_sigma_sq)
                 template[i,j] = rel_intens * leg1 + (1 - rel_intens) * leg2
-        
-        min_col[0] = <int>fmax(fmin(x - half_len, image_width), 0)
-        min_row[0] = <int>fmax(fmin(y - half_len, image_height), 0)
+
+        min_col[0] = <int>(center_x - half_size)
+        min_row[0] = <int>(center_y - half_size)
     
+
+    cdef double bilinear_interpolate(self, double x, double y) nogil:
+        cdef:
+            double[:, ::1] image = self.image_view
+            int width = image.shape[1], height = image.shape[0]
+            int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))
+            int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))
+            int x1 = x0 + 1
+            int y1 = y0 + 1
+            double dx = x - x0, dy = y - y0
+            double val00, val01, val10, val11
+
+        val00 = image[y0, x0]
+        val01 = image[y0, x1]
+        val10 = image[y1, x0]
+        val11 = image[y1, x1]
+
+        return (val00 * (1-dx) * (1-dy) +
+                val01 * dx * (1-dy) +
+                val10 * (1-dx) * dy +
+                val11 * dx * dy)
+
 
     cdef void _correlate(self, double* params, double* corr) nogil:
         cdef:
-            double[:, ::1] template, img_patch
-            int size = <int>(2 * round(params[6] / 2))
-            double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0
+            double[:, ::1] template
+            double center_x = params[0], center_y = params[1], leg_len = params[6]
+            int size = 2 * (<int>params[6]) + 1
+            double half_size = (size - 1) / 2.0
             double sum_t = 0.0, sum_i = 0.0, sum_tt = 0.0, sum_ii = 0.0, sum_ti = 0.0
-            double temp
-            int min_col, min_row, t_height, t_width
-            int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
-            Py_ssize_t i, j, n
+            int count = 0
+
+            double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0, covar = 0.0
+            int min_col, min_row
+            Py_ssize_t i, j
         
         with gil:
             template = np.zeros((size, size), dtype=np.float64)
-
+        
         self.parametric_template(params, template, &min_col, &min_row)
-        t_height, t_width = template.shape[0], template.shape[1]
-        
-        if template.shape[0] == 0 or template.shape[1] == 0:
+        for i in range(size):
+            for j in range(size):
+                x = center_x + j - half_size
+                y = center_y + i - half_size
+                
+                t_val = template[i, j]
+                i_val = self.bilinear_interpolate(x, y)
+                    
+                sum_t = sum_t + t_val
+                sum_i = sum_i + i_val
+                sum_tt = sum_tt + t_val * t_val
+                sum_ii = sum_ii + i_val * i_val
+                sum_ti = sum_ti + t_val * i_val
+                count = count + 1
+
+        if count < 2:
             corr[0] = -INFINITY
             return
 
-        if (min_row < 0 or min_row + t_height > image_height or
-            min_col < 0 or min_col + t_width > image_width):
-            corr[0] = -INFINITY
-            return
+        t_mean = sum_t / count
+        i_mean = sum_i / count
+        t_std = sqrt((sum_tt - sum_t * t_mean) / count)
+        i_std = sqrt((sum_ii - sum_i * i_mean) / count)
+        covar = (sum_ti - sum_t * i_mean) / count
 
-        img_patch = self.image_view[
-            min_row:min_row + t_height, 
-            min_col:min_col + t_width
-            ]
-
-        n = t_height * t_width
-        for i in range(t_height):
-            for j in range(t_width):
-                temp = template[i, j]
-                sum_t += temp
-                sum_tt += temp * temp
-                
-                temp = img_patch[i, j]
-                sum_i += temp
-                sum_ii += temp * temp
-                
-        t_mean = sum_t / n
-        i_mean = sum_i / n
-        t_std = sqrt((sum_tt - sum_t * t_mean) / n)
-        i_std = sqrt((sum_ii - sum_i * i_mean) / n)
-        
-        for i in range(t_height):
-            for j in range(t_width):
-                norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)
-                norm_i = (img_patch[i, j] - i_mean) / (i_std + 1e-9)
-                sum_ti += norm_t * norm_i
-        
-        corr[0] = sum_ti / (n - 1) if not isnan(sum_ti) else -INFINITY
+        corr[0] = covar / (t_std * i_std + 1e-9)
 
 
     cdef double* get_params_ptr(self) nogil:

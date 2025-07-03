@@ -11,8 +11,9 @@ class HoughTM:
     path_mov    : str
     num_lines   : int
     fwhm        : float
-    uncertainty : float = None
-    num_interval: int = 5
+
+    uncertainty : float = 1
+    num_interval: int = 10
 
     intensity : float = 0.5
     density   : int = 10
@@ -32,15 +33,11 @@ class HoughTM:
 
     def __post_init__(self):
         shape = (self.num_lines, self.num_lines)
-        if self.uncertainty is None:
-            approx_uncert = True
-        else:
-            approx_uncert = False
+        self.uncertainty = self.fwhm
 
         self.grid_T0 = T0GridStruct(
             shape, 
             self.path_ref, 
-            solve_uncert=approx_uncert,
             num_lines=self.num_lines, 
             threshold=self.threshold, 
             density=self.density,
@@ -57,66 +54,73 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
-        if self.optimize:
-            self._optimize(self.grid_dT, False)
+        # if self.optimize:
+            # self._optimize(self.grid_dT, False)
 
         self.disp_field = np.empty(shape, dtype=object)
         self.solve_bool = False
         
 
-    def _optimize(self, grid_obj, v) -> None:
-        for i in range(grid_obj.shape[0]):
-            for j in range(grid_obj.shape[1]):
-                if grid_obj.grid[i, j] is not None and grid_obj.params[i, j] is not None:
-                    x, y  = grid_obj.grid[i, j]
-                    ang1, ang2, leg_len = grid_obj.params[i, j]
+    def _optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
+        grid_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in grid_obj.grid]
+            )
+        params_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in grid_obj.params]
+            )
+    
+        valid_mask = grid_valid & params_valid
+        valid_indices = np.argwhere(valid_mask)
 
-                    parametricX_obj = ParametricX(
-                        center=(x, y), 
-                        shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
-                        image=grid_obj.image
-                        )
-                    
-                    if self.uncertainty is None:
-                        pred_uncertainty = self.grid_T0.uncertainty[i, j]
-                        self.uncertainty = np.max([
-                            pred_uncertainty[0], 
-                            pred_uncertainty[1] 
-                            ])
-               
-                    optimizer = ParameterOptimizer(
-                        parametricX_obj, uncertainty=self.uncertainty, 
-                        num_interval=self.num_interval, verbose=self.verbose
-                        )
+        for i, j in valid_indices:
+            x, y  = grid_obj.grid[i, j]
+            ang1, ang2, leg_len = grid_obj.params[i, j]
 
-                    parameter_star = optimizer.quad_optimize()
-                    if v:
-                        optimizer.visualize()
-                    grid_obj.grid[i, j] = parameter_star[0:2]
-        return None
+            parametricX_obj = ParametricX(
+                center=(x, y), 
+                shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
+                image=grid_obj.image
+                )
+        
+            optimizer = ParameterOptimizer(
+                parametricX_obj, uncertainty=self.uncertainty, 
+                num_interval=self.num_interval, verbose=self.verbose
+                )
+
+            # parameter_star = optimizer.quad_optimize()
+            parameter_star = optimizer.quad_optimize_gradient()
+            if v:
+                optimizer.visualize()
+            grid_obj.grid[i, j] = parameter_star[0:2]
+        return
 
 
     def solve(self) -> None:
-        """
-        Solve the correspondence between t0 image and dt img to obtain the change in 
-        displacement field
-        """
         rows, cols = self.grid_T0.shape
         self.disp_field = np.full((rows, cols, 4), np.nan)  # (x, y, dx, dy)
-        valid_points = []
         
-        for i in range(rows):
-            for j in range(cols):
-                if self.grid_T0.grid[i, j] is not None and self.grid_dT.grid[i, j] is not None:
-                    x0, y0 = self.grid_T0.grid[i, j]
-                    x1, y1 = self.grid_dT.grid[i, j]
+        grid_T0_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in self.grid_T0.grid]
+            )
+        grid_dT_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in self.grid_dT.grid]
+            )
+        
+        valid_mask = grid_T0_valid & grid_dT_valid
+        valid_indices = np.argwhere(valid_mask)
+        for i, j in valid_indices:
+            x0, y0 = self.grid_T0.grid[i, j]
+            x1, y1 = self.grid_dT.grid[i, j]
 
-                    dx, dy = (x1 - x0), (y1 - y0)
-                    self.disp_field[i, j] = [x0, y0, dx, dy]
-                    valid_points.append([x0, y0, dx, dy])
+            dx, dy = (x1 - x0), (y1 - y0)
+            self.disp_field[i, j] = [x0, y0, dx, dy]
 
         self.solve_bool = True
-        return None
+        return
 
 
     def get_velocity(self, dt:float=1) -> np.ndarray:
@@ -128,7 +132,7 @@ class HoughTM:
         return vel_field
 
 
-    def get_vorticity(self, dt:float=1) -> np.ndarray:
+    def get_vorticity(self, dt:float = 1) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_vorticity().")
     
@@ -154,45 +158,39 @@ class HoughTM:
         return field 
 
 
-    def plot_intersections(self):
-        """
-        Plots the intersection points from self.t0_grid and self.dt_grid as two different subfigures.
-        Each subfigure overlays the points onto the reference image.
-        """
+    def plot_intersections(self) -> None:
         fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-        # Flatten the grids and filter out None values
         t0_points = np.array([p for row in self.grid_T0.grid for p in row if p is not None])
         dt_points = np.array([p for row in self.grid_dT.grid for p in row if p is not None])
 
-        # Plot t0_grid intersections
-        axes[0].imshow(self.grid_T0.image, cmap='gray')  # Display reference image
+        axes[0].imshow(self.grid_T0.image, cmap='gray')  
         if t0_points.size > 0:
-            axes[0].scatter(t0_points[:, 0], t0_points[:, 1], color='blue', marker='o', label='t0 Grid Points')
+            axes[0].scatter(
+                t0_points[:, 0], t0_points[:, 1], color='blue', 
+                marker='o', label='t0 Grid Points'
+                )
         axes[0].set_title("t0 Grid")
         axes[0].set_xlabel("X")
         axes[0].set_ylabel("Y")
         axes[0].grid(False)
 
-        # Plot dt_grid intersections
         axes[1].imshow(self.grid_dT.image, cmap='gray')  # Display reference image
         if dt_points.size > 0:
-            axes[1].scatter(dt_points[:, 0], dt_points[:, 1], color='red', marker='x', label='dt Grid Points')
+            axes[1].scatter(
+                dt_points[:, 0], dt_points[:, 1], color='red', 
+                marker='x', label='dt Grid Points'
+                )
         axes[1].set_title("dt Grid")
         axes[1].set_xlabel("X")
-        axes[1].set_ylabel("Y")
         axes[1].grid(False)
 
         plt.tight_layout()
         plt.show()
+        return 
 
 
-    def plot_fields(self, dt=1):
-        """
-        Plots velocity field, displacement magnitude, and vorticity field on the same figure.
-
-        :param dt: Time step factor (default=1)
-        """
+    def plot_fields(self, dt:float = 1.0) -> None:
         if not self.solve_bool:
             raise ValueError("Call solve() before plotting fields.")
 
@@ -213,9 +211,14 @@ class HoughTM:
         unit_vx = np.divide(vx, vel_mag, where=vel_mag != 0, out=np.zeros_like(vx))
         unit_vy = np.divide(vy, vel_mag, where=vel_mag != 0, out=np.zeros_like(vy))
 
-        valid_mask = np.isfinite(x) & np.isfinite(y) & np.isfinite(dx) & np.isfinite(dy) & np.isfinite(vx) & np.isfinite(vy) & np.isfinite(vort)
-        valid_count = np.sum(valid_mask)
+        valid_mask = (
+            np.isfinite(x) & np.isfinite(y) & 
+            np.isfinite(dx) & np.isfinite(dy) & 
+            np.isfinite(vx) & np.isfinite(vy) & 
+            np.isfinite(vort)
+            )
         
+        valid_count = np.sum(valid_mask)
         if valid_count == 0:
             raise ValueError("All data points are invalid (NaN or Inf). Check the input data.")
 
@@ -250,3 +253,4 @@ class HoughTM:
 
         plt.tight_layout()
         plt.show()
+        return 

@@ -350,7 +350,6 @@ cdef class ParameterOptimizer:
 
             if cur_rad[0] > 1e-9 and cur_rad[1] > 1e-9:
                 cur_param = self.parametric_X.get_params_ptr()
-                print("before", (cur_param[0], cur_param[1]))
                 
                 x_vals = self.linspace(
                     cur_param[0] - cur_rad[0],

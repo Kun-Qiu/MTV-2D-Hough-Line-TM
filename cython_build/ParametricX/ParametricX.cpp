@@ -2055,6 +2055,7 @@ struct __pyx_memoryviewslice_obj {
 struct __pyx_vtabstruct_11ParametricX_ParametricX {
   void (*validate_inputs)(struct __pyx_obj_11ParametricX_ParametricX *);
   void (*parametric_template)(struct __pyx_obj_11ParametricX_ParametricX *, double *, __Pyx_memviewslice, int *, int *);
+  double (*bilinear_interpolate)(struct __pyx_obj_11ParametricX_ParametricX *, double, double);
   void (*_correlate)(struct __pyx_obj_11ParametricX_ParametricX *, double *, double *);
   double *(*get_params_ptr)(struct __pyx_obj_11ParametricX_ParametricX *);
   PyObject *(*correlate)(struct __pyx_obj_11ParametricX_ParametricX *, PyArrayObject *, int __pyx_skip_dispatch);
@@ -3205,7 +3206,8 @@ static CYTHON_INLINE npy_intp *__pyx_f_5numpy_7ndarray_7strides_strides(PyArrayO
 static CYTHON_INLINE npy_intp __pyx_f_5numpy_7ndarray_4size_size(PyArrayObject *__pyx_v_self); /* proto*/
 static CYTHON_INLINE char *__pyx_f_5numpy_7ndarray_4data_data(PyArrayObject *__pyx_v_self); /* proto*/
 static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self); /* proto*/
-static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, __Pyx_memviewslice __pyx_v_template, int *__pyx_v_min_col, int *__pyx_v_min_row); /* proto*/
+static void __pyx_f_11ParametricX_11ParametricX_parametric_template(CYTHON_UNUSED struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, __Pyx_memviewslice __pyx_v_template, int *__pyx_v_min_col, int *__pyx_v_min_row); /* proto*/
+static double __pyx_f_11ParametricX_11ParametricX_bilinear_interpolate(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double __pyx_v_x, double __pyx_v_y); /* proto*/
 static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, double *__pyx_v_corr); /* proto*/
 static double *__pyx_f_11ParametricX_11ParametricX_get_params_ptr(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self); /* proto*/
 static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, int __pyx_skip_dispatch); /* proto*/
@@ -20502,7 +20504,7 @@ static int __pyx_pf_11ParametricX_11ParametricX___init__(struct __pyx_obj_11Para
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":30
+/* "ParametricX.pyx":29
  * 
  * 
  *     cdef void validate_inputs(self) except *:             # <<<<<<<<<<<<<<
@@ -20531,7 +20533,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("validate_inputs", 1);
 
-  /* "ParametricX.pyx":32
+  /* "ParametricX.pyx":31
  *     cdef void validate_inputs(self) except *:
  *         """Validate input parameters."""
  *         if len(self.center) != 2:             # <<<<<<<<<<<<<<
@@ -20542,27 +20544,27 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
   __Pyx_INCREF(__pyx_t_1);
   if (unlikely(__pyx_t_1 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 32, __pyx_L1_error)
+    __PYX_ERR(0, 31, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 32, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 31, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 2);
   if (unlikely(__pyx_t_3)) {
 
-    /* "ParametricX.pyx":33
+    /* "ParametricX.pyx":32
  *         """Validate input parameters."""
  *         if len(self.center) != 2:
  *             raise ValueError("center must be a tuple of (x, y)")             # <<<<<<<<<<<<<<
  *         if len(self.shape) != 5:
  *             raise ValueError("shape needs 5 params: (ang1, ang2, rel_intens, lin_wid, leg_len)")
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 33, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__11, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 32, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 33, __pyx_L1_error)
+    __PYX_ERR(0, 32, __pyx_L1_error)
 
-    /* "ParametricX.pyx":32
+    /* "ParametricX.pyx":31
  *     cdef void validate_inputs(self) except *:
  *         """Validate input parameters."""
  *         if len(self.center) != 2:             # <<<<<<<<<<<<<<
@@ -20571,7 +20573,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":34
+  /* "ParametricX.pyx":33
  *         if len(self.center) != 2:
  *             raise ValueError("center must be a tuple of (x, y)")
  *         if len(self.shape) != 5:             # <<<<<<<<<<<<<<
@@ -20582,27 +20584,27 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
   __Pyx_INCREF(__pyx_t_1);
   if (unlikely(__pyx_t_1 == Py_None)) {
     PyErr_SetString(PyExc_TypeError, "object of type 'NoneType' has no len()");
-    __PYX_ERR(0, 34, __pyx_L1_error)
+    __PYX_ERR(0, 33, __pyx_L1_error)
   }
-  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 34, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyTuple_GET_SIZE(__pyx_t_1); if (unlikely(__pyx_t_2 == ((Py_ssize_t)-1))) __PYX_ERR(0, 33, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (__pyx_t_2 != 5);
   if (unlikely(__pyx_t_3)) {
 
-    /* "ParametricX.pyx":35
+    /* "ParametricX.pyx":34
  *             raise ValueError("center must be a tuple of (x, y)")
  *         if len(self.shape) != 5:
  *             raise ValueError("shape needs 5 params: (ang1, ang2, rel_intens, lin_wid, leg_len)")             # <<<<<<<<<<<<<<
  * 
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 35, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__12, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 34, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 35, __pyx_L1_error)
+    __PYX_ERR(0, 34, __pyx_L1_error)
 
-    /* "ParametricX.pyx":34
+    /* "ParametricX.pyx":33
  *         if len(self.center) != 2:
  *             raise ValueError("center must be a tuple of (x, y)")
  *         if len(self.shape) != 5:             # <<<<<<<<<<<<<<
@@ -20611,7 +20613,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":37
+  /* "ParametricX.pyx":36
  *             raise ValueError("shape needs 5 params: (ang1, ang2, rel_intens, lin_wid, leg_len)")
  * 
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape             # <<<<<<<<<<<<<<
@@ -20626,7 +20628,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
     if (unlikely(size != 5)) {
       if (size > 5) __Pyx_RaiseTooManyValuesError(5);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 37, __pyx_L1_error)
+      __PYX_ERR(0, 36, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     __pyx_t_4 = PyTuple_GET_ITEM(sequence, 0); 
@@ -20644,7 +20646,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
       Py_ssize_t i;
       PyObject** temps[5] = {&__pyx_t_4,&__pyx_t_5,&__pyx_t_6,&__pyx_t_7,&__pyx_t_8};
       for (i=0; i < 5; i++) {
-        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 37, __pyx_L1_error)
+        PyObject* item = PySequence_ITEM(sequence, i); if (unlikely(!item)) __PYX_ERR(0, 36, __pyx_L1_error)
         __Pyx_GOTREF(item);
         *(temps[i]) = item;
       }
@@ -20652,7 +20654,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 37, __pyx_L1_error)
+    __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 36, __pyx_L1_error)
   }
   __pyx_v_ang1 = __pyx_t_4;
   __pyx_t_4 = 0;
@@ -20665,55 +20667,55 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
   __pyx_v_leg_len = __pyx_t_8;
   __pyx_t_8 = 0;
 
-  /* "ParametricX.pyx":38
+  /* "ParametricX.pyx":37
  * 
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):             # <<<<<<<<<<<<<<
  *             raise ValueError("ang1 must be between -2 and 2")
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_pi); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_pi); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_MultiplyCObj(__pyx_int_neg_2, __pyx_t_8, -2L, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_MultiplyCObj(__pyx_int_neg_2, __pyx_t_8, -2L, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = PyObject_RichCompare(__pyx_t_1, __pyx_v_ang1, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_8 = PyObject_RichCompare(__pyx_t_1, __pyx_v_ang1, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 37, __pyx_L1_error)
   if (__Pyx_PyObject_IsTrue(__pyx_t_8)) {
     __Pyx_DECREF(__pyx_t_8);
-    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 38, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_pi); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 38, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_pi); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_t_6, 2, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 38, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_t_6, 2, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_8 = PyObject_RichCompare(__pyx_v_ang1, __pyx_t_7, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 38, __pyx_L1_error)
+    __pyx_t_8 = PyObject_RichCompare(__pyx_v_ang1, __pyx_t_7, Py_LE); __Pyx_XGOTREF(__pyx_t_8); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 37, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 38, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_8); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 37, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
   __pyx_t_9 = (!__pyx_t_3);
   if (unlikely(__pyx_t_9)) {
 
-    /* "ParametricX.pyx":39
+    /* "ParametricX.pyx":38
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):
  *             raise ValueError("ang1 must be between -2 and 2")             # <<<<<<<<<<<<<<
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")
  */
-    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 39, __pyx_L1_error)
+    __pyx_t_8 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__13, NULL); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 38, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_8);
     __Pyx_Raise(__pyx_t_8, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-    __PYX_ERR(0, 39, __pyx_L1_error)
+    __PYX_ERR(0, 38, __pyx_L1_error)
 
-    /* "ParametricX.pyx":38
+    /* "ParametricX.pyx":37
  * 
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):             # <<<<<<<<<<<<<<
@@ -20722,55 +20724,55 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":40
+  /* "ParametricX.pyx":39
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):
  *             raise ValueError("ang1 must be between -2 and 2")
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):             # <<<<<<<<<<<<<<
  *             raise ValueError("ang2 must be between -2 and 2")
  *         if not (0 <= rel_intens <= 1):
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_8, __pyx_n_s_np); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_pi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_8, __pyx_n_s_pi); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_8 = __Pyx_PyInt_MultiplyCObj(__pyx_int_neg_2, __pyx_t_1, -2L, 0, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_8 = __Pyx_PyInt_MultiplyCObj(__pyx_int_neg_2, __pyx_t_1, -2L, 0, 0); if (unlikely(!__pyx_t_8)) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_8);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyObject_RichCompare(__pyx_t_8, __pyx_v_ang2, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_t_8, __pyx_v_ang2, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
   if (__Pyx_PyObject_IsTrue(__pyx_t_1)) {
     __Pyx_DECREF(__pyx_t_1);
-    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __Pyx_GetModuleGlobalName(__pyx_t_7, __pyx_n_s_np); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 39, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
-    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_pi); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_7, __pyx_n_s_pi); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 39, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_6);
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
-    __pyx_t_7 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_t_6, 2, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_7 = __Pyx_PyInt_MultiplyCObj(__pyx_int_2, __pyx_t_6, 2, 0, 0); if (unlikely(!__pyx_t_7)) __PYX_ERR(0, 39, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_7);
     __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-    __pyx_t_1 = PyObject_RichCompare(__pyx_v_ang2, __pyx_t_7, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_v_ang2, __pyx_t_7, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 39, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   }
   __Pyx_DECREF(__pyx_t_8); __pyx_t_8 = 0;
-  __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_9 < 0))) __PYX_ERR(0, 40, __pyx_L1_error)
+  __pyx_t_9 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_9 < 0))) __PYX_ERR(0, 39, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_3 = (!__pyx_t_9);
   if (unlikely(__pyx_t_3)) {
 
-    /* "ParametricX.pyx":41
+    /* "ParametricX.pyx":40
  *             raise ValueError("ang1 must be between -2 and 2")
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")             # <<<<<<<<<<<<<<
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__14, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 40, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 41, __pyx_L1_error)
+    __PYX_ERR(0, 40, __pyx_L1_error)
 
-    /* "ParametricX.pyx":40
+    /* "ParametricX.pyx":39
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):
  *             raise ValueError("ang1 must be between -2 and 2")
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):             # <<<<<<<<<<<<<<
@@ -20779,37 +20781,37 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":42
+  /* "ParametricX.pyx":41
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")
  *         if not (0 <= rel_intens <= 1):             # <<<<<<<<<<<<<<
  *             raise ValueError("rel_intens must be in [0, 1]")
  *         if lin_wid <= 0 or leg_len <= 0:
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_int_0, __pyx_v_rel_intens, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_int_0, __pyx_v_rel_intens, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   if (__Pyx_PyObject_IsTrue(__pyx_t_1)) {
     __Pyx_DECREF(__pyx_t_1);
-    __pyx_t_1 = PyObject_RichCompare(__pyx_v_rel_intens, __pyx_int_1, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
+    __pyx_t_1 = PyObject_RichCompare(__pyx_v_rel_intens, __pyx_int_1, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 41, __pyx_L1_error)
   }
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 42, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 41, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_9 = (!__pyx_t_3);
   if (unlikely(__pyx_t_9)) {
 
-    /* "ParametricX.pyx":43
+    /* "ParametricX.pyx":42
  *             raise ValueError("ang2 must be between -2 and 2")
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")             # <<<<<<<<<<<<<<
  *         if lin_wid <= 0 or leg_len <= 0:
  *             raise ValueError("lin_wid and leg_len must be positive")
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__15, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 42, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 43, __pyx_L1_error)
+    __PYX_ERR(0, 42, __pyx_L1_error)
 
-    /* "ParametricX.pyx":42
+    /* "ParametricX.pyx":41
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")
  *         if not (0 <= rel_intens <= 1):             # <<<<<<<<<<<<<<
@@ -20818,42 +20820,42 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":44
+  /* "ParametricX.pyx":43
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")
  *         if lin_wid <= 0 or leg_len <= 0:             # <<<<<<<<<<<<<<
  *             raise ValueError("lin_wid and leg_len must be positive")
  * 
  */
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_lin_wid, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_lin_wid, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   if (!__pyx_t_3) {
   } else {
     __pyx_t_9 = __pyx_t_3;
     goto __pyx_L9_bool_binop_done;
   }
-  __pyx_t_1 = PyObject_RichCompare(__pyx_v_leg_len, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
-  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 44, __pyx_L1_error)
+  __pyx_t_1 = PyObject_RichCompare(__pyx_v_leg_len, __pyx_int_0, Py_LE); __Pyx_XGOTREF(__pyx_t_1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_IsTrue(__pyx_t_1); if (unlikely((__pyx_t_3 < 0))) __PYX_ERR(0, 43, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __pyx_t_9 = __pyx_t_3;
   __pyx_L9_bool_binop_done:;
   if (unlikely(__pyx_t_9)) {
 
-    /* "ParametricX.pyx":45
+    /* "ParametricX.pyx":44
  *             raise ValueError("rel_intens must be in [0, 1]")
  *         if lin_wid <= 0 or leg_len <= 0:
  *             raise ValueError("lin_wid and leg_len must be positive")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 45, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_PyObject_Call(__pyx_builtin_ValueError, __pyx_tuple__16, NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 44, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_Raise(__pyx_t_1, 0, 0, 0);
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-    __PYX_ERR(0, 45, __pyx_L1_error)
+    __PYX_ERR(0, 44, __pyx_L1_error)
 
-    /* "ParametricX.pyx":44
+    /* "ParametricX.pyx":43
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")
  *         if lin_wid <= 0 or leg_len <= 0:             # <<<<<<<<<<<<<<
@@ -20862,7 +20864,7 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
  */
   }
 
-  /* "ParametricX.pyx":30
+  /* "ParametricX.pyx":29
  * 
  * 
  *     cdef void validate_inputs(self) except *:             # <<<<<<<<<<<<<<
@@ -20889,33 +20891,31 @@ static void __pyx_f_11ParametricX_11ParametricX_validate_inputs(struct __pyx_obj
   __Pyx_RefNannyFinishContext();
 }
 
-/* "ParametricX.pyx":48
+/* "ParametricX.pyx":47
  * 
  * 
  *     cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil:             # <<<<<<<<<<<<<<
  *         cdef:
- *             double* p = params
+ *             double center_x = params[0], center_y = params[1],
  */
 
-static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, __Pyx_memviewslice __pyx_v_template, int *__pyx_v_min_col, int *__pyx_v_min_row) {
-  double *__pyx_v_p;
-  double __pyx_v_x;
-  double __pyx_v_y;
+static void __pyx_f_11ParametricX_11ParametricX_parametric_template(CYTHON_UNUSED struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, __Pyx_memviewslice __pyx_v_template, int *__pyx_v_min_col, int *__pyx_v_min_row) {
+  double __pyx_v_center_x;
+  double __pyx_v_center_y;
   double __pyx_v_ang1;
   double __pyx_v_ang2;
   double __pyx_v_rel_intens;
   double __pyx_v_lin_wid;
   CYTHON_UNUSED double __pyx_v_leg_len;
   int __pyx_v_size;
-  int __pyx_v_image_width;
-  int __pyx_v_image_height;
-  int __pyx_v_half_len;
+  double __pyx_v_half_size;
   double __pyx_v_c1;
   double __pyx_v_s1;
   double __pyx_v_c2;
   double __pyx_v_s2;
   double __pyx_v_sigma;
   double __pyx_v_sigma_sq;
+  double __pyx_v_inv_2_sigma_sq;
   double __pyx_v_xx;
   double __pyx_v_yy;
   double __pyx_v_rot1;
@@ -20931,9 +20931,8 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
   int __pyx_t_5;
   int __pyx_t_6;
   Py_ssize_t __pyx_t_7;
-  double __pyx_t_8;
+  Py_ssize_t __pyx_t_8;
   Py_ssize_t __pyx_t_9;
-  Py_ssize_t __pyx_t_10;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -20941,71 +20940,58 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
   PyGILState_STATE __pyx_gilstate_save;
   #endif
 
-  /* "ParametricX.pyx":50
+  /* "ParametricX.pyx":49
  *     cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil:
  *         cdef:
- *             double* p = params             # <<<<<<<<<<<<<<
- *             double x = p[0], y = p[1], ang1 = p[2], ang2 = p[3]
- *             double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]
+ *             double center_x = params[0], center_y = params[1],             # <<<<<<<<<<<<<<
+ *             double ang1 = params[2], ang2 = params[3]
+ *             double rel_intens = params[4], lin_wid = params[5], leg_len = params[6]
  */
-  __pyx_v_p = __pyx_v_params;
+  __pyx_v_center_x = (__pyx_v_params[0]);
+  __pyx_v_center_y = (__pyx_v_params[1]);
+
+  /* "ParametricX.pyx":50
+ *         cdef:
+ *             double center_x = params[0], center_y = params[1],
+ *             double ang1 = params[2], ang2 = params[3]             # <<<<<<<<<<<<<<
+ *             double rel_intens = params[4], lin_wid = params[5], leg_len = params[6]
+ * 
+ */
+  __pyx_v_ang1 = (__pyx_v_params[2]);
+  __pyx_v_ang2 = (__pyx_v_params[3]);
 
   /* "ParametricX.pyx":51
- *         cdef:
- *             double* p = params
- *             double x = p[0], y = p[1], ang1 = p[2], ang2 = p[3]             # <<<<<<<<<<<<<<
- *             double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]
+ *             double center_x = params[0], center_y = params[1],
+ *             double ang1 = params[2], ang2 = params[3]
+ *             double rel_intens = params[4], lin_wid = params[5], leg_len = params[6]             # <<<<<<<<<<<<<<
+ * 
  *             int size = template.shape[0]
  */
-  __pyx_v_x = (__pyx_v_p[0]);
-  __pyx_v_y = (__pyx_v_p[1]);
-  __pyx_v_ang1 = (__pyx_v_p[2]);
-  __pyx_v_ang2 = (__pyx_v_p[3]);
-
-  /* "ParametricX.pyx":52
- *             double* p = params
- *             double x = p[0], y = p[1], ang1 = p[2], ang2 = p[3]
- *             double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]             # <<<<<<<<<<<<<<
- *             int size = template.shape[0]
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
- */
-  __pyx_v_rel_intens = (__pyx_v_p[4]);
-  __pyx_v_lin_wid = (__pyx_v_p[5]);
-  __pyx_v_leg_len = (__pyx_v_p[6]);
+  __pyx_v_rel_intens = (__pyx_v_params[4]);
+  __pyx_v_lin_wid = (__pyx_v_params[5]);
+  __pyx_v_leg_len = (__pyx_v_params[6]);
 
   /* "ParametricX.pyx":53
- *             double x = p[0], y = p[1], ang1 = p[2], ang2 = p[3]
- *             double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]
+ *             double rel_intens = params[4], lin_wid = params[5], leg_len = params[6]
+ * 
  *             int size = template.shape[0]             # <<<<<<<<<<<<<<
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
- *             int half_len = size // 2
+ *             double half_size = (size - 1) / 2
+ *             double c1 = cos(ang1), s1 = sin(ang1)
  */
   __pyx_v_size = (__pyx_v_template.shape[0]);
 
   /* "ParametricX.pyx":54
- *             double rel_intens = p[4], lin_wid = p[5], leg_len = p[6]
+ * 
  *             int size = template.shape[0]
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]             # <<<<<<<<<<<<<<
- *             int half_len = size // 2
- *             double c1 = cos(ang1), s1 = sin(ang1)
- */
-  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 54, __pyx_L1_error)}
-  __pyx_v_image_width = (__pyx_v_self->image_view.shape[1]);
-  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 54, __pyx_L1_error)}
-  __pyx_v_image_height = (__pyx_v_self->image_view.shape[0]);
-
-  /* "ParametricX.pyx":55
- *             int size = template.shape[0]
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
- *             int half_len = size // 2             # <<<<<<<<<<<<<<
+ *             double half_size = (size - 1) / 2             # <<<<<<<<<<<<<<
  *             double c1 = cos(ang1), s1 = sin(ang1)
  *             double c2 = cos(ang2), s2 = sin(ang2)
  */
-  __pyx_v_half_len = __Pyx_div_long(__pyx_v_size, 2);
+  __pyx_v_half_size = (((double)(__pyx_v_size - 1)) / 2.0);
 
-  /* "ParametricX.pyx":56
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]
- *             int half_len = size // 2
+  /* "ParametricX.pyx":55
+ *             int size = template.shape[0]
+ *             double half_size = (size - 1) / 2
  *             double c1 = cos(ang1), s1 = sin(ang1)             # <<<<<<<<<<<<<<
  *             double c2 = cos(ang2), s2 = sin(ang2)
  *             double sigma = lin_wid / (2 * sqrt(2 * log(2)))
@@ -21013,8 +20999,8 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
   __pyx_v_c1 = cos(__pyx_v_ang1);
   __pyx_v_s1 = sin(__pyx_v_ang1);
 
-  /* "ParametricX.pyx":57
- *             int half_len = size // 2
+  /* "ParametricX.pyx":56
+ *             double half_size = (size - 1) / 2
  *             double c1 = cos(ang1), s1 = sin(ang1)
  *             double c2 = cos(ang2), s2 = sin(ang2)             # <<<<<<<<<<<<<<
  *             double sigma = lin_wid / (2 * sqrt(2 * log(2)))
@@ -21023,12 +21009,12 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
   __pyx_v_c2 = cos(__pyx_v_ang2);
   __pyx_v_s2 = sin(__pyx_v_ang2);
 
-  /* "ParametricX.pyx":58
+  /* "ParametricX.pyx":57
  *             double c1 = cos(ang1), s1 = sin(ang1)
  *             double c2 = cos(ang2), s2 = sin(ang2)
  *             double sigma = lin_wid / (2 * sqrt(2 * log(2)))             # <<<<<<<<<<<<<<
  *             double sigma_sq = sigma * sigma
- *             double xx, yy, rot1, rot2, leg1, leg2
+ *             double inv_2_sigma_sq = 1.0 / (2 * sigma_sq)
  */
   __pyx_t_1 = (2.0 * sqrt((2.0 * log(2.0))));
   if (unlikely(__pyx_t_1 == 0)) {
@@ -21039,25 +21025,45 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
     #ifdef WITH_THREAD
     __Pyx_PyGILState_Release(__pyx_gilstate_save);
     #endif
-    __PYX_ERR(0, 58, __pyx_L1_error)
+    __PYX_ERR(0, 57, __pyx_L1_error)
   }
   __pyx_v_sigma = (__pyx_v_lin_wid / __pyx_t_1);
 
-  /* "ParametricX.pyx":59
+  /* "ParametricX.pyx":58
  *             double c2 = cos(ang2), s2 = sin(ang2)
  *             double sigma = lin_wid / (2 * sqrt(2 * log(2)))
  *             double sigma_sq = sigma * sigma             # <<<<<<<<<<<<<<
+ *             double inv_2_sigma_sq = 1.0 / (2 * sigma_sq)
+ *             double xx, yy, rot1, rot2, leg1, leg2
+ */
+  __pyx_v_sigma_sq = (__pyx_v_sigma * __pyx_v_sigma);
+
+  /* "ParametricX.pyx":59
+ *             double sigma = lin_wid / (2 * sqrt(2 * log(2)))
+ *             double sigma_sq = sigma * sigma
+ *             double inv_2_sigma_sq = 1.0 / (2 * sigma_sq)             # <<<<<<<<<<<<<<
  *             double xx, yy, rot1, rot2, leg1, leg2
  *             Py_ssize_t i, j
  */
-  __pyx_v_sigma_sq = (__pyx_v_sigma * __pyx_v_sigma);
+  __pyx_t_1 = (2.0 * __pyx_v_sigma_sq);
+  if (unlikely(__pyx_t_1 == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 59, __pyx_L1_error)
+  }
+  __pyx_v_inv_2_sigma_sq = (1.0 / __pyx_t_1);
 
   /* "ParametricX.pyx":63
  *             Py_ssize_t i, j
  * 
  *         for i in range(size):             # <<<<<<<<<<<<<<
  *             for j in range(size):
- *                 xx = j - half_len
+ *                 xx = j - half_size
  */
   __pyx_t_2 = __pyx_v_size;
   __pyx_t_3 = __pyx_t_2;
@@ -21068,8 +21074,8 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
  * 
  *         for i in range(size):
  *             for j in range(size):             # <<<<<<<<<<<<<<
- *                 xx = j - half_len
- *                 yy = i - half_len
+ *                 xx = j - half_size
+ *                 yy = i - half_size
  */
     __pyx_t_5 = __pyx_v_size;
     __pyx_t_6 = __pyx_t_5;
@@ -21079,118 +21085,94 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
       /* "ParametricX.pyx":65
  *         for i in range(size):
  *             for j in range(size):
- *                 xx = j - half_len             # <<<<<<<<<<<<<<
- *                 yy = i - half_len
- *                 rot1 = c1 * xx + s1 * yy
+ *                 xx = j - half_size             # <<<<<<<<<<<<<<
+ *                 yy = i - half_size
+ * 
  */
-      __pyx_v_xx = (__pyx_v_j - __pyx_v_half_len);
+      __pyx_v_xx = (__pyx_v_j - __pyx_v_half_size);
 
       /* "ParametricX.pyx":66
  *             for j in range(size):
- *                 xx = j - half_len
- *                 yy = i - half_len             # <<<<<<<<<<<<<<
+ *                 xx = j - half_size
+ *                 yy = i - half_size             # <<<<<<<<<<<<<<
+ * 
  *                 rot1 = c1 * xx + s1 * yy
- *                 rot2 = c2 * xx - s2 * yy
  */
-      __pyx_v_yy = (__pyx_v_i - __pyx_v_half_len);
+      __pyx_v_yy = (__pyx_v_i - __pyx_v_half_size);
 
-      /* "ParametricX.pyx":67
- *                 xx = j - half_len
- *                 yy = i - half_len
+      /* "ParametricX.pyx":68
+ *                 yy = i - half_size
+ * 
  *                 rot1 = c1 * xx + s1 * yy             # <<<<<<<<<<<<<<
  *                 rot2 = c2 * xx - s2 * yy
- *                 leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))
+ * 
  */
       __pyx_v_rot1 = ((__pyx_v_c1 * __pyx_v_xx) + (__pyx_v_s1 * __pyx_v_yy));
 
-      /* "ParametricX.pyx":68
- *                 yy = i - half_len
+      /* "ParametricX.pyx":69
+ * 
  *                 rot1 = c1 * xx + s1 * yy
  *                 rot2 = c2 * xx - s2 * yy             # <<<<<<<<<<<<<<
- *                 leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))
- *                 leg2 = exp(-(rot2 * rot2) / (2 * sigma_sq))
+ * 
+ *                 leg1 = exp(-rot1 * rot1 * inv_2_sigma_sq)
  */
       __pyx_v_rot2 = ((__pyx_v_c2 * __pyx_v_xx) - (__pyx_v_s2 * __pyx_v_yy));
 
-      /* "ParametricX.pyx":69
- *                 rot1 = c1 * xx + s1 * yy
+      /* "ParametricX.pyx":71
  *                 rot2 = c2 * xx - s2 * yy
- *                 leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))             # <<<<<<<<<<<<<<
- *                 leg2 = exp(-(rot2 * rot2) / (2 * sigma_sq))
+ * 
+ *                 leg1 = exp(-rot1 * rot1 * inv_2_sigma_sq)             # <<<<<<<<<<<<<<
+ *                 leg2 = exp(-rot2 * rot2 * inv_2_sigma_sq)
  *                 template[i,j] = rel_intens * leg1 + (1 - rel_intens) * leg2
  */
-      __pyx_t_1 = (-(__pyx_v_rot1 * __pyx_v_rot1));
-      __pyx_t_8 = (2.0 * __pyx_v_sigma_sq);
-      if (unlikely(__pyx_t_8 == 0)) {
-        #ifdef WITH_THREAD
-        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-        #endif
-        PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-        #ifdef WITH_THREAD
-        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-        #endif
-        __PYX_ERR(0, 69, __pyx_L1_error)
-      }
-      __pyx_v_leg1 = exp((__pyx_t_1 / __pyx_t_8));
+      __pyx_v_leg1 = exp((((-__pyx_v_rot1) * __pyx_v_rot1) * __pyx_v_inv_2_sigma_sq));
 
-      /* "ParametricX.pyx":70
- *                 rot2 = c2 * xx - s2 * yy
- *                 leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))
- *                 leg2 = exp(-(rot2 * rot2) / (2 * sigma_sq))             # <<<<<<<<<<<<<<
+      /* "ParametricX.pyx":72
+ * 
+ *                 leg1 = exp(-rot1 * rot1 * inv_2_sigma_sq)
+ *                 leg2 = exp(-rot2 * rot2 * inv_2_sigma_sq)             # <<<<<<<<<<<<<<
  *                 template[i,j] = rel_intens * leg1 + (1 - rel_intens) * leg2
  * 
  */
-      __pyx_t_8 = (-(__pyx_v_rot2 * __pyx_v_rot2));
-      __pyx_t_1 = (2.0 * __pyx_v_sigma_sq);
-      if (unlikely(__pyx_t_1 == 0)) {
-        #ifdef WITH_THREAD
-        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-        #endif
-        PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-        #ifdef WITH_THREAD
-        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-        #endif
-        __PYX_ERR(0, 70, __pyx_L1_error)
-      }
-      __pyx_v_leg2 = exp((__pyx_t_8 / __pyx_t_1));
+      __pyx_v_leg2 = exp((((-__pyx_v_rot2) * __pyx_v_rot2) * __pyx_v_inv_2_sigma_sq));
 
-      /* "ParametricX.pyx":71
- *                 leg1 = exp(-(rot1 * rot1) / (2 * sigma_sq))
- *                 leg2 = exp(-(rot2 * rot2) / (2 * sigma_sq))
+      /* "ParametricX.pyx":73
+ *                 leg1 = exp(-rot1 * rot1 * inv_2_sigma_sq)
+ *                 leg2 = exp(-rot2 * rot2 * inv_2_sigma_sq)
  *                 template[i,j] = rel_intens * leg1 + (1 - rel_intens) * leg2             # <<<<<<<<<<<<<<
  * 
- *         min_col[0] = <int>fmax(fmin(x - half_len, image_width), 0)
+ *         min_col[0] = <int>(center_x - half_size)
  */
-      __pyx_t_9 = __pyx_v_i;
-      __pyx_t_10 = __pyx_v_j;
-      *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_template.data + __pyx_t_9 * __pyx_v_template.strides[0]) )) + __pyx_t_10)) )) = ((__pyx_v_rel_intens * __pyx_v_leg1) + ((1.0 - __pyx_v_rel_intens) * __pyx_v_leg2));
+      __pyx_t_8 = __pyx_v_i;
+      __pyx_t_9 = __pyx_v_j;
+      *((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_template.data + __pyx_t_8 * __pyx_v_template.strides[0]) )) + __pyx_t_9)) )) = ((__pyx_v_rel_intens * __pyx_v_leg1) + ((1.0 - __pyx_v_rel_intens) * __pyx_v_leg2));
     }
   }
 
-  /* "ParametricX.pyx":73
+  /* "ParametricX.pyx":75
  *                 template[i,j] = rel_intens * leg1 + (1 - rel_intens) * leg2
  * 
- *         min_col[0] = <int>fmax(fmin(x - half_len, image_width), 0)             # <<<<<<<<<<<<<<
- *         min_row[0] = <int>fmax(fmin(y - half_len, image_height), 0)
+ *         min_col[0] = <int>(center_x - half_size)             # <<<<<<<<<<<<<<
+ *         min_row[0] = <int>(center_y - half_size)
  * 
  */
-  (__pyx_v_min_col[0]) = ((int)fmax(fmin((__pyx_v_x - __pyx_v_half_len), __pyx_v_image_width), 0.0));
+  (__pyx_v_min_col[0]) = ((int)(__pyx_v_center_x - __pyx_v_half_size));
 
-  /* "ParametricX.pyx":74
+  /* "ParametricX.pyx":76
  * 
- *         min_col[0] = <int>fmax(fmin(x - half_len, image_width), 0)
- *         min_row[0] = <int>fmax(fmin(y - half_len, image_height), 0)             # <<<<<<<<<<<<<<
+ *         min_col[0] = <int>(center_x - half_size)
+ *         min_row[0] = <int>(center_y - half_size)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  (__pyx_v_min_row[0]) = ((int)fmax(fmin((__pyx_v_y - __pyx_v_half_len), __pyx_v_image_height), 0.0));
+  (__pyx_v_min_row[0]) = ((int)(__pyx_v_center_y - __pyx_v_half_size));
 
-  /* "ParametricX.pyx":48
+  /* "ParametricX.pyx":47
  * 
  * 
  *     cdef void parametric_template(self, double* params, double[:, ::1] template, int* min_col, int* min_row) nogil:             # <<<<<<<<<<<<<<
  *         cdef:
- *             double* p = params
+ *             double center_x = params[0], center_y = params[1],
  */
 
   /* function exit code */
@@ -21206,39 +21188,221 @@ static void __pyx_f_11ParametricX_11ParametricX_parametric_template(struct __pyx
   __pyx_L0:;
 }
 
-/* "ParametricX.pyx":77
+/* "ParametricX.pyx":79
+ * 
+ * 
+ *     cdef double bilinear_interpolate(self, double x, double y) nogil:             # <<<<<<<<<<<<<<
+ *         cdef:
+ *             double[:, ::1] image = self.image_view
+ */
+
+static double __pyx_f_11ParametricX_11ParametricX_bilinear_interpolate(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double __pyx_v_x, double __pyx_v_y) {
+  __Pyx_memviewslice __pyx_v_image = { 0, 0, { 0 }, { 0 }, { 0 } };
+  int __pyx_v_width;
+  int __pyx_v_height;
+  int __pyx_v_x0;
+  int __pyx_v_y0;
+  int __pyx_v_x1;
+  int __pyx_v_y1;
+  double __pyx_v_dx;
+  double __pyx_v_dy;
+  double __pyx_v_val00;
+  double __pyx_v_val01;
+  double __pyx_v_val10;
+  double __pyx_v_val11;
+  double __pyx_r;
+  __Pyx_memviewslice __pyx_t_1 = { 0, 0, { 0 }, { 0 }, { 0 } };
+  Py_ssize_t __pyx_t_2;
+  Py_ssize_t __pyx_t_3;
+  int __pyx_lineno = 0;
+  const char *__pyx_filename = NULL;
+  int __pyx_clineno = 0;
+  #ifdef WITH_THREAD
+  PyGILState_STATE __pyx_gilstate_save;
+  #endif
+
+  /* "ParametricX.pyx":81
+ *     cdef double bilinear_interpolate(self, double x, double y) nogil:
+ *         cdef:
+ *             double[:, ::1] image = self.image_view             # <<<<<<<<<<<<<<
+ *             int width = image.shape[1], height = image.shape[0]
+ *             int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))
+ */
+  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 81, __pyx_L1_error)}
+  __pyx_t_1 = __pyx_v_self->image_view;
+  __PYX_INC_MEMVIEW(&__pyx_t_1, 0);
+  __pyx_v_image = __pyx_t_1;
+  __pyx_t_1.memview = NULL;
+  __pyx_t_1.data = NULL;
+
+  /* "ParametricX.pyx":82
+ *         cdef:
+ *             double[:, ::1] image = self.image_view
+ *             int width = image.shape[1], height = image.shape[0]             # <<<<<<<<<<<<<<
+ *             int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))
+ *             int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))
+ */
+  __pyx_v_width = (__pyx_v_image.shape[1]);
+  __pyx_v_height = (__pyx_v_image.shape[0]);
+
+  /* "ParametricX.pyx":83
+ *             double[:, ::1] image = self.image_view
+ *             int width = image.shape[1], height = image.shape[0]
+ *             int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))             # <<<<<<<<<<<<<<
+ *             int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))
+ *             int x1 = x0 + 1
+ */
+  __pyx_v_x0 = ((int)fmax(0.0, fmin((__pyx_v_width - 2), ((int)floor(__pyx_v_x)))));
+
+  /* "ParametricX.pyx":84
+ *             int width = image.shape[1], height = image.shape[0]
+ *             int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))
+ *             int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))             # <<<<<<<<<<<<<<
+ *             int x1 = x0 + 1
+ *             int y1 = y0 + 1
+ */
+  __pyx_v_y0 = ((int)fmax(0.0, fmin((__pyx_v_height - 2), ((int)floor(__pyx_v_y)))));
+
+  /* "ParametricX.pyx":85
+ *             int x0 = <int>fmax(0, fmin(width - 2, <int>floor(x)))
+ *             int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))
+ *             int x1 = x0 + 1             # <<<<<<<<<<<<<<
+ *             int y1 = y0 + 1
+ *             double dx = x - x0, dy = y - y0
+ */
+  __pyx_v_x1 = (__pyx_v_x0 + 1);
+
+  /* "ParametricX.pyx":86
+ *             int y0 = <int>fmax(0, fmin(height - 2, <int>floor(y)))
+ *             int x1 = x0 + 1
+ *             int y1 = y0 + 1             # <<<<<<<<<<<<<<
+ *             double dx = x - x0, dy = y - y0
+ *             double val00, val01, val10, val11
+ */
+  __pyx_v_y1 = (__pyx_v_y0 + 1);
+
+  /* "ParametricX.pyx":87
+ *             int x1 = x0 + 1
+ *             int y1 = y0 + 1
+ *             double dx = x - x0, dy = y - y0             # <<<<<<<<<<<<<<
+ *             double val00, val01, val10, val11
+ * 
+ */
+  __pyx_v_dx = (__pyx_v_x - __pyx_v_x0);
+  __pyx_v_dy = (__pyx_v_y - __pyx_v_y0);
+
+  /* "ParametricX.pyx":90
+ *             double val00, val01, val10, val11
+ * 
+ *         val00 = image[y0, x0]             # <<<<<<<<<<<<<<
+ *         val01 = image[y0, x1]
+ *         val10 = image[y1, x0]
+ */
+  __pyx_t_2 = __pyx_v_y0;
+  __pyx_t_3 = __pyx_v_x0;
+  __pyx_v_val00 = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_image.data + __pyx_t_2 * __pyx_v_image.strides[0]) )) + __pyx_t_3)) )));
+
+  /* "ParametricX.pyx":91
+ * 
+ *         val00 = image[y0, x0]
+ *         val01 = image[y0, x1]             # <<<<<<<<<<<<<<
+ *         val10 = image[y1, x0]
+ *         val11 = image[y1, x1]
+ */
+  __pyx_t_3 = __pyx_v_y0;
+  __pyx_t_2 = __pyx_v_x1;
+  __pyx_v_val01 = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_image.data + __pyx_t_3 * __pyx_v_image.strides[0]) )) + __pyx_t_2)) )));
+
+  /* "ParametricX.pyx":92
+ *         val00 = image[y0, x0]
+ *         val01 = image[y0, x1]
+ *         val10 = image[y1, x0]             # <<<<<<<<<<<<<<
+ *         val11 = image[y1, x1]
+ * 
+ */
+  __pyx_t_2 = __pyx_v_y1;
+  __pyx_t_3 = __pyx_v_x0;
+  __pyx_v_val10 = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_image.data + __pyx_t_2 * __pyx_v_image.strides[0]) )) + __pyx_t_3)) )));
+
+  /* "ParametricX.pyx":93
+ *         val01 = image[y0, x1]
+ *         val10 = image[y1, x0]
+ *         val11 = image[y1, x1]             # <<<<<<<<<<<<<<
+ * 
+ *         return (val00 * (1-dx) * (1-dy) +
+ */
+  __pyx_t_3 = __pyx_v_y1;
+  __pyx_t_2 = __pyx_v_x1;
+  __pyx_v_val11 = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_image.data + __pyx_t_3 * __pyx_v_image.strides[0]) )) + __pyx_t_2)) )));
+
+  /* "ParametricX.pyx":97
+ *         return (val00 * (1-dx) * (1-dy) +
+ *                 val01 * dx * (1-dy) +
+ *                 val10 * (1-dx) * dy +             # <<<<<<<<<<<<<<
+ *                 val11 * dx * dy)
+ * 
+ */
+  __pyx_r = (((((__pyx_v_val00 * (1.0 - __pyx_v_dx)) * (1.0 - __pyx_v_dy)) + ((__pyx_v_val01 * __pyx_v_dx) * (1.0 - __pyx_v_dy))) + ((__pyx_v_val10 * (1.0 - __pyx_v_dx)) * __pyx_v_dy)) + ((__pyx_v_val11 * __pyx_v_dx) * __pyx_v_dy));
+  goto __pyx_L0;
+
+  /* "ParametricX.pyx":79
+ * 
+ * 
+ *     cdef double bilinear_interpolate(self, double x, double y) nogil:             # <<<<<<<<<<<<<<
+ *         cdef:
+ *             double[:, ::1] image = self.image_view
+ */
+
+  /* function exit code */
+  __pyx_L1_error:;
+  #ifdef WITH_THREAD
+  __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+  #endif
+  __PYX_XCLEAR_MEMVIEW(&__pyx_t_1, 1);
+  __Pyx_AddTraceback("ParametricX.ParametricX.bilinear_interpolate", __pyx_clineno, __pyx_lineno, __pyx_filename);
+  __pyx_r = 0;
+  #ifdef WITH_THREAD
+  __Pyx_PyGILState_Release(__pyx_gilstate_save);
+  #endif
+  __pyx_L0:;
+  __PYX_XCLEAR_MEMVIEW(&__pyx_v_image, 0);
+  return __pyx_r;
+}
+
+/* "ParametricX.pyx":101
  * 
  * 
  *     cdef void _correlate(self, double* params, double* corr) nogil:             # <<<<<<<<<<<<<<
  *         cdef:
- *             double[:, ::1] template, img_patch
+ *             double[:, ::1] template
  */
 
 static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self, double *__pyx_v_params, double *__pyx_v_corr) {
   __Pyx_memviewslice __pyx_v_template = { 0, 0, { 0 }, { 0 }, { 0 } };
-  __Pyx_memviewslice __pyx_v_img_patch = { 0, 0, { 0 }, { 0 }, { 0 } };
+  double __pyx_v_center_x;
+  double __pyx_v_center_y;
+  CYTHON_UNUSED double __pyx_v_leg_len;
   int __pyx_v_size;
-  double __pyx_v_t_mean;
-  double __pyx_v_t_std;
-  double __pyx_v_i_mean;
-  double __pyx_v_i_std;
+  double __pyx_v_half_size;
   double __pyx_v_sum_t;
   double __pyx_v_sum_i;
   double __pyx_v_sum_tt;
   double __pyx_v_sum_ii;
   double __pyx_v_sum_ti;
-  double __pyx_v_temp;
+  int __pyx_v_count;
+  double __pyx_v_t_mean;
+  double __pyx_v_t_std;
+  double __pyx_v_i_mean;
+  double __pyx_v_i_std;
+  double __pyx_v_covar;
   int __pyx_v_min_col;
   int __pyx_v_min_row;
-  int __pyx_v_t_height;
-  int __pyx_v_t_width;
-  int __pyx_v_image_width;
-  int __pyx_v_image_height;
   Py_ssize_t __pyx_v_i;
   Py_ssize_t __pyx_v_j;
-  Py_ssize_t __pyx_v_n;
-  double __pyx_v_norm_t;
-  double __pyx_v_norm_i;
+  double __pyx_v_x;
+  double __pyx_v_y;
+  double __pyx_v_t_val;
+  double __pyx_v_i_val;
   __Pyx_RefNannyDeclarations
   PyObject *__pyx_t_1 = NULL;
   PyObject *__pyx_t_2 = NULL;
@@ -21246,18 +21410,16 @@ static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11Pa
   PyObject *__pyx_t_4 = NULL;
   PyObject *__pyx_t_5 = NULL;
   __Pyx_memviewslice __pyx_t_6 = { 0, 0, { 0 }, { 0 }, { 0 } };
-  Py_ssize_t __pyx_t_7;
-  Py_ssize_t __pyx_t_8;
-  int __pyx_t_9;
+  int __pyx_t_7;
+  int __pyx_t_8;
+  Py_ssize_t __pyx_t_9;
   int __pyx_t_10;
   int __pyx_t_11;
-  int __pyx_t_12;
-  int __pyx_t_13;
-  int __pyx_t_14;
-  Py_ssize_t __pyx_t_15;
-  Py_ssize_t __pyx_t_16;
-  double __pyx_t_17;
-  double __pyx_t_18;
+  Py_ssize_t __pyx_t_12;
+  Py_ssize_t __pyx_t_13;
+  Py_ssize_t __pyx_t_14;
+  double __pyx_t_15;
+  int __pyx_t_16;
   int __pyx_lineno = 0;
   const char *__pyx_filename = NULL;
   int __pyx_clineno = 0;
@@ -21266,33 +21428,41 @@ static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11Pa
   #endif
   __Pyx_RefNannySetupContext("_correlate", 1);
 
-  /* "ParametricX.pyx":80
+  /* "ParametricX.pyx":104
  *         cdef:
- *             double[:, ::1] template, img_patch
- *             int size = <int>(2 * round(params[6] / 2))             # <<<<<<<<<<<<<<
- *             double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0
+ *             double[:, ::1] template
+ *             double center_x = params[0], center_y = params[1], leg_len = params[6]             # <<<<<<<<<<<<<<
+ *             int size = 2 * (<int>params[6]) + 1
+ *             double half_size = (size - 1) / 2.0
+ */
+  __pyx_v_center_x = (__pyx_v_params[0]);
+  __pyx_v_center_y = (__pyx_v_params[1]);
+  __pyx_v_leg_len = (__pyx_v_params[6]);
+
+  /* "ParametricX.pyx":105
+ *             double[:, ::1] template
+ *             double center_x = params[0], center_y = params[1], leg_len = params[6]
+ *             int size = 2 * (<int>params[6]) + 1             # <<<<<<<<<<<<<<
+ *             double half_size = (size - 1) / 2.0
  *             double sum_t = 0.0, sum_i = 0.0, sum_tt = 0.0, sum_ii = 0.0, sum_ti = 0.0
  */
-  __pyx_v_size = ((int)(2.0 * round(((__pyx_v_params[6]) / 2.0))));
+  __pyx_v_size = ((2 * ((int)(__pyx_v_params[6]))) + 1);
 
-  /* "ParametricX.pyx":81
- *             double[:, ::1] template, img_patch
- *             int size = <int>(2 * round(params[6] / 2))
- *             double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0             # <<<<<<<<<<<<<<
+  /* "ParametricX.pyx":106
+ *             double center_x = params[0], center_y = params[1], leg_len = params[6]
+ *             int size = 2 * (<int>params[6]) + 1
+ *             double half_size = (size - 1) / 2.0             # <<<<<<<<<<<<<<
  *             double sum_t = 0.0, sum_i = 0.0, sum_tt = 0.0, sum_ii = 0.0, sum_ti = 0.0
- *             double temp
+ *             int count = 0
  */
-  __pyx_v_t_mean = 0.0;
-  __pyx_v_t_std = 0.0;
-  __pyx_v_i_mean = 0.0;
-  __pyx_v_i_std = 0.0;
+  __pyx_v_half_size = (((double)(__pyx_v_size - 1)) / 2.0);
 
-  /* "ParametricX.pyx":82
- *             int size = <int>(2 * round(params[6] / 2))
- *             double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0
+  /* "ParametricX.pyx":107
+ *             int size = 2 * (<int>params[6]) + 1
+ *             double half_size = (size - 1) / 2.0
  *             double sum_t = 0.0, sum_i = 0.0, sum_tt = 0.0, sum_ii = 0.0, sum_ti = 0.0             # <<<<<<<<<<<<<<
- *             double temp
- *             int min_col, min_row, t_height, t_width
+ *             int count = 0
+ * 
  */
   __pyx_v_sum_t = 0.0;
   __pyx_v_sum_i = 0.0;
@@ -21300,20 +21470,30 @@ static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11Pa
   __pyx_v_sum_ii = 0.0;
   __pyx_v_sum_ti = 0.0;
 
-  /* "ParametricX.pyx":85
- *             double temp
- *             int min_col, min_row, t_height, t_width
- *             int image_width = self.image_view.shape[1], image_height = self.image_view.shape[0]             # <<<<<<<<<<<<<<
- *             Py_ssize_t i, j, n
+  /* "ParametricX.pyx":108
+ *             double half_size = (size - 1) / 2.0
+ *             double sum_t = 0.0, sum_i = 0.0, sum_tt = 0.0, sum_ii = 0.0, sum_ti = 0.0
+ *             int count = 0             # <<<<<<<<<<<<<<
  * 
+ *             double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0, covar = 0.0
  */
-  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 85, __pyx_L1_error)}
-  __pyx_v_image_width = (__pyx_v_self->image_view.shape[1]);
-  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 85, __pyx_L1_error)}
-  __pyx_v_image_height = (__pyx_v_self->image_view.shape[0]);
+  __pyx_v_count = 0;
 
-  /* "ParametricX.pyx":88
- *             Py_ssize_t i, j, n
+  /* "ParametricX.pyx":110
+ *             int count = 0
+ * 
+ *             double t_mean = 0.0, t_std = 0.0, i_mean = 0.0, i_std = 0.0, covar = 0.0             # <<<<<<<<<<<<<<
+ *             int min_col, min_row
+ *             Py_ssize_t i, j
+ */
+  __pyx_v_t_mean = 0.0;
+  __pyx_v_t_std = 0.0;
+  __pyx_v_i_mean = 0.0;
+  __pyx_v_i_std = 0.0;
+  __pyx_v_covar = 0.0;
+
+  /* "ParametricX.pyx":114
+ *             Py_ssize_t i, j
  * 
  *         with gil:             # <<<<<<<<<<<<<<
  *             template = np.zeros((size, size), dtype=np.float64)
@@ -21325,58 +21505,58 @@ static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11Pa
       #endif
       /*try:*/ {
 
-        /* "ParametricX.pyx":89
+        /* "ParametricX.pyx":115
  * 
  *         with gil:
  *             template = np.zeros((size, size), dtype=np.float64)             # <<<<<<<<<<<<<<
  * 
  *         self.parametric_template(params, template, &min_col, &min_row)
  */
-        __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_2);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_3);
-        __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_4);
         __Pyx_GIVEREF(__pyx_t_1);
-        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 89, __pyx_L4_error);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 115, __pyx_L4_error);
         __Pyx_GIVEREF(__pyx_t_3);
-        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 89, __pyx_L4_error);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 115, __pyx_L4_error);
         __pyx_t_1 = 0;
         __pyx_t_3 = 0;
-        __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_3);
         __Pyx_GIVEREF(__pyx_t_4);
-        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4)) __PYX_ERR(0, 89, __pyx_L4_error);
+        if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4)) __PYX_ERR(0, 115, __pyx_L4_error);
         __pyx_t_4 = 0;
-        __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_4);
-        __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_1);
-        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_5 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float64); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-        if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 89, __pyx_L4_error)
+        if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_5) < 0) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
-        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_5 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_5)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_GOTREF(__pyx_t_5);
         __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-        __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 89, __pyx_L4_error)
+        __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_t_5, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 115, __pyx_L4_error)
         __Pyx_DECREF(__pyx_t_5); __pyx_t_5 = 0;
         __pyx_v_template = __pyx_t_6;
         __pyx_t_6.memview = NULL;
         __pyx_t_6.data = NULL;
       }
 
-      /* "ParametricX.pyx":88
- *             Py_ssize_t i, j, n
+      /* "ParametricX.pyx":114
+ *             Py_ssize_t i, j
  * 
  *         with gil:             # <<<<<<<<<<<<<<
  *             template = np.zeros((size, size), dtype=np.float64)
@@ -21399,487 +21579,295 @@ static void __pyx_f_11ParametricX_11ParametricX__correlate(struct __pyx_obj_11Pa
       }
   }
 
-  /* "ParametricX.pyx":91
+  /* "ParametricX.pyx":117
  *             template = np.zeros((size, size), dtype=np.float64)
  * 
  *         self.parametric_template(params, template, &min_col, &min_row)             # <<<<<<<<<<<<<<
- *         t_height, t_width = template.shape[0], template.shape[1]
- * 
+ *         for i in range(size):
+ *             for j in range(size):
  */
-  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->parametric_template(__pyx_v_self, __pyx_v_params, __pyx_v_template, (&__pyx_v_min_col), (&__pyx_v_min_row)); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(0, 91, __pyx_L1_error)
+  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->parametric_template(__pyx_v_self, __pyx_v_params, __pyx_v_template, (&__pyx_v_min_col), (&__pyx_v_min_row)); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(0, 117, __pyx_L1_error)
 
-  /* "ParametricX.pyx":92
+  /* "ParametricX.pyx":118
  * 
  *         self.parametric_template(params, template, &min_col, &min_row)
- *         t_height, t_width = template.shape[0], template.shape[1]             # <<<<<<<<<<<<<<
- * 
- *         if template.shape[0] == 0 or template.shape[1] == 0:
+ *         for i in range(size):             # <<<<<<<<<<<<<<
+ *             for j in range(size):
+ *                 x = center_x + j - half_size
  */
-  __pyx_t_7 = (__pyx_v_template.shape[0]);
-  __pyx_t_8 = (__pyx_v_template.shape[1]);
-  __pyx_v_t_height = __pyx_t_7;
-  __pyx_v_t_width = __pyx_t_8;
+  __pyx_t_7 = __pyx_v_size;
+  __pyx_t_8 = __pyx_t_7;
+  for (__pyx_t_9 = 0; __pyx_t_9 < __pyx_t_8; __pyx_t_9+=1) {
+    __pyx_v_i = __pyx_t_9;
 
-  /* "ParametricX.pyx":94
- *         t_height, t_width = template.shape[0], template.shape[1]
- * 
- *         if template.shape[0] == 0 or template.shape[1] == 0:             # <<<<<<<<<<<<<<
- *             corr[0] = -INFINITY
- *             return
+    /* "ParametricX.pyx":119
+ *         self.parametric_template(params, template, &min_col, &min_row)
+ *         for i in range(size):
+ *             for j in range(size):             # <<<<<<<<<<<<<<
+ *                 x = center_x + j - half_size
+ *                 y = center_y + i - half_size
  */
-  __pyx_t_10 = ((__pyx_v_template.shape[0]) == 0);
-  if (!__pyx_t_10) {
-  } else {
-    __pyx_t_9 = __pyx_t_10;
-    goto __pyx_L7_bool_binop_done;
-  }
-  __pyx_t_10 = ((__pyx_v_template.shape[1]) == 0);
-  __pyx_t_9 = __pyx_t_10;
-  __pyx_L7_bool_binop_done:;
-  if (__pyx_t_9) {
+    __pyx_t_10 = __pyx_v_size;
+    __pyx_t_11 = __pyx_t_10;
+    for (__pyx_t_12 = 0; __pyx_t_12 < __pyx_t_11; __pyx_t_12+=1) {
+      __pyx_v_j = __pyx_t_12;
 
-    /* "ParametricX.pyx":95
- * 
- *         if template.shape[0] == 0 or template.shape[1] == 0:
- *             corr[0] = -INFINITY             # <<<<<<<<<<<<<<
- *             return
+      /* "ParametricX.pyx":120
+ *         for i in range(size):
+ *             for j in range(size):
+ *                 x = center_x + j - half_size             # <<<<<<<<<<<<<<
+ *                 y = center_y + i - half_size
  * 
  */
-    (__pyx_v_corr[0]) = (-INFINITY);
+      __pyx_v_x = ((__pyx_v_center_x + __pyx_v_j) - __pyx_v_half_size);
 
-    /* "ParametricX.pyx":96
- *         if template.shape[0] == 0 or template.shape[1] == 0:
- *             corr[0] = -INFINITY
- *             return             # <<<<<<<<<<<<<<
+      /* "ParametricX.pyx":121
+ *             for j in range(size):
+ *                 x = center_x + j - half_size
+ *                 y = center_y + i - half_size             # <<<<<<<<<<<<<<
  * 
- *         if (min_row < 0 or min_row + t_height > image_height or
+ *                 t_val = template[i, j]
  */
-    goto __pyx_L0;
+      __pyx_v_y = ((__pyx_v_center_y + __pyx_v_i) - __pyx_v_half_size);
 
-    /* "ParametricX.pyx":94
- *         t_height, t_width = template.shape[0], template.shape[1]
+      /* "ParametricX.pyx":123
+ *                 y = center_y + i - half_size
  * 
- *         if template.shape[0] == 0 or template.shape[1] == 0:             # <<<<<<<<<<<<<<
- *             corr[0] = -INFINITY
- *             return
- */
-  }
-
-  /* "ParametricX.pyx":98
- *             return
- * 
- *         if (min_row < 0 or min_row + t_height > image_height or             # <<<<<<<<<<<<<<
- *             min_col < 0 or min_col + t_width > image_width):
- *             corr[0] = -INFINITY
- */
-  __pyx_t_10 = (__pyx_v_min_row < 0);
-  if (!__pyx_t_10) {
-  } else {
-    __pyx_t_9 = __pyx_t_10;
-    goto __pyx_L10_bool_binop_done;
-  }
-  __pyx_t_10 = ((__pyx_v_min_row + __pyx_v_t_height) > __pyx_v_image_height);
-  if (!__pyx_t_10) {
-  } else {
-    __pyx_t_9 = __pyx_t_10;
-    goto __pyx_L10_bool_binop_done;
-  }
-
-  /* "ParametricX.pyx":99
- * 
- *         if (min_row < 0 or min_row + t_height > image_height or
- *             min_col < 0 or min_col + t_width > image_width):             # <<<<<<<<<<<<<<
- *             corr[0] = -INFINITY
- *             return
- */
-  __pyx_t_10 = (__pyx_v_min_col < 0);
-  if (!__pyx_t_10) {
-  } else {
-    __pyx_t_9 = __pyx_t_10;
-    goto __pyx_L10_bool_binop_done;
-  }
-  __pyx_t_10 = ((__pyx_v_min_col + __pyx_v_t_width) > __pyx_v_image_width);
-  __pyx_t_9 = __pyx_t_10;
-  __pyx_L10_bool_binop_done:;
-
-  /* "ParametricX.pyx":98
- *             return
- * 
- *         if (min_row < 0 or min_row + t_height > image_height or             # <<<<<<<<<<<<<<
- *             min_col < 0 or min_col + t_width > image_width):
- *             corr[0] = -INFINITY
- */
-  if (__pyx_t_9) {
-
-    /* "ParametricX.pyx":100
- *         if (min_row < 0 or min_row + t_height > image_height or
- *             min_col < 0 or min_col + t_width > image_width):
- *             corr[0] = -INFINITY             # <<<<<<<<<<<<<<
- *             return
+ *                 t_val = template[i, j]             # <<<<<<<<<<<<<<
+ *                 i_val = self.bilinear_interpolate(x, y)
  * 
  */
-    (__pyx_v_corr[0]) = (-INFINITY);
+      __pyx_t_13 = __pyx_v_i;
+      __pyx_t_14 = __pyx_v_j;
+      __pyx_v_t_val = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_template.data + __pyx_t_13 * __pyx_v_template.strides[0]) )) + __pyx_t_14)) )));
 
-    /* "ParametricX.pyx":101
- *             min_col < 0 or min_col + t_width > image_width):
- *             corr[0] = -INFINITY
- *             return             # <<<<<<<<<<<<<<
+      /* "ParametricX.pyx":124
  * 
- *         img_patch = self.image_view[
- */
-    goto __pyx_L0;
-
-    /* "ParametricX.pyx":98
- *             return
+ *                 t_val = template[i, j]
+ *                 i_val = self.bilinear_interpolate(x, y)             # <<<<<<<<<<<<<<
  * 
- *         if (min_row < 0 or min_row + t_height > image_height or             # <<<<<<<<<<<<<<
- *             min_col < 0 or min_col + t_width > image_width):
- *             corr[0] = -INFINITY
+ *                 sum_t = sum_t + t_val
  */
-  }
-
-  /* "ParametricX.pyx":103
- *             return
- * 
- *         img_patch = self.image_view[             # <<<<<<<<<<<<<<
- *             min_row:min_row + t_height,
- *             min_col:min_col + t_width
- */
-  if (unlikely(!__pyx_v_self->image_view.memview)) {PyErr_SetString(PyExc_AttributeError,"Memoryview is not initialized");__PYX_ERR(0, 103, __pyx_L1_error)}
-
-  /* "ParametricX.pyx":105
- *         img_patch = self.image_view[
- *             min_row:min_row + t_height,
- *             min_col:min_col + t_width             # <<<<<<<<<<<<<<
- *             ]
- * 
- */
-  __pyx_t_6.data = __pyx_v_self->image_view.data;
-  __pyx_t_6.memview = __pyx_v_self->image_view.memview;
-  __PYX_INC_MEMVIEW(&__pyx_t_6, 0);
-  __pyx_t_11 = -1;
-  if (unlikely(__pyx_memoryview_slice_memviewslice(
-    &__pyx_t_6,
-    __pyx_v_self->image_view.shape[0], __pyx_v_self->image_view.strides[0], __pyx_v_self->image_view.suboffsets[0],
-    0,
-    0,
-    &__pyx_t_11,
-    __pyx_v_min_row,
-    (__pyx_v_min_row + __pyx_v_t_height),
-    0,
-    1,
-    1,
-    0,
-    1) < 0))
-{
-    __PYX_ERR(0, 103, __pyx_L1_error)
-}
-
-if (unlikely(__pyx_memoryview_slice_memviewslice(
-    &__pyx_t_6,
-    __pyx_v_self->image_view.shape[1], __pyx_v_self->image_view.strides[1], __pyx_v_self->image_view.suboffsets[1],
-    1,
-    1,
-    &__pyx_t_11,
-    __pyx_v_min_col,
-    (__pyx_v_min_col + __pyx_v_t_width),
-    0,
-    1,
-    1,
-    0,
-    1) < 0))
-{
-    __PYX_ERR(0, 103, __pyx_L1_error)
-}
-
-__pyx_v_img_patch = __pyx_t_6;
-  __pyx_t_6.memview = NULL;
-  __pyx_t_6.data = NULL;
-
-  /* "ParametricX.pyx":108
- *             ]
- * 
- *         n = t_height * t_width             # <<<<<<<<<<<<<<
- *         for i in range(t_height):
- *             for j in range(t_width):
- */
-  __pyx_v_n = (__pyx_v_t_height * __pyx_v_t_width);
-
-  /* "ParametricX.pyx":109
- * 
- *         n = t_height * t_width
- *         for i in range(t_height):             # <<<<<<<<<<<<<<
- *             for j in range(t_width):
- *                 temp = template[i, j]
- */
-  __pyx_t_11 = __pyx_v_t_height;
-  __pyx_t_12 = __pyx_t_11;
-  for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_12; __pyx_t_8+=1) {
-    __pyx_v_i = __pyx_t_8;
-
-    /* "ParametricX.pyx":110
- *         n = t_height * t_width
- *         for i in range(t_height):
- *             for j in range(t_width):             # <<<<<<<<<<<<<<
- *                 temp = template[i, j]
- *                 sum_t += temp
- */
-    __pyx_t_13 = __pyx_v_t_width;
-    __pyx_t_14 = __pyx_t_13;
-    for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_14; __pyx_t_7+=1) {
-      __pyx_v_j = __pyx_t_7;
-
-      /* "ParametricX.pyx":111
- *         for i in range(t_height):
- *             for j in range(t_width):
- *                 temp = template[i, j]             # <<<<<<<<<<<<<<
- *                 sum_t += temp
- *                 sum_tt += temp * temp
- */
-      __pyx_t_15 = __pyx_v_i;
-      __pyx_t_16 = __pyx_v_j;
-      __pyx_v_temp = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_template.data + __pyx_t_15 * __pyx_v_template.strides[0]) )) + __pyx_t_16)) )));
-
-      /* "ParametricX.pyx":112
- *             for j in range(t_width):
- *                 temp = template[i, j]
- *                 sum_t += temp             # <<<<<<<<<<<<<<
- *                 sum_tt += temp * temp
- * 
- */
-      __pyx_v_sum_t = (__pyx_v_sum_t + __pyx_v_temp);
-
-      /* "ParametricX.pyx":113
- *                 temp = template[i, j]
- *                 sum_t += temp
- *                 sum_tt += temp * temp             # <<<<<<<<<<<<<<
- * 
- *                 temp = img_patch[i, j]
- */
-      __pyx_v_sum_tt = (__pyx_v_sum_tt + (__pyx_v_temp * __pyx_v_temp));
-
-      /* "ParametricX.pyx":115
- *                 sum_tt += temp * temp
- * 
- *                 temp = img_patch[i, j]             # <<<<<<<<<<<<<<
- *                 sum_i += temp
- *                 sum_ii += temp * temp
- */
-      __pyx_t_16 = __pyx_v_i;
-      __pyx_t_15 = __pyx_v_j;
-      __pyx_v_temp = (*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_img_patch.data + __pyx_t_16 * __pyx_v_img_patch.strides[0]) )) + __pyx_t_15)) )));
-
-      /* "ParametricX.pyx":116
- * 
- *                 temp = img_patch[i, j]
- *                 sum_i += temp             # <<<<<<<<<<<<<<
- *                 sum_ii += temp * temp
- * 
- */
-      __pyx_v_sum_i = (__pyx_v_sum_i + __pyx_v_temp);
-
-      /* "ParametricX.pyx":117
- *                 temp = img_patch[i, j]
- *                 sum_i += temp
- *                 sum_ii += temp * temp             # <<<<<<<<<<<<<<
- * 
- *         t_mean = sum_t / n
- */
-      __pyx_v_sum_ii = (__pyx_v_sum_ii + (__pyx_v_temp * __pyx_v_temp));
-    }
-  }
-
-  /* "ParametricX.pyx":119
- *                 sum_ii += temp * temp
- * 
- *         t_mean = sum_t / n             # <<<<<<<<<<<<<<
- *         i_mean = sum_i / n
- *         t_std = sqrt((sum_tt - sum_t * t_mean) / n)
- */
-  if (unlikely(__pyx_v_n == 0)) {
-    #ifdef WITH_THREAD
-    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-    #endif
-    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    #ifdef WITH_THREAD
-    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-    #endif
-    __PYX_ERR(0, 119, __pyx_L1_error)
-  }
-  __pyx_v_t_mean = (__pyx_v_sum_t / ((double)__pyx_v_n));
-
-  /* "ParametricX.pyx":120
- * 
- *         t_mean = sum_t / n
- *         i_mean = sum_i / n             # <<<<<<<<<<<<<<
- *         t_std = sqrt((sum_tt - sum_t * t_mean) / n)
- *         i_std = sqrt((sum_ii - sum_i * i_mean) / n)
- */
-  if (unlikely(__pyx_v_n == 0)) {
-    #ifdef WITH_THREAD
-    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-    #endif
-    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    #ifdef WITH_THREAD
-    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-    #endif
-    __PYX_ERR(0, 120, __pyx_L1_error)
-  }
-  __pyx_v_i_mean = (__pyx_v_sum_i / ((double)__pyx_v_n));
-
-  /* "ParametricX.pyx":121
- *         t_mean = sum_t / n
- *         i_mean = sum_i / n
- *         t_std = sqrt((sum_tt - sum_t * t_mean) / n)             # <<<<<<<<<<<<<<
- *         i_std = sqrt((sum_ii - sum_i * i_mean) / n)
- * 
- */
-  __pyx_t_17 = (__pyx_v_sum_tt - (__pyx_v_sum_t * __pyx_v_t_mean));
-  if (unlikely(__pyx_v_n == 0)) {
-    #ifdef WITH_THREAD
-    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-    #endif
-    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    #ifdef WITH_THREAD
-    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-    #endif
-    __PYX_ERR(0, 121, __pyx_L1_error)
-  }
-  __pyx_v_t_std = sqrt((__pyx_t_17 / ((double)__pyx_v_n)));
-
-  /* "ParametricX.pyx":122
- *         i_mean = sum_i / n
- *         t_std = sqrt((sum_tt - sum_t * t_mean) / n)
- *         i_std = sqrt((sum_ii - sum_i * i_mean) / n)             # <<<<<<<<<<<<<<
- * 
- *         for i in range(t_height):
- */
-  __pyx_t_17 = (__pyx_v_sum_ii - (__pyx_v_sum_i * __pyx_v_i_mean));
-  if (unlikely(__pyx_v_n == 0)) {
-    #ifdef WITH_THREAD
-    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-    #endif
-    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-    #ifdef WITH_THREAD
-    __Pyx_PyGILState_Release(__pyx_gilstate_save);
-    #endif
-    __PYX_ERR(0, 122, __pyx_L1_error)
-  }
-  __pyx_v_i_std = sqrt((__pyx_t_17 / ((double)__pyx_v_n)));
-
-  /* "ParametricX.pyx":124
- *         i_std = sqrt((sum_ii - sum_i * i_mean) / n)
- * 
- *         for i in range(t_height):             # <<<<<<<<<<<<<<
- *             for j in range(t_width):
- *                 norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)
- */
-  __pyx_t_11 = __pyx_v_t_height;
-  __pyx_t_12 = __pyx_t_11;
-  for (__pyx_t_8 = 0; __pyx_t_8 < __pyx_t_12; __pyx_t_8+=1) {
-    __pyx_v_i = __pyx_t_8;
-
-    /* "ParametricX.pyx":125
- * 
- *         for i in range(t_height):
- *             for j in range(t_width):             # <<<<<<<<<<<<<<
- *                 norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)
- *                 norm_i = (img_patch[i, j] - i_mean) / (i_std + 1e-9)
- */
-    __pyx_t_13 = __pyx_v_t_width;
-    __pyx_t_14 = __pyx_t_13;
-    for (__pyx_t_7 = 0; __pyx_t_7 < __pyx_t_14; __pyx_t_7+=1) {
-      __pyx_v_j = __pyx_t_7;
+      __pyx_t_15 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->bilinear_interpolate(__pyx_v_self, __pyx_v_x, __pyx_v_y); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(0, 124, __pyx_L1_error)
+      __pyx_v_i_val = __pyx_t_15;
 
       /* "ParametricX.pyx":126
- *         for i in range(t_height):
- *             for j in range(t_width):
- *                 norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)             # <<<<<<<<<<<<<<
- *                 norm_i = (img_patch[i, j] - i_mean) / (i_std + 1e-9)
- *                 sum_ti += norm_t * norm_i
+ *                 i_val = self.bilinear_interpolate(x, y)
+ * 
+ *                 sum_t = sum_t + t_val             # <<<<<<<<<<<<<<
+ *                 sum_i = sum_i + i_val
+ *                 sum_tt = sum_tt + t_val * t_val
  */
-      __pyx_t_15 = __pyx_v_i;
-      __pyx_t_16 = __pyx_v_j;
-      __pyx_t_17 = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_template.data + __pyx_t_15 * __pyx_v_template.strides[0]) )) + __pyx_t_16)) ))) - __pyx_v_t_mean);
-      __pyx_t_18 = (__pyx_v_t_std + 1e-9);
-      if (unlikely(__pyx_t_18 == 0)) {
-        #ifdef WITH_THREAD
-        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-        #endif
-        PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-        #ifdef WITH_THREAD
-        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-        #endif
-        __PYX_ERR(0, 126, __pyx_L1_error)
-      }
-      __pyx_v_norm_t = (__pyx_t_17 / __pyx_t_18);
+      __pyx_v_sum_t = (__pyx_v_sum_t + __pyx_v_t_val);
 
       /* "ParametricX.pyx":127
- *             for j in range(t_width):
- *                 norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)
- *                 norm_i = (img_patch[i, j] - i_mean) / (i_std + 1e-9)             # <<<<<<<<<<<<<<
- *                 sum_ti += norm_t * norm_i
  * 
+ *                 sum_t = sum_t + t_val
+ *                 sum_i = sum_i + i_val             # <<<<<<<<<<<<<<
+ *                 sum_tt = sum_tt + t_val * t_val
+ *                 sum_ii = sum_ii + i_val * i_val
  */
-      __pyx_t_16 = __pyx_v_i;
-      __pyx_t_15 = __pyx_v_j;
-      __pyx_t_18 = ((*((double *) ( /* dim=1 */ ((char *) (((double *) ( /* dim=0 */ (__pyx_v_img_patch.data + __pyx_t_16 * __pyx_v_img_patch.strides[0]) )) + __pyx_t_15)) ))) - __pyx_v_i_mean);
-      __pyx_t_17 = (__pyx_v_i_std + 1e-9);
-      if (unlikely(__pyx_t_17 == 0)) {
-        #ifdef WITH_THREAD
-        PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-        #endif
-        PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-        #ifdef WITH_THREAD
-        __Pyx_PyGILState_Release(__pyx_gilstate_save);
-        #endif
-        __PYX_ERR(0, 127, __pyx_L1_error)
-      }
-      __pyx_v_norm_i = (__pyx_t_18 / __pyx_t_17);
+      __pyx_v_sum_i = (__pyx_v_sum_i + __pyx_v_i_val);
 
       /* "ParametricX.pyx":128
- *                 norm_t = (template[i, j] - t_mean) / (t_std + 1e-9)
- *                 norm_i = (img_patch[i, j] - i_mean) / (i_std + 1e-9)
- *                 sum_ti += norm_t * norm_i             # <<<<<<<<<<<<<<
- * 
- *         corr[0] = sum_ti / (n - 1) if not isnan(sum_ti) else -INFINITY
+ *                 sum_t = sum_t + t_val
+ *                 sum_i = sum_i + i_val
+ *                 sum_tt = sum_tt + t_val * t_val             # <<<<<<<<<<<<<<
+ *                 sum_ii = sum_ii + i_val * i_val
+ *                 sum_ti = sum_ti + t_val * i_val
  */
-      __pyx_v_sum_ti = (__pyx_v_sum_ti + (__pyx_v_norm_t * __pyx_v_norm_i));
+      __pyx_v_sum_tt = (__pyx_v_sum_tt + (__pyx_v_t_val * __pyx_v_t_val));
+
+      /* "ParametricX.pyx":129
+ *                 sum_i = sum_i + i_val
+ *                 sum_tt = sum_tt + t_val * t_val
+ *                 sum_ii = sum_ii + i_val * i_val             # <<<<<<<<<<<<<<
+ *                 sum_ti = sum_ti + t_val * i_val
+ *                 count = count + 1
+ */
+      __pyx_v_sum_ii = (__pyx_v_sum_ii + (__pyx_v_i_val * __pyx_v_i_val));
+
+      /* "ParametricX.pyx":130
+ *                 sum_tt = sum_tt + t_val * t_val
+ *                 sum_ii = sum_ii + i_val * i_val
+ *                 sum_ti = sum_ti + t_val * i_val             # <<<<<<<<<<<<<<
+ *                 count = count + 1
+ * 
+ */
+      __pyx_v_sum_ti = (__pyx_v_sum_ti + (__pyx_v_t_val * __pyx_v_i_val));
+
+      /* "ParametricX.pyx":131
+ *                 sum_ii = sum_ii + i_val * i_val
+ *                 sum_ti = sum_ti + t_val * i_val
+ *                 count = count + 1             # <<<<<<<<<<<<<<
+ * 
+ *         if count < 2:
+ */
+      __pyx_v_count = (__pyx_v_count + 1);
     }
   }
 
-  /* "ParametricX.pyx":130
- *                 sum_ti += norm_t * norm_i
+  /* "ParametricX.pyx":133
+ *                 count = count + 1
  * 
- *         corr[0] = sum_ti / (n - 1) if not isnan(sum_ti) else -INFINITY             # <<<<<<<<<<<<<<
+ *         if count < 2:             # <<<<<<<<<<<<<<
+ *             corr[0] = -INFINITY
+ *             return
+ */
+  __pyx_t_16 = (__pyx_v_count < 2);
+  if (__pyx_t_16) {
+
+    /* "ParametricX.pyx":134
+ * 
+ *         if count < 2:
+ *             corr[0] = -INFINITY             # <<<<<<<<<<<<<<
+ *             return
+ * 
+ */
+    (__pyx_v_corr[0]) = (-INFINITY);
+
+    /* "ParametricX.pyx":135
+ *         if count < 2:
+ *             corr[0] = -INFINITY
+ *             return             # <<<<<<<<<<<<<<
+ * 
+ *         t_mean = sum_t / count
+ */
+    goto __pyx_L0;
+
+    /* "ParametricX.pyx":133
+ *                 count = count + 1
+ * 
+ *         if count < 2:             # <<<<<<<<<<<<<<
+ *             corr[0] = -INFINITY
+ *             return
+ */
+  }
+
+  /* "ParametricX.pyx":137
+ *             return
+ * 
+ *         t_mean = sum_t / count             # <<<<<<<<<<<<<<
+ *         i_mean = sum_i / count
+ *         t_std = sqrt((sum_tt - sum_t * t_mean) / count)
+ */
+  if (unlikely(__pyx_v_count == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 137, __pyx_L1_error)
+  }
+  __pyx_v_t_mean = (__pyx_v_sum_t / ((double)__pyx_v_count));
+
+  /* "ParametricX.pyx":138
+ * 
+ *         t_mean = sum_t / count
+ *         i_mean = sum_i / count             # <<<<<<<<<<<<<<
+ *         t_std = sqrt((sum_tt - sum_t * t_mean) / count)
+ *         i_std = sqrt((sum_ii - sum_i * i_mean) / count)
+ */
+  if (unlikely(__pyx_v_count == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 138, __pyx_L1_error)
+  }
+  __pyx_v_i_mean = (__pyx_v_sum_i / ((double)__pyx_v_count));
+
+  /* "ParametricX.pyx":139
+ *         t_mean = sum_t / count
+ *         i_mean = sum_i / count
+ *         t_std = sqrt((sum_tt - sum_t * t_mean) / count)             # <<<<<<<<<<<<<<
+ *         i_std = sqrt((sum_ii - sum_i * i_mean) / count)
+ *         covar = (sum_ti - sum_t * i_mean) / count
+ */
+  __pyx_t_15 = (__pyx_v_sum_tt - (__pyx_v_sum_t * __pyx_v_t_mean));
+  if (unlikely(__pyx_v_count == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 139, __pyx_L1_error)
+  }
+  __pyx_v_t_std = sqrt((__pyx_t_15 / ((double)__pyx_v_count)));
+
+  /* "ParametricX.pyx":140
+ *         i_mean = sum_i / count
+ *         t_std = sqrt((sum_tt - sum_t * t_mean) / count)
+ *         i_std = sqrt((sum_ii - sum_i * i_mean) / count)             # <<<<<<<<<<<<<<
+ *         covar = (sum_ti - sum_t * i_mean) / count
+ * 
+ */
+  __pyx_t_15 = (__pyx_v_sum_ii - (__pyx_v_sum_i * __pyx_v_i_mean));
+  if (unlikely(__pyx_v_count == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 140, __pyx_L1_error)
+  }
+  __pyx_v_i_std = sqrt((__pyx_t_15 / ((double)__pyx_v_count)));
+
+  /* "ParametricX.pyx":141
+ *         t_std = sqrt((sum_tt - sum_t * t_mean) / count)
+ *         i_std = sqrt((sum_ii - sum_i * i_mean) / count)
+ *         covar = (sum_ti - sum_t * i_mean) / count             # <<<<<<<<<<<<<<
+ * 
+ *         corr[0] = covar / (t_std * i_std + 1e-9)
+ */
+  __pyx_t_15 = (__pyx_v_sum_ti - (__pyx_v_sum_t * __pyx_v_i_mean));
+  if (unlikely(__pyx_v_count == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 141, __pyx_L1_error)
+  }
+  __pyx_v_covar = (__pyx_t_15 / ((double)__pyx_v_count));
+
+  /* "ParametricX.pyx":143
+ *         covar = (sum_ti - sum_t * i_mean) / count
+ * 
+ *         corr[0] = covar / (t_std * i_std + 1e-9)             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_t_9 = (!isnan(__pyx_v_sum_ti));
-  if (__pyx_t_9) {
-    __pyx_t_8 = (__pyx_v_n - 1);
-    if (unlikely(__pyx_t_8 == 0)) {
-      #ifdef WITH_THREAD
-      PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
-      #endif
-      PyErr_SetString(PyExc_ZeroDivisionError, "float division");
-      #ifdef WITH_THREAD
-      __Pyx_PyGILState_Release(__pyx_gilstate_save);
-      #endif
-      __PYX_ERR(0, 130, __pyx_L1_error)
-    }
-    __pyx_t_17 = (__pyx_v_sum_ti / ((double)__pyx_t_8));
-  } else {
-    __pyx_t_17 = (-INFINITY);
+  __pyx_t_15 = ((__pyx_v_t_std * __pyx_v_i_std) + 1e-9);
+  if (unlikely(__pyx_t_15 == 0)) {
+    #ifdef WITH_THREAD
+    PyGILState_STATE __pyx_gilstate_save = __Pyx_PyGILState_Ensure();
+    #endif
+    PyErr_SetString(PyExc_ZeroDivisionError, "float division");
+    #ifdef WITH_THREAD
+    __Pyx_PyGILState_Release(__pyx_gilstate_save);
+    #endif
+    __PYX_ERR(0, 143, __pyx_L1_error)
   }
-  (__pyx_v_corr[0]) = __pyx_t_17;
+  (__pyx_v_corr[0]) = (__pyx_v_covar / __pyx_t_15);
 
-  /* "ParametricX.pyx":77
+  /* "ParametricX.pyx":101
  * 
  * 
  *     cdef void _correlate(self, double* params, double* corr) nogil:             # <<<<<<<<<<<<<<
  *         cdef:
- *             double[:, ::1] template, img_patch
+ *             double[:, ::1] template
  */
 
   /* function exit code */
@@ -21900,11 +21888,10 @@ __pyx_v_img_patch = __pyx_t_6;
   #endif
   __pyx_L0:;
   __PYX_XCLEAR_MEMVIEW(&__pyx_v_template, 0);
-  __PYX_XCLEAR_MEMVIEW(&__pyx_v_img_patch, 0);
   __Pyx_RefNannyFinishContextNogil()
 }
 
-/* "ParametricX.pyx":133
+/* "ParametricX.pyx":146
  * 
  * 
  *     cdef double* get_params_ptr(self) nogil:             # <<<<<<<<<<<<<<
@@ -21915,7 +21902,7 @@ __pyx_v_img_patch = __pyx_t_6;
 static double *__pyx_f_11ParametricX_11ParametricX_get_params_ptr(struct __pyx_obj_11ParametricX_ParametricX *__pyx_v_self) {
   double *__pyx_r;
 
-  /* "ParametricX.pyx":134
+  /* "ParametricX.pyx":147
  * 
  *     cdef double* get_params_ptr(self) nogil:
  *         return &self.c_params[0]             # <<<<<<<<<<<<<<
@@ -21925,7 +21912,7 @@ static double *__pyx_f_11ParametricX_11ParametricX_get_params_ptr(struct __pyx_o
   __pyx_r = (&(__pyx_v_self->c_params[0]));
   goto __pyx_L0;
 
-  /* "ParametricX.pyx":133
+  /* "ParametricX.pyx":146
  * 
  * 
  *     cdef double* get_params_ptr(self) nogil:             # <<<<<<<<<<<<<<
@@ -21938,7 +21925,7 @@ static double *__pyx_f_11ParametricX_11ParametricX_get_params_ptr(struct __pyx_o
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":137
+/* "ParametricX.pyx":150
  * 
  * 
  *     cpdef tuple get_parametric_X(self):             # <<<<<<<<<<<<<<
@@ -21983,7 +21970,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_parametric_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_parametric_X); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!__Pyx_IsSameCFunction(__pyx_t_1, (void*) __pyx_pw_11ParametricX_11ParametricX_3get_parametric_X)) {
         __Pyx_XDECREF(__pyx_r);
@@ -22006,11 +21993,11 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
           PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
           __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 137, __pyx_L1_error)
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
-        if (!(likely(PyTuple_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_2))) __PYX_ERR(0, 137, __pyx_L1_error)
+        if (!(likely(PyTuple_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None) || __Pyx_RaiseUnexpectedTypeError("tuple", __pyx_t_2))) __PYX_ERR(0, 150, __pyx_L1_error)
         __pyx_r = ((PyObject*)__pyx_t_2);
         __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -22029,7 +22016,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
     #endif
   }
 
-  /* "ParametricX.pyx":139
+  /* "ParametricX.pyx":152
  *     cpdef tuple get_parametric_X(self):
  *         cdef:
  *             double* params = &self.c_params[0]             # <<<<<<<<<<<<<<
@@ -22038,7 +22025,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
  */
   __pyx_v_params = (&(__pyx_v_self->c_params[0]));
 
-  /* "ParametricX.pyx":140
+  /* "ParametricX.pyx":153
  *         cdef:
  *             double* params = &self.c_params[0]
  *             double leg_len = params[6]             # <<<<<<<<<<<<<<
@@ -22047,7 +22034,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
  */
   __pyx_v_leg_len = (__pyx_v_params[6]);
 
-  /* "ParametricX.pyx":141
+  /* "ParametricX.pyx":154
  *             double* params = &self.c_params[0]
  *             double leg_len = params[6]
  *             int half_len = <int>round(leg_len / 2)             # <<<<<<<<<<<<<<
@@ -22056,7 +22043,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
  */
   __pyx_v_half_len = ((int)round((__pyx_v_leg_len / 2.0)));
 
-  /* "ParametricX.pyx":142
+  /* "ParametricX.pyx":155
  *             double leg_len = params[6]
  *             int half_len = <int>round(leg_len / 2)
  *             int size = 2 * half_len             # <<<<<<<<<<<<<<
@@ -22065,66 +22052,66 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
  */
   __pyx_v_size = (2 * __pyx_v_half_len);
 
-  /* "ParametricX.pyx":143
+  /* "ParametricX.pyx":156
  *             int half_len = <int>round(leg_len / 2)
  *             int size = 2 * half_len
  *             np.ndarray template = np.zeros((size, size), dtype=np.float64)             # <<<<<<<<<<<<<<
  *             int min_col, min_row
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_zeros); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyInt_From_int(__pyx_v_size); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_GIVEREF(__pyx_t_1);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, __pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error);
   __pyx_t_1 = 0;
   __pyx_t_3 = 0;
-  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error);
   __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float64); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_float64); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 143, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_4, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 143, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_3, __pyx_t_4); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 156, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 143, __pyx_L1_error)
+  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 156, __pyx_L1_error)
   __pyx_v_template = ((PyArrayObject *)__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "ParametricX.pyx":146
+  /* "ParametricX.pyx":159
  *             int min_col, min_row
  * 
  *         self.parametric_template(params, template, &min_col, &min_row)             # <<<<<<<<<<<<<<
  *         return template, (min_col, min_row)
  * 
  */
-  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_template), PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 146, __pyx_L1_error)
-  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->parametric_template(__pyx_v_self, __pyx_v_params, __pyx_t_7, (&__pyx_v_min_col), (&__pyx_v_min_row)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 146, __pyx_L1_error)
+  __pyx_t_7 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(((PyObject *)__pyx_v_template), PyBUF_WRITABLE); if (unlikely(!__pyx_t_7.memview)) __PYX_ERR(0, 159, __pyx_L1_error)
+  ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->parametric_template(__pyx_v_self, __pyx_v_params, __pyx_t_7, (&__pyx_v_min_col), (&__pyx_v_min_row)); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 159, __pyx_L1_error)
   __PYX_XCLEAR_MEMVIEW(&__pyx_t_7, 1);
   __pyx_t_7.memview = NULL; __pyx_t_7.data = NULL;
 
-  /* "ParametricX.pyx":147
+  /* "ParametricX.pyx":160
  * 
  *         self.parametric_template(params, template, &min_col, &min_row)
  *         return template, (min_col, min_row)             # <<<<<<<<<<<<<<
@@ -22132,31 +22119,31 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_get_parametric_X(struct __p
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_min_col); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyInt_From_int(__pyx_v_min_col); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_min_row); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyInt_From_int(__pyx_v_min_row); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_3 = PyTuple_New(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_GIVEREF(__pyx_t_6);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6)) __PYX_ERR(0, 147, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 0, __pyx_t_6)) __PYX_ERR(0, 160, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_4);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_3, 1, __pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error);
   __pyx_t_6 = 0;
   __pyx_t_4 = 0;
-  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 147, __pyx_L1_error)
+  __pyx_t_4 = PyTuple_New(2); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_INCREF((PyObject *)__pyx_v_template);
   __Pyx_GIVEREF((PyObject *)__pyx_v_template);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)__pyx_v_template))) __PYX_ERR(0, 147, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 0, ((PyObject *)__pyx_v_template))) __PYX_ERR(0, 160, __pyx_L1_error);
   __Pyx_GIVEREF(__pyx_t_3);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 147, __pyx_L1_error);
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_4, 1, __pyx_t_3)) __PYX_ERR(0, 160, __pyx_L1_error);
   __pyx_t_3 = 0;
   __pyx_r = ((PyObject*)__pyx_t_4);
   __pyx_t_4 = 0;
   goto __pyx_L0;
 
-  /* "ParametricX.pyx":137
+  /* "ParametricX.pyx":150
  * 
  * 
  *     cpdef tuple get_parametric_X(self):             # <<<<<<<<<<<<<<
@@ -22231,7 +22218,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_2get_parametric_X(struct _
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_parametric_X", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11ParametricX_11ParametricX_get_parametric_X(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_11ParametricX_11ParametricX_get_parametric_X(__pyx_v_self, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -22248,7 +22235,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_2get_parametric_X(struct _
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":150
+/* "ParametricX.pyx":163
  * 
  * 
  *     cpdef void visualize(self):             # <<<<<<<<<<<<<<
@@ -22285,7 +22272,7 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_visualize); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_visualize); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 163, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!__Pyx_IsSameCFunction(__pyx_t_1, (void*) __pyx_pw_11ParametricX_11ParametricX_5visualize)) {
         __Pyx_INCREF(__pyx_t_1);
@@ -22307,7 +22294,7 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
           PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
           __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 150, __pyx_L1_error)
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 163, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
@@ -22328,14 +22315,14 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     #endif
   }
 
-  /* "ParametricX.pyx":151
+  /* "ParametricX.pyx":164
  * 
  *     cpdef void visualize(self):
  *         template, _ = self.get_parametric_X()             # <<<<<<<<<<<<<<
  *         plt.figure(figsize=(10, 5))
  *         plt.imshow(template, cmap='hot', alpha=0.5)
  */
-  __pyx_t_1 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->get_parametric_X(__pyx_v_self, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 151, __pyx_L1_error)
+  __pyx_t_1 = ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->get_parametric_X(__pyx_v_self, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 164, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   if (likely(__pyx_t_1 != Py_None)) {
     PyObject* sequence = __pyx_t_1;
@@ -22343,7 +22330,7 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     if (unlikely(size != 2)) {
       if (size > 2) __Pyx_RaiseTooManyValuesError(2);
       else if (size >= 0) __Pyx_RaiseNeedMoreValuesError(size);
-      __PYX_ERR(0, 151, __pyx_L1_error)
+      __PYX_ERR(0, 164, __pyx_L1_error)
     }
     #if CYTHON_ASSUME_SAFE_MACROS && !CYTHON_AVOID_BORROWED_REFS
     __pyx_t_2 = PyTuple_GET_ITEM(sequence, 0); 
@@ -22351,79 +22338,79 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     __Pyx_INCREF(__pyx_t_2);
     __Pyx_INCREF(__pyx_t_3);
     #else
-    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_t_2 = PySequence_ITEM(sequence, 0); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 164, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_2);
-    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 151, __pyx_L1_error)
+    __pyx_t_3 = PySequence_ITEM(sequence, 1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 164, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_3);
     #endif
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   } else {
-    __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 151, __pyx_L1_error)
+    __Pyx_RaiseNoneNotIterableError(); __PYX_ERR(0, 164, __pyx_L1_error)
   }
   __pyx_v_template = __pyx_t_2;
   __pyx_t_2 = 0;
   __pyx_v__ = __pyx_t_3;
   __pyx_t_3 = 0;
 
-  /* "ParametricX.pyx":152
+  /* "ParametricX.pyx":165
  *     cpdef void visualize(self):
  *         template, _ = self.get_parametric_X()
  *         plt.figure(figsize=(10, 5))             # <<<<<<<<<<<<<<
  *         plt.imshow(template, cmap='hot', alpha=0.5)
  *         plt.title('Parametric X Template')
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_plt); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_figure); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 152, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_figure); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 152, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_figsize, __pyx_tuple__17) < 0) __PYX_ERR(0, 152, __pyx_L1_error)
-  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 152, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_figsize, __pyx_tuple__17) < 0) __PYX_ERR(0, 165, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_empty_tuple, __pyx_t_1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
 
-  /* "ParametricX.pyx":153
+  /* "ParametricX.pyx":166
  *         template, _ = self.get_parametric_X()
  *         plt.figure(figsize=(10, 5))
  *         plt.imshow(template, cmap='hot', alpha=0.5)             # <<<<<<<<<<<<<<
  *         plt.title('Parametric X Template')
  *         plt.axis('off')
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_imshow); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_imshow); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 153, __pyx_L1_error)
+  __pyx_t_2 = PyTuple_New(1); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_INCREF(__pyx_v_template);
   __Pyx_GIVEREF(__pyx_v_template);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_template)) __PYX_ERR(0, 153, __pyx_L1_error);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_2, 0, __pyx_v_template)) __PYX_ERR(0, 166, __pyx_L1_error);
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(2); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_cmap, __pyx_n_u_hot) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 153, __pyx_L1_error)
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 153, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_cmap, __pyx_n_u_hot) < 0) __PYX_ERR(0, 166, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_alpha, __pyx_float_0_5) < 0) __PYX_ERR(0, 166, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_1, __pyx_t_2, __pyx_t_3); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 166, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":154
+  /* "ParametricX.pyx":167
  *         plt.figure(figsize=(10, 5))
  *         plt.imshow(template, cmap='hot', alpha=0.5)
  *         plt.title('Parametric X Template')             # <<<<<<<<<<<<<<
  *         plt.axis('off')
  *         plt.tight_layout()
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 154, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 167, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_title); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 154, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_title); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 167, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -22444,22 +22431,22 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     PyObject *__pyx_callargs[2] = {__pyx_t_3, __pyx_kp_u_Parametric_X_Template};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 154, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 167, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":155
+  /* "ParametricX.pyx":168
  *         plt.imshow(template, cmap='hot', alpha=0.5)
  *         plt.title('Parametric X Template')
  *         plt.axis('off')             # <<<<<<<<<<<<<<
  *         plt.tight_layout()
  *         plt.show()
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axis); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 155, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_axis); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 168, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -22480,22 +22467,22 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     PyObject *__pyx_callargs[2] = {__pyx_t_2, __pyx_n_u_off};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 155, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 168, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":156
+  /* "ParametricX.pyx":169
  *         plt.title('Parametric X Template')
  *         plt.axis('off')
  *         plt.tight_layout()             # <<<<<<<<<<<<<<
  *         plt.show()
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_3, __pyx_n_s_plt); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_tight_layout); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 156, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_3, __pyx_n_s_tight_layout); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 169, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __pyx_t_3 = NULL;
@@ -22516,22 +22503,22 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     PyObject *__pyx_callargs[2] = {__pyx_t_3, NULL};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_2, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_3); __pyx_t_3 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 156, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 169, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":157
+  /* "ParametricX.pyx":170
  *         plt.axis('off')
  *         plt.tight_layout()
  *         plt.show()             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_plt); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_show); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 157, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_show); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 170, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_t_2 = NULL;
@@ -22552,13 +22539,13 @@ static void __pyx_f_11ParametricX_11ParametricX_visualize(struct __pyx_obj_11Par
     PyObject *__pyx_callargs[2] = {__pyx_t_2, NULL};
     __pyx_t_4 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 157, __pyx_L1_error)
+    if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 170, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":150
+  /* "ParametricX.pyx":163
  * 
  * 
  *     cpdef void visualize(self):             # <<<<<<<<<<<<<<
@@ -22630,8 +22617,8 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_4visualize(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("visualize", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_f_11ParametricX_11ParametricX_visualize(__pyx_v_self, 1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 150, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_f_11ParametricX_11ParametricX_visualize(__pyx_v_self, 1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 163, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -22648,7 +22635,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_4visualize(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":160
+/* "ParametricX.pyx":173
  * 
  * 
  *     cpdef dict correlate(self, np.ndarray params):             # <<<<<<<<<<<<<<
@@ -22692,7 +22679,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_correlate); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 160, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_correlate); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!__Pyx_IsSameCFunction(__pyx_t_1, (void*) __pyx_pw_11ParametricX_11ParametricX_7correlate)) {
         __Pyx_XDECREF(__pyx_r);
@@ -22715,11 +22702,11 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
           PyObject *__pyx_callargs[2] = {__pyx_t_4, ((PyObject *)__pyx_v_params)};
           __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 160, __pyx_L1_error)
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 173, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
-        if (!(likely(PyDict_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None) || __Pyx_RaiseUnexpectedTypeError("dict", __pyx_t_2))) __PYX_ERR(0, 160, __pyx_L1_error)
+        if (!(likely(PyDict_CheckExact(__pyx_t_2))||((__pyx_t_2) == Py_None) || __Pyx_RaiseUnexpectedTypeError("dict", __pyx_t_2))) __PYX_ERR(0, 173, __pyx_L1_error)
         __pyx_r = ((PyObject*)__pyx_t_2);
         __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -22738,7 +22725,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
     #endif
   }
 
-  /* "ParametricX.pyx":164
+  /* "ParametricX.pyx":177
  *             double[7] param_arr
  *             double* p
  *             double corr = -1.0             # <<<<<<<<<<<<<<
@@ -22747,19 +22734,19 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
  */
   __pyx_v_corr = -1.0;
 
-  /* "ParametricX.pyx":165
+  /* "ParametricX.pyx":178
  *             double* p
  *             double corr = -1.0
  *             double[:, ::1] image_view = self.image             # <<<<<<<<<<<<<<
  * 
  *         for i in range(7):
  */
-  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_v_self->image, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 165, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_to_MemoryviewSlice_d_dc_double(__pyx_v_self->image, PyBUF_WRITABLE); if (unlikely(!__pyx_t_6.memview)) __PYX_ERR(0, 178, __pyx_L1_error)
   __pyx_v_image_view = __pyx_t_6;
   __pyx_t_6.memview = NULL;
   __pyx_t_6.data = NULL;
 
-  /* "ParametricX.pyx":167
+  /* "ParametricX.pyx":180
  *             double[:, ::1] image_view = self.image
  * 
  *         for i in range(7):             # <<<<<<<<<<<<<<
@@ -22769,21 +22756,21 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
   for (__pyx_t_7 = 0; __pyx_t_7 < 7; __pyx_t_7+=1) {
     __pyx_v_i = __pyx_t_7;
 
-    /* "ParametricX.pyx":168
+    /* "ParametricX.pyx":181
  * 
  *         for i in range(7):
  *             param_arr[i] = params[i]             # <<<<<<<<<<<<<<
  *         p = &param_arr[0]
  * 
  */
-    __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_params), __pyx_v_i, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 168, __pyx_L1_error)
+    __pyx_t_1 = __Pyx_GetItemInt(((PyObject *)__pyx_v_params), __pyx_v_i, long, 1, __Pyx_PyInt_From_long, 0, 0, 0); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
-    __pyx_t_8 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_8 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 168, __pyx_L1_error)
+    __pyx_t_8 = __pyx_PyFloat_AsDouble(__pyx_t_1); if (unlikely((__pyx_t_8 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 181, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
     (__pyx_v_param_arr[__pyx_v_i]) = __pyx_t_8;
   }
 
-  /* "ParametricX.pyx":169
+  /* "ParametricX.pyx":182
  *         for i in range(7):
  *             param_arr[i] = params[i]
  *         p = &param_arr[0]             # <<<<<<<<<<<<<<
@@ -22792,7 +22779,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
  */
   __pyx_v_p = (&(__pyx_v_param_arr[0]));
 
-  /* "ParametricX.pyx":171
+  /* "ParametricX.pyx":184
  *         p = &param_arr[0]
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -22808,17 +22795,17 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
       #endif
       /*try:*/ {
 
-        /* "ParametricX.pyx":172
+        /* "ParametricX.pyx":185
  * 
  *         with nogil:
  *             self._correlate(p, &corr)             # <<<<<<<<<<<<<<
  *         return {'correlation': corr}
  * 
  */
-        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->_correlate(__pyx_v_self, __pyx_v_p, (&__pyx_v_corr)); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(0, 172, __pyx_L6_error)
+        ((struct __pyx_vtabstruct_11ParametricX_ParametricX *)__pyx_v_self->__pyx_vtab)->_correlate(__pyx_v_self, __pyx_v_p, (&__pyx_v_corr)); if (unlikely(__Pyx_ErrOccurredWithGIL())) __PYX_ERR(0, 185, __pyx_L6_error)
       }
 
-      /* "ParametricX.pyx":171
+      /* "ParametricX.pyx":184
  *         p = &param_arr[0]
  * 
  *         with nogil:             # <<<<<<<<<<<<<<
@@ -22844,7 +22831,7 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
       }
   }
 
-  /* "ParametricX.pyx":173
+  /* "ParametricX.pyx":186
  *         with nogil:
  *             self._correlate(p, &corr)
  *         return {'correlation': corr}             # <<<<<<<<<<<<<<
@@ -22852,17 +22839,17 @@ static PyObject *__pyx_f_11ParametricX_11ParametricX_correlate(struct __pyx_obj_
  * 
  */
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_corr); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 173, __pyx_L1_error)
+  __pyx_t_2 = PyFloat_FromDouble(__pyx_v_corr); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_correlation, __pyx_t_2) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_u_correlation, __pyx_t_2) < 0) __PYX_ERR(0, 186, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __pyx_r = ((PyObject*)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "ParametricX.pyx":160
+  /* "ParametricX.pyx":173
  * 
  * 
  *     cpdef dict correlate(self, np.ndarray params):             # <<<<<<<<<<<<<<
@@ -22939,12 +22926,12 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 160, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 173, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "correlate") < 0)) __PYX_ERR(0, 160, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "correlate") < 0)) __PYX_ERR(0, 173, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 1)) {
       goto __pyx_L5_argtuple_error;
@@ -22955,7 +22942,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("correlate", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 160, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("correlate", 1, 1, 1, __pyx_nargs); __PYX_ERR(0, 173, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -22969,7 +22956,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   __Pyx_RefNannyFinishContext();
   return NULL;
   __pyx_L4_argument_unpacking_done:;
-  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_params), __pyx_ptype_5numpy_ndarray, 1, "params", 0))) __PYX_ERR(0, 160, __pyx_L1_error)
+  if (unlikely(!__Pyx_ArgTypeTest(((PyObject *)__pyx_v_params), __pyx_ptype_5numpy_ndarray, 1, "params", 0))) __PYX_ERR(0, 173, __pyx_L1_error)
   __pyx_r = __pyx_pf_11ParametricX_11ParametricX_6correlate(((struct __pyx_obj_11ParametricX_ParametricX *)__pyx_v_self), __pyx_v_params);
 
   /* function exit code */
@@ -22996,7 +22983,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_6correlate(struct __pyx_ob
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("correlate", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = __pyx_f_11ParametricX_11ParametricX_correlate(__pyx_v_self, __pyx_v_params, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __pyx_t_1 = __pyx_f_11ParametricX_11ParametricX_correlate(__pyx_v_self, __pyx_v_params, 1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -23013,7 +23000,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_6correlate(struct __pyx_ob
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":176
+/* "ParametricX.pyx":189
  * 
  * 
  *     cpdef np.ndarray get_params(self):             # <<<<<<<<<<<<<<
@@ -23049,7 +23036,7 @@ static PyArrayObject *__pyx_f_11ParametricX_11ParametricX_get_params(struct __py
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_get_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!__Pyx_IsSameCFunction(__pyx_t_1, (void*) __pyx_pw_11ParametricX_11ParametricX_9get_params)) {
         __Pyx_XDECREF((PyObject *)__pyx_r);
@@ -23072,11 +23059,11 @@ static PyArrayObject *__pyx_f_11ParametricX_11ParametricX_get_params(struct __py
           PyObject *__pyx_callargs[2] = {__pyx_t_4, NULL};
           __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 0+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 176, __pyx_L1_error)
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 189, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
-        if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 176, __pyx_L1_error)
+        if (!(likely(((__pyx_t_2) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_2, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 189, __pyx_L1_error)
         __pyx_r = ((PyArrayObject *)__pyx_t_2);
         __pyx_t_2 = 0;
         __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
@@ -23095,7 +23082,7 @@ static PyArrayObject *__pyx_f_11ParametricX_11ParametricX_get_params(struct __py
     #endif
   }
 
-  /* "ParametricX.pyx":177
+  /* "ParametricX.pyx":190
  * 
  *     cpdef np.ndarray get_params(self):
  *         return np.array(self.c_params)             # <<<<<<<<<<<<<<
@@ -23103,12 +23090,12 @@ static PyArrayObject *__pyx_f_11ParametricX_11ParametricX_get_params(struct __py
  * 
  */
   __Pyx_XDECREF((PyObject *)__pyx_r);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_array); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  __pyx_t_2 = __Pyx_carray_to_py_double(__pyx_v_self->c_params, 7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 177, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_carray_to_py_double(__pyx_v_self->c_params, 7); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 190, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __pyx_t_4 = NULL;
   __pyx_t_5 = 0;
@@ -23129,16 +23116,16 @@ static PyArrayObject *__pyx_f_11ParametricX_11ParametricX_get_params(struct __py
     __pyx_t_1 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 1+__pyx_t_5);
     __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
     __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 177, __pyx_L1_error)
+    if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 190, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_1);
     __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   }
-  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 177, __pyx_L1_error)
+  if (!(likely(((__pyx_t_1) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_1, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 190, __pyx_L1_error)
   __pyx_r = ((PyArrayObject *)__pyx_t_1);
   __pyx_t_1 = 0;
   goto __pyx_L0;
 
-  /* "ParametricX.pyx":176
+  /* "ParametricX.pyx":189
  * 
  * 
  *     cpdef np.ndarray get_params(self):             # <<<<<<<<<<<<<<
@@ -23210,7 +23197,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_8get_params(struct __pyx_o
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("get_params", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_t_1 = ((PyObject *)__pyx_f_11ParametricX_11ParametricX_get_params(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_1 = ((PyObject *)__pyx_f_11ParametricX_11ParametricX_get_params(__pyx_v_self, 1)); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -23227,7 +23214,7 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_8get_params(struct __pyx_o
   return __pyx_r;
 }
 
-/* "ParametricX.pyx":180
+/* "ParametricX.pyx":193
  * 
  * 
  *     cpdef void update_params(self, object indices, object values):             # <<<<<<<<<<<<<<
@@ -23272,7 +23259,7 @@ static void __pyx_f_11ParametricX_11ParametricX_update_params(struct __pyx_obj_1
     if (unlikely(!__Pyx_object_dict_version_matches(((PyObject *)__pyx_v_self), __pyx_tp_dict_version, __pyx_obj_dict_version))) {
       PY_UINT64_T __pyx_typedict_guard = __Pyx_get_tp_dict_version(((PyObject *)__pyx_v_self));
       #endif
-      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_update_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
+      __pyx_t_1 = __Pyx_PyObject_GetAttrStr(((PyObject *)__pyx_v_self), __pyx_n_s_update_params); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
       __Pyx_GOTREF(__pyx_t_1);
       if (!__Pyx_IsSameCFunction(__pyx_t_1, (void*) __pyx_pw_11ParametricX_11ParametricX_11update_params)) {
         __Pyx_INCREF(__pyx_t_1);
@@ -23294,7 +23281,7 @@ static void __pyx_f_11ParametricX_11ParametricX_update_params(struct __pyx_obj_1
           PyObject *__pyx_callargs[3] = {__pyx_t_4, __pyx_v_indices, __pyx_v_values};
           __pyx_t_2 = __Pyx_PyObject_FastCall(__pyx_t_3, __pyx_callargs+1-__pyx_t_5, 2+__pyx_t_5);
           __Pyx_XDECREF(__pyx_t_4); __pyx_t_4 = 0;
-          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 180, __pyx_L1_error)
+          if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 193, __pyx_L1_error)
           __Pyx_GOTREF(__pyx_t_2);
           __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
         }
@@ -23315,105 +23302,105 @@ static void __pyx_f_11ParametricX_11ParametricX_update_params(struct __pyx_obj_1
     #endif
   }
 
-  /* "ParametricX.pyx":181
+  /* "ParametricX.pyx":194
  * 
  *     cpdef void update_params(self, object indices, object values):
  *         cdef np.ndarray i = np.asarray(indices, dtype=np.int32)             # <<<<<<<<<<<<<<
  *         cdef np.ndarray v = np.asarray(values, dtype=np.float64)
  *         cdef Py_ssize_t idx
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_1, __pyx_n_s_np); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_2 = __Pyx_PyObject_GetAttrStr(__pyx_t_1, __pyx_n_s_asarray); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_1 = PyTuple_New(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __Pyx_INCREF(__pyx_v_indices);
   __Pyx_GIVEREF(__pyx_v_indices);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_indices)) __PYX_ERR(0, 181, __pyx_L1_error);
-  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 181, __pyx_L1_error)
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_1, 0, __pyx_v_indices)) __PYX_ERR(0, 194, __pyx_L1_error);
+  __pyx_t_3 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
-  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_4, __pyx_n_s_np); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_GetAttrStr(__pyx_t_4, __pyx_n_s_int32); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 181, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_3, __pyx_n_s_dtype, __pyx_t_6) < 0) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 181, __pyx_L1_error)
+  __pyx_t_6 = __Pyx_PyObject_Call(__pyx_t_2, __pyx_t_1, __pyx_t_3); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 194, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
-  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 181, __pyx_L1_error)
+  if (!(likely(((__pyx_t_6) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_6, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 194, __pyx_L1_error)
   __pyx_v_i = ((PyArrayObject *)__pyx_t_6);
   __pyx_t_6 = 0;
 
-  /* "ParametricX.pyx":182
+  /* "ParametricX.pyx":195
  *     cpdef void update_params(self, object indices, object values):
  *         cdef np.ndarray i = np.asarray(indices, dtype=np.int32)
  *         cdef np.ndarray v = np.asarray(values, dtype=np.float64)             # <<<<<<<<<<<<<<
  *         cdef Py_ssize_t idx
  * 
  */
-  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_6, __pyx_n_s_np); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
-  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_3 = __Pyx_PyObject_GetAttrStr(__pyx_t_6, __pyx_n_s_asarray); if (unlikely(!__pyx_t_3)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_3);
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
-  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_6 = PyTuple_New(1); if (unlikely(!__pyx_t_6)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_6);
   __Pyx_INCREF(__pyx_v_values);
   __Pyx_GIVEREF(__pyx_v_values);
-  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_v_values)) __PYX_ERR(0, 182, __pyx_L1_error);
-  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 182, __pyx_L1_error)
+  if (__Pyx_PyTuple_SET_ITEM(__pyx_t_6, 0, __pyx_v_values)) __PYX_ERR(0, 195, __pyx_L1_error);
+  __pyx_t_1 = __Pyx_PyDict_NewPresized(1); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
-  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __Pyx_GetModuleGlobalName(__pyx_t_2, __pyx_n_s_np); if (unlikely(!__pyx_t_2)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_2);
-  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float64); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_GetAttrStr(__pyx_t_2, __pyx_n_s_float64); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_2); __pyx_t_2 = 0;
-  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 182, __pyx_L1_error)
+  if (PyDict_SetItem(__pyx_t_1, __pyx_n_s_dtype, __pyx_t_4) < 0) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 182, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_PyObject_Call(__pyx_t_3, __pyx_t_6, __pyx_t_1); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 195, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
   __Pyx_DECREF(__pyx_t_3); __pyx_t_3 = 0;
   __Pyx_DECREF(__pyx_t_6); __pyx_t_6 = 0;
   __Pyx_DECREF(__pyx_t_1); __pyx_t_1 = 0;
-  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 182, __pyx_L1_error)
+  if (!(likely(((__pyx_t_4) == Py_None) || likely(__Pyx_TypeTest(__pyx_t_4, __pyx_ptype_5numpy_ndarray))))) __PYX_ERR(0, 195, __pyx_L1_error)
   __pyx_v_v = ((PyArrayObject *)__pyx_t_4);
   __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":185
+  /* "ParametricX.pyx":198
  *         cdef Py_ssize_t idx
  * 
  *         for idx in range(i.shape[0]):             # <<<<<<<<<<<<<<
  *             self.c_params[i[idx]] = v[idx]
  */
-  __pyx_t_7 = __pyx_f_5numpy_7ndarray_5shape_shape(__pyx_v_i); if (unlikely(__pyx_t_7 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 185, __pyx_L1_error)
+  __pyx_t_7 = __pyx_f_5numpy_7ndarray_5shape_shape(__pyx_v_i); if (unlikely(__pyx_t_7 == ((npy_intp *)NULL) && PyErr_Occurred())) __PYX_ERR(0, 198, __pyx_L1_error)
   __pyx_t_8 = (__pyx_t_7[0]);
   __pyx_t_9 = __pyx_t_8;
   for (__pyx_t_10 = 0; __pyx_t_10 < __pyx_t_9; __pyx_t_10+=1) {
     __pyx_v_idx = __pyx_t_10;
 
-    /* "ParametricX.pyx":186
+    /* "ParametricX.pyx":199
  * 
  *         for idx in range(i.shape[0]):
  *             self.c_params[i[idx]] = v[idx]             # <<<<<<<<<<<<<<
  */
-    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_v), __pyx_v_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 186, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_v), __pyx_v_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 186, __pyx_L1_error)
+    __pyx_t_11 = __pyx_PyFloat_AsDouble(__pyx_t_4); if (unlikely((__pyx_t_11 == (double)-1) && PyErr_Occurred())) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
-    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_i), __pyx_v_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 186, __pyx_L1_error)
+    __pyx_t_4 = __Pyx_GetItemInt(((PyObject *)__pyx_v_i), __pyx_v_idx, Py_ssize_t, 1, PyInt_FromSsize_t, 0, 0, 0); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_GOTREF(__pyx_t_4);
-    __pyx_t_12 = __Pyx_PyIndex_AsSsize_t(__pyx_t_4); if (unlikely((__pyx_t_12 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 186, __pyx_L1_error)
+    __pyx_t_12 = __Pyx_PyIndex_AsSsize_t(__pyx_t_4); if (unlikely((__pyx_t_12 == (Py_ssize_t)-1) && PyErr_Occurred())) __PYX_ERR(0, 199, __pyx_L1_error)
     __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
     (__pyx_v_self->c_params[__pyx_t_12]) = __pyx_t_11;
   }
 
-  /* "ParametricX.pyx":180
+  /* "ParametricX.pyx":193
  * 
  * 
  *     cpdef void update_params(self, object indices, object values):             # <<<<<<<<<<<<<<
@@ -23492,7 +23479,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[0]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 180, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
         else goto __pyx_L5_argtuple_error;
         CYTHON_FALLTHROUGH;
         case  1:
@@ -23500,14 +23487,14 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
           (void)__Pyx_Arg_NewRef_FASTCALL(values[1]);
           kw_args--;
         }
-        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 180, __pyx_L3_error)
+        else if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L3_error)
         else {
-          __Pyx_RaiseArgtupleInvalid("update_params", 1, 2, 2, 1); __PYX_ERR(0, 180, __pyx_L3_error)
+          __Pyx_RaiseArgtupleInvalid("update_params", 1, 2, 2, 1); __PYX_ERR(0, 193, __pyx_L3_error)
         }
       }
       if (unlikely(kw_args > 0)) {
         const Py_ssize_t kwd_pos_args = __pyx_nargs;
-        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "update_params") < 0)) __PYX_ERR(0, 180, __pyx_L3_error)
+        if (unlikely(__Pyx_ParseOptionalKeywords(__pyx_kwds, __pyx_kwvalues, __pyx_pyargnames, 0, values + 0, kwd_pos_args, "update_params") < 0)) __PYX_ERR(0, 193, __pyx_L3_error)
       }
     } else if (unlikely(__pyx_nargs != 2)) {
       goto __pyx_L5_argtuple_error;
@@ -23520,7 +23507,7 @@ PyObject *__pyx_args, PyObject *__pyx_kwds
   }
   goto __pyx_L6_skip;
   __pyx_L5_argtuple_error:;
-  __Pyx_RaiseArgtupleInvalid("update_params", 1, 2, 2, __pyx_nargs); __PYX_ERR(0, 180, __pyx_L3_error)
+  __Pyx_RaiseArgtupleInvalid("update_params", 1, 2, 2, __pyx_nargs); __PYX_ERR(0, 193, __pyx_L3_error)
   __pyx_L6_skip:;
   goto __pyx_L4_argument_unpacking_done;
   __pyx_L3_error:;
@@ -23556,8 +23543,8 @@ static PyObject *__pyx_pf_11ParametricX_11ParametricX_10update_params(struct __p
   int __pyx_clineno = 0;
   __Pyx_RefNannySetupContext("update_params", 1);
   __Pyx_XDECREF(__pyx_r);
-  __pyx_f_11ParametricX_11ParametricX_update_params(__pyx_v_self, __pyx_v_indices, __pyx_v_values, 1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 180, __pyx_L1_error)
-  __pyx_t_1 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_f_11ParametricX_11ParametricX_update_params(__pyx_v_self, __pyx_v_indices, __pyx_v_values, 1); if (unlikely(PyErr_Occurred())) __PYX_ERR(0, 193, __pyx_L1_error)
+  __pyx_t_1 = __Pyx_void_to_None(NULL); if (unlikely(!__pyx_t_1)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_1);
   __pyx_r = __pyx_t_1;
   __pyx_t_1 = 0;
@@ -26220,7 +26207,7 @@ static int __Pyx_CreateStringTabAndInitStrings(void) {
 }
 /* #### Code section: cached_builtins ### */
 static CYTHON_SMALL_CODE int __Pyx_InitCachedBuiltins(void) {
-  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_builtin_ValueError = __Pyx_GetBuiltinName(__pyx_n_s_ValueError); if (!__pyx_builtin_ValueError) __PYX_ERR(0, 32, __pyx_L1_error)
   __pyx_builtin_range = __Pyx_GetBuiltinName(__pyx_n_s_range); if (!__pyx_builtin_range) __PYX_ERR(0, 63, __pyx_L1_error)
   __pyx_builtin_TypeError = __Pyx_GetBuiltinName(__pyx_n_s_TypeError); if (!__pyx_builtin_TypeError) __PYX_ERR(1, 83, __pyx_L1_error)
   __pyx_builtin_OverflowError = __Pyx_GetBuiltinName(__pyx_n_s_OverflowError); if (!__pyx_builtin_OverflowError) __PYX_ERR(1, 83, __pyx_L1_error)
@@ -26300,80 +26287,80 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GOTREF(__pyx_tuple__10);
   __Pyx_GIVEREF(__pyx_tuple__10);
 
-  /* "ParametricX.pyx":33
+  /* "ParametricX.pyx":32
  *         """Validate input parameters."""
  *         if len(self.center) != 2:
  *             raise ValueError("center must be a tuple of (x, y)")             # <<<<<<<<<<<<<<
  *         if len(self.shape) != 5:
  *             raise ValueError("shape needs 5 params: (ang1, ang2, rel_intens, lin_wid, leg_len)")
  */
-  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_u_center_must_be_a_tuple_of_x_y); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 33, __pyx_L1_error)
+  __pyx_tuple__11 = PyTuple_Pack(1, __pyx_kp_u_center_must_be_a_tuple_of_x_y); if (unlikely(!__pyx_tuple__11)) __PYX_ERR(0, 32, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__11);
   __Pyx_GIVEREF(__pyx_tuple__11);
 
-  /* "ParametricX.pyx":35
+  /* "ParametricX.pyx":34
  *             raise ValueError("center must be a tuple of (x, y)")
  *         if len(self.shape) != 5:
  *             raise ValueError("shape needs 5 params: (ang1, ang2, rel_intens, lin_wid, leg_len)")             # <<<<<<<<<<<<<<
  * 
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  */
-  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_u_shape_needs_5_params_ang1_ang2_r); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 35, __pyx_L1_error)
+  __pyx_tuple__12 = PyTuple_Pack(1, __pyx_kp_u_shape_needs_5_params_ang1_ang2_r); if (unlikely(!__pyx_tuple__12)) __PYX_ERR(0, 34, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__12);
   __Pyx_GIVEREF(__pyx_tuple__12);
 
-  /* "ParametricX.pyx":39
+  /* "ParametricX.pyx":38
  *         ang1, ang2, rel_intens, lin_wid, leg_len = self.shape
  *         if not (-2*np.pi <= ang1 <= 2*np.pi):
  *             raise ValueError("ang1 must be between -2 and 2")             # <<<<<<<<<<<<<<
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")
  */
-  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_u_ang1_must_be_between_2_and_2); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 39, __pyx_L1_error)
+  __pyx_tuple__13 = PyTuple_Pack(1, __pyx_kp_u_ang1_must_be_between_2_and_2); if (unlikely(!__pyx_tuple__13)) __PYX_ERR(0, 38, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__13);
   __Pyx_GIVEREF(__pyx_tuple__13);
 
-  /* "ParametricX.pyx":41
+  /* "ParametricX.pyx":40
  *             raise ValueError("ang1 must be between -2 and 2")
  *         if not (-2*np.pi <= ang2 <= 2*np.pi):
  *             raise ValueError("ang2 must be between -2 and 2")             # <<<<<<<<<<<<<<
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")
  */
-  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_u_ang2_must_be_between_2_and_2); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 41, __pyx_L1_error)
+  __pyx_tuple__14 = PyTuple_Pack(1, __pyx_kp_u_ang2_must_be_between_2_and_2); if (unlikely(!__pyx_tuple__14)) __PYX_ERR(0, 40, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__14);
   __Pyx_GIVEREF(__pyx_tuple__14);
 
-  /* "ParametricX.pyx":43
+  /* "ParametricX.pyx":42
  *             raise ValueError("ang2 must be between -2 and 2")
  *         if not (0 <= rel_intens <= 1):
  *             raise ValueError("rel_intens must be in [0, 1]")             # <<<<<<<<<<<<<<
  *         if lin_wid <= 0 or leg_len <= 0:
  *             raise ValueError("lin_wid and leg_len must be positive")
  */
-  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_u_rel_intens_must_be_in_0_1); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 43, __pyx_L1_error)
+  __pyx_tuple__15 = PyTuple_Pack(1, __pyx_kp_u_rel_intens_must_be_in_0_1); if (unlikely(!__pyx_tuple__15)) __PYX_ERR(0, 42, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__15);
   __Pyx_GIVEREF(__pyx_tuple__15);
 
-  /* "ParametricX.pyx":45
+  /* "ParametricX.pyx":44
  *             raise ValueError("rel_intens must be in [0, 1]")
  *         if lin_wid <= 0 or leg_len <= 0:
  *             raise ValueError("lin_wid and leg_len must be positive")             # <<<<<<<<<<<<<<
  * 
  * 
  */
-  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_u_lin_wid_and_leg_len_must_be_posi); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 45, __pyx_L1_error)
+  __pyx_tuple__16 = PyTuple_Pack(1, __pyx_kp_u_lin_wid_and_leg_len_must_be_posi); if (unlikely(!__pyx_tuple__16)) __PYX_ERR(0, 44, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__16);
   __Pyx_GIVEREF(__pyx_tuple__16);
 
-  /* "ParametricX.pyx":152
+  /* "ParametricX.pyx":165
  *     cpdef void visualize(self):
  *         template, _ = self.get_parametric_X()
  *         plt.figure(figsize=(10, 5))             # <<<<<<<<<<<<<<
  *         plt.imshow(template, cmap='hot', alpha=0.5)
  *         plt.title('Parametric X Template')
  */
-  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_int_10, __pyx_int_5); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 152, __pyx_L1_error)
+  __pyx_tuple__17 = PyTuple_Pack(2, __pyx_int_10, __pyx_int_5); if (unlikely(!__pyx_tuple__17)) __PYX_ERR(0, 165, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__17);
   __Pyx_GIVEREF(__pyx_tuple__17);
 
@@ -26489,59 +26476,59 @@ static CYTHON_SMALL_CODE int __Pyx_InitCachedConstants(void) {
   __Pyx_GIVEREF(__pyx_tuple__28);
   __pyx_codeobj__29 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 5, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__28, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_stringsource, __pyx_n_s_pyx_unpickle_Enum, 1, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__29)) __PYX_ERR(1, 1, __pyx_L1_error)
 
-  /* "ParametricX.pyx":137
+  /* "ParametricX.pyx":150
  * 
  * 
  *     cpdef tuple get_parametric_X(self):             # <<<<<<<<<<<<<<
  *         cdef:
  *             double* params = &self.c_params[0]
  */
-  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_tuple__30 = PyTuple_Pack(1, __pyx_n_s_self); if (unlikely(!__pyx_tuple__30)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__30);
   __Pyx_GIVEREF(__pyx_tuple__30);
-  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_get_parametric_X, 137, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_codeobj__31 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_get_parametric_X, 150, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__31)) __PYX_ERR(0, 150, __pyx_L1_error)
 
-  /* "ParametricX.pyx":150
+  /* "ParametricX.pyx":163
  * 
  * 
  *     cpdef void visualize(self):             # <<<<<<<<<<<<<<
  *         template, _ = self.get_parametric_X()
  *         plt.figure(figsize=(10, 5))
  */
-  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_visualize, 150, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_codeobj__32 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_visualize, 163, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__32)) __PYX_ERR(0, 163, __pyx_L1_error)
 
-  /* "ParametricX.pyx":160
+  /* "ParametricX.pyx":173
  * 
  * 
  *     cpdef dict correlate(self, np.ndarray params):             # <<<<<<<<<<<<<<
  *         cdef:
  *             double[7] param_arr
  */
-  __pyx_tuple__33 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_params); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __pyx_tuple__33 = PyTuple_Pack(2, __pyx_n_s_self, __pyx_n_s_params); if (unlikely(!__pyx_tuple__33)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__33);
   __Pyx_GIVEREF(__pyx_tuple__33);
-  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_correlate, 160, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __pyx_codeobj__34 = (PyObject*)__Pyx_PyCode_New(2, 0, 0, 2, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__33, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_correlate, 173, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__34)) __PYX_ERR(0, 173, __pyx_L1_error)
 
-  /* "ParametricX.pyx":176
+  /* "ParametricX.pyx":189
  * 
  * 
  *     cpdef np.ndarray get_params(self):             # <<<<<<<<<<<<<<
  *         return np.array(self.c_params)
  * 
  */
-  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_get_params, 176, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_codeobj__35 = (PyObject*)__Pyx_PyCode_New(1, 0, 0, 1, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__30, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_get_params, 189, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__35)) __PYX_ERR(0, 189, __pyx_L1_error)
 
-  /* "ParametricX.pyx":180
+  /* "ParametricX.pyx":193
  * 
  * 
  *     cpdef void update_params(self, object indices, object values):             # <<<<<<<<<<<<<<
  *         cdef np.ndarray i = np.asarray(indices, dtype=np.int32)
  *         cdef np.ndarray v = np.asarray(values, dtype=np.float64)
  */
-  __pyx_tuple__36 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_indices, __pyx_n_s_values); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_tuple__36 = PyTuple_Pack(3, __pyx_n_s_self, __pyx_n_s_indices, __pyx_n_s_values); if (unlikely(!__pyx_tuple__36)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_tuple__36);
   __Pyx_GIVEREF(__pyx_tuple__36);
-  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_update_params, 180, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_codeobj__37 = (PyObject*)__Pyx_PyCode_New(3, 0, 0, 3, 0, CO_OPTIMIZED|CO_NEWLOCALS, __pyx_empty_bytes, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_tuple__36, __pyx_empty_tuple, __pyx_empty_tuple, __pyx_kp_s_ParametricX_ParametricX_pyx, __pyx_n_s_update_params, 193, __pyx_empty_bytes); if (unlikely(!__pyx_codeobj__37)) __PYX_ERR(0, 193, __pyx_L1_error)
 
   /* "(tree fragment)":1
  * def __reduce_cython__(self):             # <<<<<<<<<<<<<<
@@ -26681,6 +26668,7 @@ static int __Pyx_modinit_type_init_code(void) {
   __pyx_vtabptr_11ParametricX_ParametricX = &__pyx_vtable_11ParametricX_ParametricX;
   __pyx_vtable_11ParametricX_ParametricX.validate_inputs = (void (*)(struct __pyx_obj_11ParametricX_ParametricX *))__pyx_f_11ParametricX_11ParametricX_validate_inputs;
   __pyx_vtable_11ParametricX_ParametricX.parametric_template = (void (*)(struct __pyx_obj_11ParametricX_ParametricX *, double *, __Pyx_memviewslice, int *, int *))__pyx_f_11ParametricX_11ParametricX_parametric_template;
+  __pyx_vtable_11ParametricX_ParametricX.bilinear_interpolate = (double (*)(struct __pyx_obj_11ParametricX_ParametricX *, double, double))__pyx_f_11ParametricX_11ParametricX_bilinear_interpolate;
   __pyx_vtable_11ParametricX_ParametricX._correlate = (void (*)(struct __pyx_obj_11ParametricX_ParametricX *, double *, double *))__pyx_f_11ParametricX_11ParametricX__correlate;
   __pyx_vtable_11ParametricX_ParametricX.get_params_ptr = (double *(*)(struct __pyx_obj_11ParametricX_ParametricX *))__pyx_f_11ParametricX_11ParametricX_get_params_ptr;
   __pyx_vtable_11ParametricX_ParametricX.correlate = (PyObject *(*)(struct __pyx_obj_11ParametricX_ParametricX *, PyArrayObject *, int __pyx_skip_dispatch))__pyx_f_11ParametricX_11ParametricX_correlate;
@@ -27750,68 +27738,68 @@ if (!__Pyx_RefNanny) {
   __Pyx_DECREF(__pyx_t_7); __pyx_t_7 = 0;
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
 
-  /* "ParametricX.pyx":137
+  /* "ParametricX.pyx":150
  * 
  * 
  *     cpdef tuple get_parametric_X(self):             # <<<<<<<<<<<<<<
  *         cdef:
  *             double* params = &self.c_params[0]
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_3get_parametric_X, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_get_parametric_X, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 137, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_3get_parametric_X, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_get_parametric_X, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__31)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_get_parametric_X, __pyx_t_4) < 0) __PYX_ERR(0, 137, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_get_parametric_X, __pyx_t_4) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   PyType_Modified(__pyx_ptype_11ParametricX_ParametricX);
 
-  /* "ParametricX.pyx":150
+  /* "ParametricX.pyx":163
  * 
  * 
  *     cpdef void visualize(self):             # <<<<<<<<<<<<<<
  *         template, _ = self.get_parametric_X()
  *         plt.figure(figsize=(10, 5))
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_5visualize, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_visualize, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 150, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_5visualize, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_visualize, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__32)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_visualize, __pyx_t_4) < 0) __PYX_ERR(0, 150, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_visualize, __pyx_t_4) < 0) __PYX_ERR(0, 163, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   PyType_Modified(__pyx_ptype_11ParametricX_ParametricX);
 
-  /* "ParametricX.pyx":160
+  /* "ParametricX.pyx":173
  * 
  * 
  *     cpdef dict correlate(self, np.ndarray params):             # <<<<<<<<<<<<<<
  *         cdef:
  *             double[7] param_arr
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_7correlate, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_correlate, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 160, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_7correlate, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_correlate, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__34)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_correlate, __pyx_t_4) < 0) __PYX_ERR(0, 160, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_correlate, __pyx_t_4) < 0) __PYX_ERR(0, 173, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   PyType_Modified(__pyx_ptype_11ParametricX_ParametricX);
 
-  /* "ParametricX.pyx":176
+  /* "ParametricX.pyx":189
  * 
  * 
  *     cpdef np.ndarray get_params(self):             # <<<<<<<<<<<<<<
  *         return np.array(self.c_params)
  * 
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_9get_params, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_get_params, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 176, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_9get_params, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_get_params, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__35)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_get_params, __pyx_t_4) < 0) __PYX_ERR(0, 176, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_get_params, __pyx_t_4) < 0) __PYX_ERR(0, 189, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   PyType_Modified(__pyx_ptype_11ParametricX_ParametricX);
 
-  /* "ParametricX.pyx":180
+  /* "ParametricX.pyx":193
  * 
  * 
  *     cpdef void update_params(self, object indices, object values):             # <<<<<<<<<<<<<<
  *         cdef np.ndarray i = np.asarray(indices, dtype=np.int32)
  *         cdef np.ndarray v = np.asarray(values, dtype=np.float64)
  */
-  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_11update_params, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_update_params, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 180, __pyx_L1_error)
+  __pyx_t_4 = __Pyx_CyFunction_New(&__pyx_mdef_11ParametricX_11ParametricX_11update_params, __Pyx_CYFUNCTION_CCLASS, __pyx_n_s_ParametricX_update_params, NULL, __pyx_n_s_ParametricX, __pyx_d, ((PyObject *)__pyx_codeobj__37)); if (unlikely(!__pyx_t_4)) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_GOTREF(__pyx_t_4);
-  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_update_params, __pyx_t_4) < 0) __PYX_ERR(0, 180, __pyx_L1_error)
+  if (__Pyx_SetItemOnTypeDict((PyObject *)__pyx_ptype_11ParametricX_ParametricX, __pyx_n_s_update_params, __pyx_t_4) < 0) __PYX_ERR(0, 193, __pyx_L1_error)
   __Pyx_DECREF(__pyx_t_4); __pyx_t_4 = 0;
   PyType_Modified(__pyx_ptype_11ParametricX_ParametricX);
 

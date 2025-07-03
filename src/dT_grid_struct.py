@@ -1,23 +1,21 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple, plt, List
+from utility.py_import import np, cv2, dataclass, field, Tuple, plt
 from src.T0_grid_struct import T0GridStruct
 from src.interpolator import dim2Interpolator
-from scipy.optimize import minimize
 
 
 @dataclass
 class DTGridStruct:
-    T0_grid    : T0GridStruct
-    image_path : str
+    T0_grid   : T0GridStruct
+    image_path: str
 
-    # Default Parameters
-    win_size  : Tuple[int, int] = (31, 31)
-    max_level : int = 7
-    iteration : int = 10
-    epsilon   : float = 0.0001
+    win_size : Tuple[int, int] = (31, 31)
+    max_level: int = 7
+    iteration: int = 10
+    epsilon  : float = 0.0001
 
-    shape : Tuple[int, int] = field(init=False)
-    grid  : np.ndarray = field(init=False)
-    image : np.ndarray = field(init=False)
+    shape: Tuple[int, int] = field(init=False)
+    grid : np.ndarray = field(init=False)
+    image: np.ndarray = field(init=False)
 
     def __post_init__(self):
         self.shape = self.T0_grid.shape
@@ -30,11 +28,11 @@ class DTGridStruct:
         
         self._grid_LK(prev_pts, valid_indices)
         self._dewarp_optimization(prev_pts, valid_indices, levels=0)
-        # self._optimization()
 
 
     def _grid_LK(self, prev_pts: np.ndarray, valid_indices: np.ndarray) -> None:
-        
+        # Perform LK optical flow to track points from T0_grid to dT_grid
+
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
             prevImg=self.T0_grid.image,
@@ -61,7 +59,7 @@ class DTGridStruct:
 
 
     def _dewarp_optimization(
-            self, prev_pts: np.ndarray, valid_indices: np.ndarray, levels: int=3
+            self, prev_pts: np.ndarray, valid_indices: np.ndarray, levels: int=1
             ) -> None:
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
         dewarped_image = None
@@ -89,7 +87,6 @@ class DTGridStruct:
                     displacement = next_pts[tracked_idx].ravel() - prev_pts[tracked_idx].ravel()
                     self.grid[i][j] += displacement
                 tracked_idx += 1
-
         return
 
 
@@ -105,7 +102,6 @@ class DTGridStruct:
 
         src_points = self.grid[valid_ij[:, 0], valid_ij[:, 1]]
         src_points = np.vstack(src_points).astype(np.float32)
-        # print(f"Shape of valid points: {np.shape(src_points)}")
         in_bounds = (
             (src_points[:, 0] >= 0) & (src_points[:, 0] < w) & \
             (src_points[:, 1] >= 0) & (src_points[:, 1] < h)
@@ -132,77 +128,6 @@ class DTGridStruct:
         return flow
 
 
-    def _optimization(self) -> None:
-        T0_grid_valid, dT_grid_valid = self.__get_valid_cells()
-        
-        valid_mask = T0_grid_valid & dT_grid_valid
-        valid_indices = np.argwhere(valid_mask)
-
-        for i, j in valid_indices:
-            x1 = self.T0_grid.grid[i, j]
-            x0 = self.grid[i, j]
-            x_s = self.__optimizer(x0, x1)
-            self.grid[i, j] = x_s
-        
-        return
-
-
-    def __optimizer(self, x0: np.ndarray, x1: np.ndarray) -> np.ndarray:
-        bounds = [
-            (x0[0] - 0.5, x0[0] + 0.5),  # x (±0.5 pixel)
-            (x0[1] - 0.5, x0[1] + 0.5),  # y (±0.5 pixel)
-            ]
-        
-        winSize = self.win_size
-        maxLevel = self.max_level
-        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
-
-        def objective(pt: np.ndarray) -> float:
-            try:
-                pt = np.array(pt, dtype=np.float32).reshape(-1, 1, 2)
-                next_pt, status, _ = cv2.calcOpticalFlowPyrLK(
-                    prevImg=self.image,
-                    nextImg=self.T0_grid.image, 
-                    prevPts=pt,
-                    nextPts=None,
-                    winSize=winSize,
-                    maxLevel=maxLevel,
-                    criteria=criteria
-                    )
-                
-                if status is None or status[0] != 1:
-                    return np.inf
-                    
-                err = np.linalg.norm(next_pt - x1)
-                return float(err)
-            
-            except Exception as e:
-                print(f"Error in objective function: {e}")
-                return np.inf
-                
-        try:
-            result = minimize(
-                objective,
-                x0,
-                method='L-BFGS-B',
-                bounds=bounds,
-                options={
-                    'maxiter': 50, 
-                    'ftol': 1e-4,
-                    'gtol': 1e-4,
-                    'eps': 1e-3 
-                    }
-                )
-            if result.success:
-                return result.x
-            else:
-                # Return initial guess if optimization fails
-                return x0  
-        except Exception as e:
-            print(f"Error in gradient descent: {e}")
-            raise
-
-
     def visualize(self) -> None:
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.imshow(self.image, cmap='gray')
@@ -217,30 +142,22 @@ class DTGridStruct:
         plt.show()
 
 
-    def plot_convex_hull(self):
-        plt.figure(figsize=(15, 5))
+    def _refine_points(self, valid_indices: np.ndarray) -> None:
+        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 
+                    10*self.iteration, self.epsilon)  
+        
+        for _, (i, j) in enumerate(zip(*valid_indices)):
+            pt = self.grid[i][j].reshape(1, 1, 2)
+            refined_pt = cv2.cornerSubPix(
+                self.image,
+                pt.astype(np.float32),
+                winSize=(5, 5),
+                zeroZone=(-1, -1),
+                criteria=criteria
+            )
+            self.grid[i][j] = refined_pt.ravel()
 
-        plt.subplot(1, 3, 1)
-        magnitude = np.sqrt(self.flow[...,0]**2 + self.flow[...,1]**2)
-        masked_magnitude = np.ma.masked_invalid(magnitude)
-        plt.imshow(masked_magnitude, cmap='hot', vmin=np.nanmin(magnitude), vmax=np.nanmax(magnitude))
-        plt.colorbar(label='Flow Magnitude (pixels)')
-        plt.title("Optical Flow Magnitude")
-        plt.axis('off')
 
-        plt.subplot(1, 3, 2)
-        convex = self.__img_convex_hull(self.T0_grid.image, 0)
-        plt.imshow(convex, cmap='gray')
-        plt.title("Convex Hull of T0 Image")
-
-        plt.subplot(1, 3, 3)
-        convex = self.__img_convex_hull(self.image, 1)
-        plt.imshow(convex, cmap='gray')
-        plt.title("Convex Hull of dT image")
-        plt.tight_layout()
-        plt.show()
-
-    
     ########## Private Helper Functions ##########
 
     def __get_valid_cells(self) -> Tuple[np.ndarray, np.ndarray]:

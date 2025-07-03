@@ -1,5 +1,5 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple, plt
-from utility.image_utility import skeletonize_img, stereo_transform
+from utility.py_import import np, cv2, dataclass, field, Tuple
+from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
 
 
@@ -41,9 +41,6 @@ class T0GridStruct:
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
         _, self.image_skel  = skeletonize_img(self.image)
 
-        ############################
-        ### Initialize the grids ###
-        ############################
         self._populate_grid()
         # self._generate_template(scale=self.temp_scale)
     
@@ -66,8 +63,8 @@ class T0GridStruct:
         theta1, rho1 = line1
         theta2, rho2 = line2
 
+        # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
         A = np.array([
-            # Line equations in Cartesian form: x * cos(theta) + y * sin(theta) = rho
             [np.cos(theta1), np.sin(theta1)],
             [np.cos(theta2), np.sin(theta2)]
             ])
@@ -81,10 +78,7 @@ class T0GridStruct:
 
 
     def _populate_grid(self) -> None:
-        """
-        Populate the grid with the intersection points of positive and negative lines
-        if lines are given.
-        """
+        # Populate grid with intersection pts of pos and neg lines
         pos_lines, neg_lines = self._hough_line_transform(slope_thresh=0.1)
 
         for i, pos_line in enumerate(sort_lines(pos_lines)):

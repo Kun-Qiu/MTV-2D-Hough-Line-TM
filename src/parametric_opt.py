@@ -58,21 +58,13 @@ class ParameterOptimizer:
             x0 = x[:6]
             leg_len = x[6]
 
-            # bounds = [
-            #     (x0[0] - self.rad[0], x0[0] + self.rad[0]),  # x
-            #     (x0[1] - self.rad[1], x0[1] + self.rad[1]),  # y
-            #     (x0[2] - self.rad[2], x0[2] + self.rad[2]),  # θ1
-            #     (x0[3] - self.rad[3], x0[3] + self.rad[3]),  # θ2
-            #     (x0[4] - self.rad[4], x0[4] + self.rad[4]),  # I
-            #     (x0[5] - self.rad[5], x0[5] + self.rad[5])   # FWHM
-            #     ]
             bounds = [
-                (x0[0] - 1.0, x0[0] + 1.0),  # x (±1 pixel)
-                (x0[1] - 1.0, x0[1] + 1.0),  # y (±1 pixel)
-                (x0[2] - np.radians(5), x0[2] + np.radians(5)),  # θ1
-                (x0[3] - np.radians(5), x0[3] + np.radians(5)),  # θ2
-                (max(0, x0[4] * 0.9), x0[4] * 1.1),  # I (10% variation)
-                (max(0.1, x0[5] * 0.9), x0[5] * 1.1)   # FWHM (10% variation)
+                (x0[0] - self.rad[0], x0[0] + self.rad[0]),  # x
+                (x0[1] - self.rad[1], x0[1] + self.rad[1]),  # y
+                (x0[2] - self.rad[2], x0[2] + self.rad[2]),  # θ1
+                (x0[3] - self.rad[3], x0[3] + self.rad[3]),  # θ2
+                (x0[4] - self.rad[4], x0[4] + self.rad[4]),  # I
+                (x0[5] - self.rad[5], x0[5] + self.rad[5])   # FWHM
                 ]
             
             def objective(params: np.ndarray) -> float:

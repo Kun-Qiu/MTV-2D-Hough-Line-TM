@@ -93,14 +93,14 @@ class DTGridStruct:
     def _interpolate_flow(self) -> np.ndarray:
         h, w = self.image.shape[:2]
 
-        valid_grid ,valid_T0_grid = self.__get_valid_cells()
+        valid_grid, valid_T0_grid = self.__get_valid_cells()
         valid_mask = valid_grid & valid_T0_grid
         valid_ij = np.argwhere(valid_mask)
         
         if valid_ij.size == 0:
             return np.zeros((h, w, 2), dtype=np.float32)
 
-        src_points = self.grid[valid_ij[:, 0], valid_ij[:, 1]]
+        src_points = self.T0_grid.grid[valid_ij[:, 0], valid_ij[:, 1]]
         src_points = np.vstack(src_points).astype(np.float32)
         in_bounds = (
             (src_points[:, 0] >= 0) & (src_points[:, 0] < w) & \
@@ -114,7 +114,7 @@ class DTGridStruct:
         if len(src_points) < 4:
             raise ValueError(f"Interpolation requires >4 points, got {len(src_points)}")
 
-        next_points = self.T0_grid.grid[valid_ij[:, 0], valid_ij[:, 1]]
+        next_points = self.grid.grid[valid_ij[:, 0], valid_ij[:, 1]]
         next_points = np.vstack(next_points).astype(np.float32)
         flow_vectors = next_points - src_points
         flow = np.zeros((h, w, 2), dtype=np.float32)
@@ -185,8 +185,8 @@ class DTGridStruct:
         h, w = img.shape[:2]
         x, y = np.meshgrid(np.arange(w), np.arange(h))
 
-        remap_x = (x - flow[..., 0]).astype(np.float32)
-        remap_y = (y - flow[..., 1]).astype(np.float32)
+        remap_x = (x + flow[..., 0]).astype(np.float32)
+        remap_y = (y + flow[..., 1]).astype(np.float32)
         dewarped_image = cv2.remap(
             img, remap_x, remap_y,
             interpolation=cv2.INTER_CUBIC 

@@ -47,15 +47,10 @@ class T0GridStruct:
 
     def _is_within_bounds(self, x: int, y: int) -> bool:
         height, width = self.image.shape[:2]
-        if not (0 <= x < width and 0 <= y < height):
-            return False
-        
-        if not hasattr(self, '_image_stats'):
-            self._image_stats = (np.mean(self.image), np.std(self.image))
-        
-        mean, _ = self._image_stats
-        x, y = int(round(x)), int(round(y))
-        return self.image[y, x] > mean
+        if 0 <= x <= width and 0 <= y <= height:
+            return True
+
+        return False
 
 
     @staticmethod
@@ -88,9 +83,8 @@ class T0GridStruct:
                 if j >= self.shape[1]:
                     continue
                 intersection = self._find_intersection(pos_line, neg_line)
-                if intersection is not None or self._is_within_bounds(
-                                            intersection[0], intersection[1]
-                                            ):
+                bounded = self._is_within_bounds(intersection[0], intersection[1])
+                if intersection is not None and bounded:
                     self.grid[i, j] = intersection
         return
 

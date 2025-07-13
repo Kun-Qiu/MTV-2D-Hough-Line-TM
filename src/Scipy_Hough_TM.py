@@ -1,4 +1,4 @@
-from utility.py_import import np, plt, tri, dataclass, field, Tuple
+from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 from cython_build.ParametricX import ParametricX
@@ -15,21 +15,21 @@ class HoughTM:
     verbose  : bool = False
 
     # Template Matching Optimization Parameters
-    fwhm        : float = 3
-    uncertainty : float = 1
-    num_interval: int = 10
-    intensity   : float = 0.5
-    temp_scale  : float = 0.67
+    fwhm        : float = field(init=False)
+    uncertainty : float = field(init=False)
+    num_interval: int = field(init=False)
+    intensity   : float = field(init=False)
+    temp_scale  : float = field(init=False)
 
     # Hough Line Transform Parameters
-    density  : int = 10
-    threshold: float = 0.2
+    density  : int = field(init=False)
+    threshold: float = field(init=False)
 
     # Lucas Kanade Optical Flow Parameters
-    win_size : Tuple[int, int] = (31, 31)
-    max_level: int = 5
-    iteration: int = 10
-    epsilon  : float = 0.001
+    win_size : Tuple[int, int] = field(init=False)
+    max_level: int = field(init=False)
+    iteration: int = field(init=False)
+    epsilon  : float = field(init=False)
 
     solve_bool  : bool = field(init=False)
     valid_ij    : np.ndarray = field(init=False) 
@@ -39,6 +39,18 @@ class HoughTM:
 
     def __post_init__(self):
         shape = (self.num_lines, self.num_lines)
+
+        # Default values for parameters
+        self.set_hough_params(density=10, threshold=0.2)
+        self.set_template_params(
+            fwhm=3, uncertainty=1, num_interval=30, 
+            intensity=0.5, temp_scale=0.67
+            )
+        self.set_optical_flow_params(
+            win_size=(31, 31), max_level=5, 
+            iteration=10, epsilon=0.001
+            )
+        
         self.uncertainty = self.fwhm
 
         self.grid_T0 = T0GridStruct(
@@ -50,7 +62,7 @@ class HoughTM:
             temp_scale=self.temp_scale
             )
         if self.optimize:
-            self._optimize(self.grid_T0, False)
+            self._template_optimize(self.grid_T0, False)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -73,73 +85,46 @@ class HoughTM:
         self.valid_ij = np.argwhere(grid_T0_valid & grid_dT_valid)
         self.disp_field = np.full((self.num_lines, self.num_lines, 4), np.nan)
         self.solve_bool = False
-        
 
-    def _optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
-        grid_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.grid]
-            )
-        params_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.params]
-            )
+
+    def set_template_params(
+            self, fwhm: float, uncertainty: float, num_interval: int, 
+            intensity: float, temp_scale: float
+            ) -> None:
+        
+        self.fwhm = fwhm
+        self.uncertainty = uncertainty
+        self.num_interval = num_interval
+        self.intensity = intensity
+        self.temp_scale = temp_scale
+       
+        return 
     
-        valid_mask = grid_valid & params_valid
-        valid_indices = np.argwhere(valid_mask)
 
-        for i, j in valid_indices:
-            x, y  = grid_obj.grid[i, j]
-            ang1, ang2, leg_len = grid_obj.params[i, j]
+    def set_hough_params(
+            self, density: int, threshold: float
+            ) -> None:
 
-            parametricX_obj = ParametricX(
-                center=(x, y), 
-                shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
-                image=grid_obj.image
-                )
-        
-            optimizer = ParameterOptimizer(
-                parametricX_obj, uncertainty=self.uncertainty, 
-                num_interval=self.num_interval, verbose=self.verbose
-                )
+        self.density = density
+        self.threshold = threshold
 
-            # parameter_star = optimizer.quad_optimize()
-            parameter_star = optimizer.quad_optimize_gradient()
-            if v:
-                optimizer.visualize()
-            grid_obj.grid[i, j] = parameter_star[0:2]
         return
+    
 
+    def set_optical_flow_params(
+            self, win_size: Tuple[int, int], max_level: int,
+            iteration: int, epsilon: float
+            ) -> None:
 
-    def solve(self) -> None:
-        shape = (self.num_lines, self.num_lines)
-        self.uncertainty = self.fwhm
+        self.win_size = win_size
+        self.max_level = max_level
+        self.iteration = iteration
+        self.epsilon = epsilon
 
-        self.grid_T0 = T0GridStruct(
-            shape, 
-            self.path_ref, 
-            num_lines=self.num_lines, 
-            threshold=self.threshold, 
-            density=self.density,
-            temp_scale=self.temp_scale
-            )
-        if self.optimize:
-            self._optimize(self.grid_T0, False)
+        return
+    
 
-        self.grid_dT = DTGridStruct(
-            self.grid_T0, 
-            self.path_mov, 
-            win_size=self.win_size,
-            max_level=self.max_level,
-            iteration=self.iteration,
-            epsilon=self.epsilon
-            )
-
-        self.disp_field = np.empty(shape, dtype=object)
-        self.solve_bool = False
-        
-
-    def _optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
+    def _template_optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
         grid_valid = np.array(
             [[cell is not None for cell in row] 
             for row in grid_obj.grid]
@@ -187,7 +172,7 @@ class HoughTM:
         return
 
 
-    def get_fields(self, dt:float=1, extrapolate:bool=False) -> np.ndarray:
+    def get_fields(self, dt:float=1, pix_world: float = 1, extrapolate:bool=False) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_fields().")
         
@@ -225,6 +210,10 @@ class HoughTM:
         return self.interpolator.interpolate(pts)
     
 
+    ###########################
+    ## Visualization Methods ##
+    ###########################
+
     def plot_fields(self, dt: float = 1.0, extrapolate: bool = False, arrow_stride: int = 32) -> None:
         fields = self.get_fields(dt, extrapolate)
         
@@ -236,16 +225,14 @@ class HoughTM:
         vy = fields[..., 5]
         vort = fields[..., 6]
 
-        disp_mag = np.sqrt(dx**2 + dy**2)
+        disp_mag = np.sqrt(dx**2 + dy**2) 
         vel_mag = np.sqrt(vx**2 + vy**2)
 
-        # Create subsampled indices for arrows
         h, w = fields.shape[:2]
         row_idx = np.arange(0, h, arrow_stride)
         col_idx = np.arange(0, w, arrow_stride)
         ii, jj = np.meshgrid(row_idx, col_idx, indexing='ij')
         
-        # Subsampled data for quiver plots
         x_sub = x[ii, jj]
         y_sub = y[ii, jj]
         dx_sub = dx[ii, jj]
@@ -253,7 +240,6 @@ class HoughTM:
         vx_sub = vx[ii, jj]
         vy_sub = vy[ii, jj]
 
-        # Normalize vectors for quiver plots
         disp_mag_sub = np.sqrt(dx_sub**2 + dy_sub**2)
         vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)
         
@@ -262,10 +248,8 @@ class HoughTM:
         unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
         unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
 
-        # Create figure
         fig, axs = plt.subplots(1, 3, figsize=(18, 6))
 
-        # Plot 1: Displacement Magnitude
         disp_plot = axs[0].imshow(disp_mag, cmap='viridis', origin='lower')
         axs[0].quiver(x_sub, y_sub, unit_dx_sub, unit_dy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='black')
@@ -274,7 +258,6 @@ class HoughTM:
         axs[0].set_xlabel("X")
         axs[0].set_ylabel("Y")
 
-        # Plot 2: Velocity Field
         vel_plot = axs[1].imshow(vel_mag, cmap='viridis', origin='lower')
         axs[1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='blue')
@@ -282,7 +265,6 @@ class HoughTM:
         axs[1].set_title("Velocity")
         axs[1].set_xlabel("X")
 
-        # Plot 3: Vorticity Field
         vort_plot = axs[2].imshow(vort, cmap='coolwarm', origin='lower')
         fig.colorbar(vort_plot, ax=axs[2])
         axs[2].set_title("Vorticity")
@@ -323,4 +305,5 @@ class HoughTM:
 
         plt.tight_layout()
         plt.show()
+
         return 

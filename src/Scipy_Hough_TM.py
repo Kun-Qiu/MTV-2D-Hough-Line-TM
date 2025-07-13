@@ -1,38 +1,56 @@
-from utility.py_import import np, plt, tri, dataclass, field, Tuple
+from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 from cython_build.ParametricX import ParametricX
 from src.parametric_opt import ParameterOptimizer
+from src.interpolator import dim2Interpolator
 
 
 @dataclass
 class HoughTM:
-    path_ref    : str
-    path_mov    : str
-    num_lines   : int
-    fwhm        : float
+    path_ref : str
+    path_mov : str
+    num_lines: int
+    optimize : bool = False
+    verbose  : bool = False
 
-    uncertainty : float = 1
-    num_interval: int = 10
+    # Template Matching Optimization Parameters
+    fwhm        : float = field(init=False)
+    uncertainty : float = field(init=False)
+    num_interval: int = field(init=False)
+    intensity   : float = field(init=False)
+    temp_scale  : float = field(init=False)
 
-    intensity : float = 0.5
-    density   : int = 10
-    threshold : float = 0.2
-    temp_scale: float = 0.67
-    win_size  : Tuple[int, int] = (31, 31)
-    max_level : int = 5
-    iteration : int = 10
-    epsilon   : float = 0.001
-    verbose   : bool = False
-    optimize  : bool = False
+    # Hough Line Transform Parameters
+    density  : int = field(init=False)
+    threshold: float = field(init=False)
 
-    displacement: np.ndarray = field(init=False)
+    # Lucas Kanade Optical Flow Parameters
+    win_size : Tuple[int, int] = field(init=False)
+    max_level: int = field(init=False)
+    iteration: int = field(init=False)
+    epsilon  : float = field(init=False)
+
     solve_bool  : bool = field(init=False)
+    valid_ij    : np.ndarray = field(init=False) 
     grid_T0     : T0GridStruct = field(init=False)
     grid_dT     : DTGridStruct = field(init=False)
+    interpolator: dim2Interpolator = field(init=False)
 
     def __post_init__(self):
         shape = (self.num_lines, self.num_lines)
+
+        # Default values for parameters
+        self.set_hough_params(density=10, threshold=0.2)
+        self.set_template_params(
+            fwhm=3, uncertainty=1, num_interval=30, 
+            intensity=0.5, temp_scale=0.67
+            )
+        self.set_optical_flow_params(
+            win_size=(31, 31), max_level=5, 
+            iteration=10, epsilon=0.001
+            )
+        
         self.uncertainty = self.fwhm
 
         self.grid_T0 = T0GridStruct(
@@ -44,7 +62,7 @@ class HoughTM:
             temp_scale=self.temp_scale
             )
         if self.optimize:
-            self._optimize(self.grid_T0, False)
+            self._template_optimize(self.grid_T0, False)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -54,14 +72,59 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
-        # if self.optimize:
-            # self._optimize(self.grid_dT, False)
 
-        self.disp_field = np.empty(shape, dtype=object)
-        self.solve_bool = False
+        grid_T0_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in self.grid_T0.grid]
+            )
+        grid_dT_valid = np.array(
+            [[cell is not None for cell in row] 
+            for row in self.grid_dT.grid]
+            )
         
+        self.valid_ij = np.argwhere(grid_T0_valid & grid_dT_valid)
+        self.disp_field = np.full((self.num_lines, self.num_lines, 4), np.nan)
+        self.solve_bool = False
 
-    def _optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
+
+    def set_template_params(
+            self, fwhm: float, uncertainty: float, num_interval: int, 
+            intensity: float, temp_scale: float
+            ) -> None:
+        
+        self.fwhm = fwhm
+        self.uncertainty = uncertainty
+        self.num_interval = num_interval
+        self.intensity = intensity
+        self.temp_scale = temp_scale
+       
+        return 
+    
+
+    def set_hough_params(
+            self, density: int, threshold: float
+            ) -> None:
+
+        self.density = density
+        self.threshold = threshold
+
+        return
+    
+
+    def set_optical_flow_params(
+            self, win_size: Tuple[int, int], max_level: int,
+            iteration: int, epsilon: float
+            ) -> None:
+
+        self.win_size = win_size
+        self.max_level = max_level
+        self.iteration = iteration
+        self.epsilon = epsilon
+
+        return
+    
+
+    def _template_optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
         grid_valid = np.array(
             [[cell is not None for cell in row] 
             for row in grid_obj.grid]
@@ -98,21 +161,7 @@ class HoughTM:
 
 
     def solve(self) -> None:
-        rows, cols = self.grid_T0.shape
-        self.disp_field = np.full((rows, cols, 4), np.nan)  # (x, y, dx, dy)
-        
-        grid_T0_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in self.grid_T0.grid]
-            )
-        grid_dT_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in self.grid_dT.grid]
-            )
-        
-        valid_mask = grid_T0_valid & grid_dT_valid
-        valid_indices = np.argwhere(valid_mask)
-        for i, j in valid_indices:
+        for i, j in self.valid_ij:
             x0, y0 = self.grid_T0.grid[i, j]
             x1, y1 = self.grid_dT.grid[i, j]
 
@@ -123,39 +172,108 @@ class HoughTM:
         return
 
 
-    def get_velocity(self, dt:float=1) -> np.ndarray:
+    def get_fields(self, dt:float=1, pix_world: float = 1, extrapolate:bool=False) -> np.ndarray:
         if not self.solve_bool:
-            raise ValueError("solve() must be called before get_velocity().")
+            raise ValueError("Call solve() before get_fields().")
+        
+        # Set up interpolator for displacement field
+        valid_mask = ~np.isnan(self.disp_field).any(axis=2)
+        valid_points = self.disp_field[valid_mask][:, :2] 
+        valid_displacements = self.disp_field[valid_mask][:, 2:] 
+        
+        if valid_points.size > 0:
+            self.interpolator = dim2Interpolator(
+                xy=valid_points,
+                dxy=valid_displacements,
+                extrapolate=extrapolate
+            )
 
-        vel_field = self.disp_field.copy()
-        vel_field[..., 2:] /= dt
-        return vel_field
+        # Interpolate the fields
+        h, w = self.grid_T0.image.shape[:2]
+        y, x = np.mgrid[0:h, 0:w]
+        points = np.column_stack([x.ravel(), y.ravel()])
+        
+        disp = self.interpolator.interpolate(points)
+        vel = (disp.copy() / dt).reshape(h, w, 2)
+        disp = disp.reshape(h, w, 2)
+
+        vort = np.full((h, w), np.nan)
+        vort[1:-1, 1:-1] = (
+            vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
+            vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
+            ) / 2
+
+        return np.dstack([x, y, disp[..., 0], disp[..., 1], vel[..., 0], vel[..., 1], vort])
 
 
-    def get_vorticity(self, dt:float = 1) -> np.ndarray:
-        if not self.solve_bool:
-            raise ValueError("Call solve() before get_vorticity().")
+    def evaluate(self, pts:np.ndarray) -> np.ndarray:
+        return self.interpolator.interpolate(pts)
     
-        rows, cols = self.grid_T0.shape
-        field = np.full((rows, cols, 3), np.nan)
-        vorticity = np.full((rows, cols), np.nan)
 
-        vel = self.get_velocity(dt)
-        vx = vel[..., 2] 
-        vy = vel[..., 3]
+    ###########################
+    ## Visualization Methods ##
+    ###########################
 
-        vorticity[1:-1, 1:-1] = (
-            vx[:-2, 1:-1] -  # vx[i-1, j]
-            vx[2:, 1:-1] +   # -vx[i+1, j]
-            vy[1:-1, 2:] -   # vy[i, j+1]
-            vy[1:-1, :-2]    # -vy[i, j-1]
-        ) / 2
+    def plot_fields(self, dt: float = 1.0, extrapolate: bool = False, arrow_stride: int = 32) -> None:
+        fields = self.get_fields(dt, extrapolate)
+        
+        x = fields[..., 0]
+        y = fields[..., 1]
+        dx = fields[..., 2]
+        dy = fields[..., 3]
+        vx = fields[..., 4]
+        vy = fields[..., 5]
+        vort = fields[..., 6]
 
-        field[..., 0] = self.disp_field[..., 0]  # x
-        field[..., 1] = self.disp_field[..., 1]  # y
-        field[..., 2] = vorticity  # vorticity
-    
-        return field 
+        disp_mag = np.sqrt(dx**2 + dy**2) 
+        vel_mag = np.sqrt(vx**2 + vy**2)
+
+        h, w = fields.shape[:2]
+        row_idx = np.arange(0, h, arrow_stride)
+        col_idx = np.arange(0, w, arrow_stride)
+        ii, jj = np.meshgrid(row_idx, col_idx, indexing='ij')
+        
+        x_sub = x[ii, jj]
+        y_sub = y[ii, jj]
+        dx_sub = dx[ii, jj]
+        dy_sub = dy[ii, jj]
+        vx_sub = vx[ii, jj]
+        vy_sub = vy[ii, jj]
+
+        disp_mag_sub = np.sqrt(dx_sub**2 + dy_sub**2)
+        vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)
+        
+        unit_dx_sub = np.divide(dx_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dx_sub))
+        unit_dy_sub = np.divide(dy_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dy_sub))
+        unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
+        unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
+
+        fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+
+        disp_plot = axs[0].imshow(disp_mag, cmap='viridis', origin='lower')
+        axs[0].quiver(x_sub, y_sub, unit_dx_sub, unit_dy_sub,
+                    angles='xy', scale_units='xy', scale=0.1, color='black')
+        fig.colorbar(disp_plot, ax=axs[0])
+        axs[0].set_title("Displacement")
+        axs[0].set_xlabel("X")
+        axs[0].set_ylabel("Y")
+
+        vel_plot = axs[1].imshow(vel_mag, cmap='viridis', origin='lower')
+        axs[1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
+                    angles='xy', scale_units='xy', scale=0.1, color='blue')
+        fig.colorbar(vel_plot, ax=axs[1])
+        axs[1].set_title("Velocity")
+        axs[1].set_xlabel("X")
+
+        vort_plot = axs[2].imshow(vort, cmap='coolwarm', origin='lower')
+        fig.colorbar(vort_plot, ax=axs[2])
+        axs[2].set_title("Vorticity")
+        axs[2].set_xlabel("X")
+
+        plt.tight_layout()
+        plt.show()
+
+        return
 
 
     def plot_intersections(self) -> None:
@@ -187,70 +305,5 @@ class HoughTM:
 
         plt.tight_layout()
         plt.show()
-        return 
 
-
-    def plot_fields(self, dt:float = 1.0) -> None:
-        if not self.solve_bool:
-            raise ValueError("Call solve() before plotting fields.")
-
-        vorticity = self.get_vorticity(dt)
-        vel_field = self.get_velocity(dt)
-        
-        x, y = vel_field[..., 0], vel_field[..., 1]
-        vx, vy = vel_field[..., 2], vel_field[..., 3]
-        dx, dy = self.disp_field[..., 2], self.disp_field[..., 3]
-        vort = vorticity[..., 2]
-
-        disp_mag = np.sqrt(dx**2 + dy**2)
-        vel_mag = np.sqrt(vx**2 + vy**2)
-
-        # Normalize vectors for quiver plots (avoid division by zero)
-        unit_dx = np.divide(dx, disp_mag, where=disp_mag != 0, out=np.zeros_like(dx))
-        unit_dy = np.divide(dy, disp_mag, where=disp_mag != 0, out=np.zeros_like(dy))
-        unit_vx = np.divide(vx, vel_mag, where=vel_mag != 0, out=np.zeros_like(vx))
-        unit_vy = np.divide(vy, vel_mag, where=vel_mag != 0, out=np.zeros_like(vy))
-
-        valid_mask = (
-            np.isfinite(x) & np.isfinite(y) & 
-            np.isfinite(dx) & np.isfinite(dy) & 
-            np.isfinite(vx) & np.isfinite(vy) & 
-            np.isfinite(vort)
-            )
-        
-        valid_count = np.sum(valid_mask)
-        if valid_count == 0:
-            raise ValueError("All data points are invalid (NaN or Inf). Check the input data.")
-
-        triang = tri.Triangulation(x[valid_mask], y[valid_mask])
-        fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-
-        # Plot 1: Displacement Magnitude
-        disp_plot = axs[0].tricontourf(triang, disp_mag[valid_mask], cmap='viridis', levels=100)
-        axs[0].quiver(x[valid_mask], y[valid_mask], unit_dx[valid_mask], unit_dy[valid_mask],
-                    angles='xy', scale_units='xy', scale=0.1, color='black')
-        fig.colorbar(disp_plot, ax=axs[0])
-        axs[0].set_title("Displacement")
-        axs[0].set_xlabel("X")
-        axs[0].set_ylabel("Y")
-        axs[0].axis('equal')
-
-        # Plot 2: Velocity Field
-        vel_plot = axs[1].tricontourf(triang, vel_mag[valid_mask], cmap='viridis', levels=100)
-        axs[1].quiver(x[valid_mask], y[valid_mask], unit_vx[valid_mask], unit_vy[valid_mask],
-                    angles='xy', scale_units='xy', scale=0.1, color='blue')
-        fig.colorbar(vel_plot, ax=axs[1])
-        axs[1].set_title("Velocity")
-        axs[1].set_xlabel("X")
-        axs[1].axis('equal')
-
-        # Plot 3: Vorticity Field
-        vort_plot = axs[2].tricontourf(triang, vort[valid_mask], cmap='coolwarm', levels=100)
-        fig.colorbar(vort_plot, ax=axs[2])
-        axs[2].set_title("Vorticity")
-        axs[2].set_xlabel("X")
-        axs[2].axis('equal')
-
-        plt.tight_layout()
-        plt.show()
         return 

@@ -41,6 +41,27 @@ def skeletonize_img(image, blur_window=(5,5)):
 
     adaptive_thresh[mask] = 0
     skeleton = skeletonize(adaptive_thresh).astype(np.uint8)
+
+    plt.figure(figsize=(15, 10))
+    
+    plt.subplot(1, 3, 1)
+    plt.imshow(image, cmap='gray')
+    plt.title('Original Image')
+    plt.axis('off')
+    
+    plt.subplot(1, 3, 2)
+    plt.imshow(mask, cmap='gray')
+    plt.title('Combined Mask')
+    plt.axis('off')
+    
+    plt.subplot(1, 3, 3)
+    plt.imshow(skeleton, cmap='gray')
+    plt.title('Skeletonized Result')
+    plt.axis('off')
+    
+    plt.tight_layout()
+    plt.show()
+    
     
     return adaptive_thresh, skeleton
 

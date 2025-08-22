@@ -1,69 +1,88 @@
-import cv2
 import numpy as np
+import os
 from PIL import Image
 from matplotlib.pyplot import imsave
 
 
-class fileReader:
-    # Public Interface
+class tifReader:
 
-    def __init__(self, img, save_path):
+    def __init__(self, img_path):
         """
         Default Constructor
-        :param img:         The tif image
-        :param save_path:   Path in which to save the image if chosen to do so
+        :param img_path:         The tif image path or file object
         """
-        self.__img = img
-        self.__save_path = save_path
-        self.__read_images(save_path)
-        self.__sort_array_signal()
+        self.__img = img_path
+        self.__base_name = os.path.basename(img_path)
+        self.__base_name = os.path.splitext(self.__base_name)[0]
+        
+        self.__img_uint8 = None 
+        self.__array_length = 0
+        self.__tif_images = []
+        self.__read_images()
 
-    def get_uint8(self, img):
-        """
-        Get the uint8 image from the object
-        :param img: The input image
-        :return: uint8 image
-        """
-        self.__convert2uint8(img)
-        return self.__img_uint8
 
-    def average_tif(self, index1=None, index2=None, total_average=False, save_path=None):
+    def average_all_tif(self, save_path=None):
+        """
+        Obtain an average image of the input images
+        
+        :param save_path: Path to which the image will be saved at
+        :return: The averaged of all image
+        """
+
+        if self.__array_length <= 0:
+            raise Exception("No images found.")
+
+        images = [img_tuple for img_tuple in self.__tif_images]
+        averaged_img = np.mean(images, axis=0)
+
+        if save_path:
+            filename = f"{self.__base_name}.png"
+            imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
+
+        return averaged_img
+
+
+    def average_tif(self, index1, index2, save_path=None):
         """
         From multiple images obtain an average image of the input images
         :param save_path:       Path to which the image will be saved at
         :param index1:          First image of the series to be averaged
         :param index2:          Second image of the series to be averaged
-        :param total_average:   Whether all image should be averaged
         :return: The averaged image of the tif
         """
 
         if self.__array_length <= 0:
             raise Exception("No images found.")
 
-        images = [img_tuple[0] for img_tuple in self.__tif_images]
+        # Validate indices
+        if index1 < 0 or index2 < 0 or index1 >= self.__array_length or index2 >= self.__array_length:
+            raise Exception(f"Indices out of range. Valid range: 0 to {self.__array_length - 1}")
 
-        if total_average:
-            averaged_img = np.mean(images, axis=0)
-
-        elif index1 is None and index2 is None:
-            averaged_img = np.mean(images[-5:], axis=0)
-
-        else:
-            if index1 is None or index2 is None:
-                raise Exception("Both index1 and index2 should be provided if 'total_average' is not True.")
-
-            if index1 < 0 or index2 < 0 or index1 >= self.__array_length or index2 >= self.__array_length:
-                raise Exception("Indices out of range.")
-
-            initial = min(index1, index2)
-            end = max(index1, index2) + 1
-
-            averaged_img = np.mean(images[initial:end], axis=0)
+        initial = min(index1, index2)
+        end = max(index1, index2) + 1
+        averaged_img = np.mean(self.__tif_images[initial:end], axis=0)
 
         if save_path:
-            imsave(self.__save_path, averaged_img.astype(np.float32))
+            filename = f"{self.__base_name}.png"
+            imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
 
         return averaged_img
+
+
+    def save_tiff(self, index1, index2, save_path):
+        if self.__array_length <= 0:
+            raise Exception("No images found.")
+
+        # Validate indices
+        if index1 < 0 or index2 < 0 or index1 >= self.__array_length or index2 >= self.__array_length:
+            raise Exception(f"Indices out of range. Valid range: 0 to {self.__array_length - 1}")
+
+        initial = min(index1, index2)
+        end = max(index1, index2) + 1
+        for i in range (initial, end):
+            filename = f"{self.__base_name}_{i:04d}.png"
+            imsave(os.path.join(save_path, filename), self.__tif_images[i].astype(np.float32))
+
 
     def get_image(self, index):
         """
@@ -72,80 +91,15 @@ class fileReader:
         :return: The image at that index
         """
 
-        if index >= self.__array_length:
-            raise Exception("Out of Bound Error, {}".format(index))
-        return self.__tif_images[index][0]
+        if index < 0 or index >= self.__array_length:
+            raise Exception(f"Out of Bound Error, {index}. Valid range: 0 to {self.__array_length - 1}")
+        return self.__tif_images[index]
 
-    def max_intensity_tif(self):
-        """
-        Return the image with the highest intensity aka the highest mean across all pixels
-        :return: Highest intensity image
-        """
 
-        return self.get_image(self.__array_length - 1)
-
-    def min_intensity_tif(self):
-        """
-        Return the image with the lowest intensity aka the lowest mean across all pixels
-        :return: Image with the lowest intensity
-        """
-        return self.get_image(0)
-
-    def filter(self, img, filter_type="sharpen"):
-        """
-        Proceed with extreme caution, as over filtering can lead to inaccurate results
-        :param img: the image in which the filter will be applied on
-        :param filter_type: type of filter applied to an image
-        :return: the filtered image
-        """
-
-        if filter_type not in self.__sobel_operators:
-            return cv2.filter2D(img, -1, self.__sobel_operators["sharpen"])
-
-        return cv2.filter2D(img, -1, self.__sobel_operators[filter_type])
-
-    # Private Interface
-
-    # Number of img in the tif file
-    __array_length = 0
-    # Arrays of arrays that contains [image, mean intensity]
-    __tif_images = []
-    __tif_sorted = False
-
-    # Sobel Operators for filtering image
-    __sobel_operators = {
-        "horizontal": np.array([[1, 2, 1],
-                                [0, 0, 0],
-                                [-1, -2, -1]]),
-        "vertical": np.array([[1, 0, -1],
-                              [2, 0, -2],
-                              [1, 0, -1]]),
-        "left_diagonal": np.array([[1, -1, -1],
-                                   [-1, 1, -1],
-                                   [-1, -1, 1]]),
-        "right_diagonal": np.array([[-1, -1, 1],
-                                    [-1, 1, -1],
-                                    [1, -1, -1]]),
-        "edge_detection": np.array([[-1, -1, -1],
-                                    [-1, 8, -1],
-                                    [-1, -1, -1]]),
-        "sharpen": np.array([[0, -1, 0],
-                             [-1, 5, -1],
-                             [0, -1, 0]]),
-        "box_blur": (1 / 9.0) * np.array([[1., 1., 1.],
-                                          [1., 1., 1.],
-                                          [1., 1., 1.]]),
-        "gaussian_blur": (1 / 16.0) * np.array([[1., 2., 1.],
-                                                [2., 4., 2.],
-                                                [1., 2., 1.]])
-    }
-
-    def __read_images(self, path):
+    def __read_images(self):
         """
         Access the image in tif and store in an array of images
-
-        :param path : Path to where all the files are saved
-        :return     : None
+        :return: None
         """
 
         try:
@@ -161,33 +115,16 @@ class fileReader:
             for i in range(img.n_frames):
                 img.seek(i)
 
-                # Convert to NumPy array and possibly change dtype
+                # Convert to NumPy array
                 frame_array = np.array(img)
                 self.__tif_images.append(frame_array)
                 self.__array_length += 1
-
-                if path is not None:
-                    imsave(f'frame_{i}.png', frame_array)
 
         except IOError:
             raise Exception("Could not open or read the image file.")
         except Exception as e:
             raise Exception(f"An error occurred: {str(e)}")
 
-    def __sort_array_signal(self):
-        """
-        Sorts the internal class array of images in tif based on the intensity of the image
-        :return: None
-        """
-
-        new_array = []
-        for img in self.__tif_images:
-            new_array.append([img, np.mean(img)])
-
-        # Sort images based on the mean intensity
-        new_array = sorted(new_array, key=lambda x: x[1])
-        self.__tif_sorted = True
-        self.__tif_images = new_array
 
     def __convert2uint8(self, img):
         """
@@ -200,12 +137,36 @@ class fileReader:
             imin = img.min()
             imax = img.max()
 
-            copy_img = np.array(img)
-            # Conversion from image data type to uint8
-            a = (255 - 0) / (imax - imin)
-            b = 255 - a * imax
-            new_img = (a * copy_img + b).astype(np.uint8)
+            # Handle case where all values are the same (avoid division by zero)
+            if imax == imin:
+                new_img = np.zeros_like(img, dtype=np.uint8)
+            else:
+                # Normalize and convert to uint8
+                copy_img = img.astype(np.float32)
+                a = 255.0 / (imax - imin)
+                b = -a * imin
+                new_img = (a * copy_img + b).astype(np.uint8)
+            
             self.__img_uint8 = new_img
 
         except Exception as e:
             raise Exception("Failed to convert image to uint8. Original error: {}".format(e))
+
+
+    def get_uint8(self, img):
+        """
+        Get the uint8 image from the object
+        
+        :param img: The input image
+        :return: uint8 image
+        """
+        self.__convert2uint8(img)
+        return self.__img_uint8
+
+
+    def get_array_length(self):
+        """
+        Get the number of images in the TIFF file
+        :return: Number of images
+        """
+        return self.__array_length

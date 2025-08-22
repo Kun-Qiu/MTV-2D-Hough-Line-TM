@@ -1,6 +1,7 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple
+from utility.py_import import np, cv2, dataclass, field, Tuple, plt
 from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
+from src.img_enhance import SingleShotEnhancer
 
 
 def sort_lines(lines: np.ndarray) -> np.ndarray:
@@ -11,7 +12,12 @@ def sort_lines(lines: np.ndarray) -> np.ndarray:
 class T0GridStruct:
     shape       : Tuple[int, int]
     image_path  : str
-    num_lines   : int
+    avg_img_path: str
+    num_lines   : Tuple[int, int] 
+    
+    # Typically two of follows: 
+    # [vertical lines, horizontal lines, positive sloped line, negatively sloped line]
+    slope_thresh: Tuple[int, int]  
 
     threshold   : float = 0.2
     density     : int = 10
@@ -39,9 +45,15 @@ class T0GridStruct:
             )
         
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+
+        avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
+        enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+        self.image = enhancer_source.filter()
+
         _, self.image_skel  = skeletonize_img(self.image)
 
         self._populate_grid()
+        self.plot_hough_lines()
         # self._generate_template(scale=self.temp_scale)
     
 
@@ -73,42 +85,70 @@ class T0GridStruct:
 
 
     def _populate_grid(self) -> None:
-        # Populate grid with intersection pts of pos and neg lines
-        pos_lines, neg_lines = self._hough_line_transform(slope_thresh=0.1)
+        # Populate grid with intersection pts of group a and group b lines
+        a_mat, b_mat = self._hough_line_transform()
 
-        for i, pos_line in enumerate(sort_lines(pos_lines)):
+        for i, a_line in enumerate(sort_lines(a_mat)):
             if i >= self.shape[0]:
                 continue
-            for j, neg_line in enumerate(sort_lines(neg_lines)):
+            for j, b_line in enumerate(sort_lines(b_mat)):
                 if j >= self.shape[1]:
                     continue
-                intersection = self._find_intersection(pos_line, neg_line)
+                intersection = self._find_intersection(a_line, b_line)
                 bounded = self._is_within_bounds(intersection[0], intersection[1])
                 if intersection is not None and bounded:
                     self.grid[i, j] = intersection
         return
 
 
-    def _hough_line_transform(self, slope_thresh:float=0.1):
-        lines_pos = np.empty((0, 2), dtype=float)  
-        lines_neg = np.empty((0, 2), dtype=float)  
+    def __line_intersection_check(self, line: np.ndarray, mat: np.ndarray, num_lines:int) -> bool:
+        """
+        Enforce that the lines in the same group do not intersect within the image bounds. 
+        """
+        for idx in range(num_lines):
+            candidate_line = mat[idx]
+            intersection = self._find_intersection(line, candidate_line)
+            if intersection is not None:
+                x, y = intersection
+                if self._is_within_bounds(x, y):
+                    return True
+        return False
+
+
+    def _hough_line_transform(self,):
+        # Lines in group a and group b
+        lines_a, lines_b = self.num_lines
+        max_thresh_idx = np.argmax(self.slope_thresh)
+        max_thresh = self.slope_thresh[max_thresh_idx]
+        
+        a_mat = np.empty((lines_a, 2), dtype=float)  
+        b_mat = np.empty((lines_b, 2), dtype=float)  
+
+        cur_a, cur_b = 0, 0
 
         h, theta, d = hough_line(self.image_skel, theta=self.test_angles)
-        for _, angle, dist in zip(*hough_line_peaks(
-                h, theta, d, 
-                threshold=self.threshold*h.max(),
-                num_peaks=np.sum(self.shape)
+        for _, angle, dist in zip(*hough_line_peaks(h, theta, d, 
+                threshold=self.threshold*h.max()
                 )):
 
             slope = np.tan(angle + np.pi / 2) 
+            if slope >= max_thresh or slope <= -max_thresh: 
+                if cur_a < lines_a:
+                    a_mat[cur_a] = [angle, dist]
+                    if self.__line_intersection_check(a_mat[cur_a], a_mat, cur_a):
+                        continue
+                    cur_a += 1
+            else:
+                if cur_b < lines_b:
+                    b_mat[cur_b] = [angle, dist]
+                    if self.__line_intersection_check(b_mat[cur_b], b_mat, cur_b):
+                        continue
+                    cur_b += 1
 
-            if abs(slope) > slope_thresh: 
-                # Assume no horizontal lines
-                if slope >= 0:
-                    lines_pos = np.vstack((lines_pos, [angle, dist]))
-                else:
-                    lines_neg = np.vstack((lines_neg, [angle, dist]))
-        return lines_pos, lines_neg
+            if cur_a >= lines_a and cur_b >= lines_b:
+                break
+
+        return a_mat, b_mat
     
 
     def _grid_img_bound(self, i: int, j: int) -> tuple:
@@ -191,3 +231,52 @@ class T0GridStruct:
                 self.template[i, j] = np.array([x_min, y_min, x_max, y_max])
                 self.params[i, j] = np.array([ang1, ang2, length])
         return 
+    
+
+    def plot_hough_lines(self, slope_thresh: float = 0.1):
+        """
+        Plot the Hough lines detected in the skeletonized image
+        """
+        
+        lines_pos, lines_neg = self._hough_line_transform()
+        
+        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(15, 6))
+        ax1.imshow(self.image_skel, cmap='gray')
+        ax1.set_title('Skeletonized Image')
+        ax1.axis('off')
+        
+        ax2.imshow(self.image_skel, cmap='gray')
+        ax2.set_title('Detected Hough Lines')
+        ax2.axis('off')
+        
+        def plot_line(angle, dist, color):
+            """Plot a line given Hough parameters (angle, distance)"""
+            # Convert polar coordinates to line parameters
+            a = np.cos(angle)
+            b = np.sin(angle)
+            x0 = a * dist
+            y0 = b * dist
+            
+            # Get line endpoints (extend beyond image boundaries)
+            x1 = x0 + 1000 * (-b)
+            y1 = y0 + 1000 * (a)
+            x2 = x0 - 1000 * (-b)
+            y2 = y0 - 1000 * (a)
+            
+            ax2.plot([x1, x2], [y1, y2], color=color, linewidth=2, alpha=0.7)
+        
+        # Plot positive slope lines (red)
+        for angle, dist in lines_pos:
+            plot_line(angle, dist, 'red')
+        
+        # Plot negative slope lines (blue)
+        for angle, dist in lines_neg:
+            plot_line(angle, dist, 'blue')
+        
+        # Add legend
+        ax2.plot([], [], 'red', label=f'Positive slope ({len(lines_pos)} lines)')
+        ax2.plot([], [], 'blue', label=f'Negative slope ({len(lines_neg)} lines)')
+        ax2.legend(loc='upper right')
+        
+        plt.tight_layout()
+        plt.show()

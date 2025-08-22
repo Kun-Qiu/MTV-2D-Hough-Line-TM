@@ -1,12 +1,14 @@
 from utility.py_import import np, cv2, dataclass, field, Tuple, plt
 from src.T0_grid_struct import T0GridStruct
 from src.interpolator import dim2Interpolator
+from src.img_enhance import SingleShotEnhancer
 
 
 @dataclass
 class DTGridStruct:
-    T0_grid   : T0GridStruct
-    image_path: str
+    T0_grid     : T0GridStruct
+    image_path  : str
+    avg_img_path: str
 
     win_size : Tuple[int, int] = (31, 31)
     max_level: int = 7
@@ -21,6 +23,10 @@ class DTGridStruct:
         self.shape = self.T0_grid.shape
         self.grid = np.empty(self.shape, dtype=object)
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
+
+        avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
+        enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+        self.image = enhancer_source.filter()
 
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
         valid_indices = np.where(valid_mask)

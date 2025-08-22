@@ -8,9 +8,12 @@ from src.interpolator import dim2Interpolator
 
 @dataclass
 class HoughTM:
-    path_ref : str
-    path_mov : str
-    num_lines: int
+    path_ref    : str
+    path_ref_avg: str
+    path_mov    : str
+    path_mov_avg: str
+    num_lines   : Tuple[int, int]
+    slope_thresh: Tuple[float, float]
     optimize : bool = False
     verbose  : bool = False
 
@@ -38,7 +41,7 @@ class HoughTM:
     interpolator: dim2Interpolator = field(init=False)
 
     def __post_init__(self):
-        shape = (self.num_lines, self.num_lines)
+        shape = self.num_lines
 
         # Default values for parameters
         self.set_hough_params(density=10, threshold=0.2)
@@ -46,8 +49,9 @@ class HoughTM:
             fwhm=3, uncertainty=1, num_interval=30, 
             intensity=0.5, temp_scale=0.67
             )
+        
         self.set_optical_flow_params(
-            win_size=(31, 31), max_level=5, 
+            win_size=(61, 61), max_level=3, 
             iteration=10, epsilon=0.001
             )
         
@@ -56,7 +60,9 @@ class HoughTM:
         self.grid_T0 = T0GridStruct(
             shape, 
             self.path_ref, 
-            num_lines=self.num_lines, 
+            self.path_ref_avg,
+            num_lines=self.num_lines,
+            slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
             density=self.density,
             temp_scale=self.temp_scale
@@ -66,7 +72,8 @@ class HoughTM:
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
-            self.path_mov, 
+            self.path_mov,
+            self.path_mov_avg, 
             win_size=self.win_size,
             max_level=self.max_level,
             iteration=self.iteration,
@@ -83,7 +90,8 @@ class HoughTM:
             )
         
         self.valid_ij = np.argwhere(grid_T0_valid & grid_dT_valid)
-        self.disp_field = np.full((self.num_lines, self.num_lines, 4), np.nan)
+        lines_a, lines_b = self.num_lines
+        self.disp_field = np.full((lines_a, lines_b, 4), np.nan)
         self.solve_bool = False
 
 

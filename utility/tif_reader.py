@@ -164,7 +164,7 @@ class tifReader:
         return self.__img_uint8
 
 
-    def get_array_length(self):
+    def get_tif_size(self):
         """
         Get the number of images in the TIFF file
         :return: Number of images

@@ -9,13 +9,15 @@ from src.interpolator import dim2Interpolator
 @dataclass
 class HoughTM:
     path_ref    : str
-    path_ref_avg: str
     path_mov    : str
-    path_mov_avg: str
     num_lines   : Tuple[int, int]
     slope_thresh: Tuple[float, float]
     optimize : bool = False
     verbose  : bool = False
+
+    # Guided Images for Filtering
+    path_ref_avg: str = None
+    path_mov_avg: str = None
 
     # Template Matching Optimization Parameters
     fwhm        : float = field(init=False)
@@ -51,7 +53,7 @@ class HoughTM:
             )
         
         self.set_optical_flow_params(
-            win_size=(61, 61), max_level=3, 
+            win_size=(62, 62), max_level=3, 
             iteration=10, epsilon=0.001
             )
         
@@ -180,7 +182,7 @@ class HoughTM:
         return
 
 
-    def get_fields(self, dt:float=1, pix_world: float = 1, extrapolate:bool=False) -> np.ndarray:
+    def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_fields().")
         
@@ -211,7 +213,15 @@ class HoughTM:
             vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
             ) / 2
 
-        return np.dstack([x, y, disp[..., 0], disp[..., 1], vel[..., 0], vel[..., 1], vort])
+        return np.dstack([
+                x * pix_to_world, 
+                y * pix_to_world, 
+                disp[..., 0] * pix_to_world, 
+                disp[..., 1] * pix_to_world, 
+                vel[..., 0] * pix_to_world, 
+                vel[..., 1] * pix_to_world, 
+                vort * pix_to_world
+                ])
 
 
     def evaluate(self, pts:np.ndarray) -> np.ndarray:
@@ -222,8 +232,9 @@ class HoughTM:
     ## Visualization Methods ##
     ###########################
 
-    def plot_fields(self, dt: float = 1.0, extrapolate: bool = False, arrow_stride: int = 32) -> None:
-        fields = self.get_fields(dt, extrapolate)
+    def plot_fields(self, dt: float = 1.0, pix_to_world: float = 1.0, 
+                    extrapolate: bool = False, arrow_stride: int = 32) -> None:
+        fields = self.get_fields(dt, pix_to_world, extrapolate)
         
         x = fields[..., 0]
         y = fields[..., 1]
@@ -256,27 +267,31 @@ class HoughTM:
         unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
         unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
 
-        fig, axs = plt.subplots(1, 3, figsize=(18, 6))
-
-        disp_plot = axs[0].imshow(disp_mag, cmap='viridis', origin='lower')
-        axs[0].quiver(x_sub, y_sub, unit_dx_sub, unit_dy_sub,
+        fig, axs = plt.subplots(2, 2, figsize=(12, 10))
+        
+        # Velocity Magnitude Plot
+        mag_plot = axs[0, 0].imshow(vel_mag, cmap='viridis', origin='lower')
+        axs[0, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
+                    angles='xy', scale_units='xy', scale=0.1, color='white')
+        cbar0 = fig.colorbar(mag_plot, ax=axs[0, 0], format='%.1e')
+        axs[0, 0].set_title("Magnitude (m/s)")
+        
+        # X Component of Velocity
+        u_plot = axs[0, 1].imshow(vx, cmap='RdBu_r', origin='lower')
+        axs[0, 1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='black')
-        fig.colorbar(disp_plot, ax=axs[0])
-        axs[0].set_title("Displacement")
-        axs[0].set_xlabel("X")
-        axs[0].set_ylabel("Y")
+        cbar1 = fig.colorbar(u_plot, ax=axs[0, 1], format='%.1e')
+        axs[0, 1].set_title("u (m/s)")
 
-        vel_plot = axs[1].imshow(vel_mag, cmap='viridis', origin='lower')
-        axs[1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='blue')
-        fig.colorbar(vel_plot, ax=axs[1])
-        axs[1].set_title("Velocity")
-        axs[1].set_xlabel("X")
+        v_plot = axs[1, 0].imshow(vy, cmap='RdBu_r', origin='lower')
+        axs[1, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
+                    angles='xy', scale_units='xy', scale=0.1, color='black')
+        cbar2 = fig.colorbar(v_plot, ax=axs[1, 0], format='%.1e')
+        axs[1, 0].set_title("v (m/s)")
 
-        vort_plot = axs[2].imshow(vort, cmap='coolwarm', origin='lower')
-        fig.colorbar(vort_plot, ax=axs[2])
-        axs[2].set_title("Vorticity")
-        axs[2].set_xlabel("X")
+        vort_plot = axs[1, 1].imshow(vort, cmap='coolwarm', origin='lower')
+        cbar3 = fig.colorbar(vort_plot, ax=axs[1, 1], format='%.1e')
+        axs[1, 1].set_title("Vorticity (rad/s)")
 
         plt.tight_layout()
         plt.show()

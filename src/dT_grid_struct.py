@@ -24,9 +24,10 @@ class DTGridStruct:
         self.grid = np.empty(self.shape, dtype=object)
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
 
-        avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
-        enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
-        self.image = enhancer_source.filter()
+        if self.avg_img_path is not None:
+            avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
+            enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+            self.image = enhancer_source.filter()
 
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
         valid_indices = np.where(valid_mask)

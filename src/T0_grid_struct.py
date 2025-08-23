@@ -46,9 +46,10 @@ class T0GridStruct:
         
         self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
 
-        avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
-        enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
-        self.image = enhancer_source.filter()
+        if self.avg_img_path is not None:
+            avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
+            enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+            self.image = enhancer_source.filter()
 
         _, self.image_skel  = skeletonize_img(self.image)
 
@@ -115,7 +116,7 @@ class T0GridStruct:
         return False
 
 
-    def _hough_line_transform(self,):
+    def _hough_line_transform(self) -> Tuple[np.ndarray, np.ndarray]:
         # Lines in group a and group b
         lines_a, lines_b = self.num_lines
         max_thresh_idx = np.argmax(self.slope_thresh)
@@ -134,15 +135,17 @@ class T0GridStruct:
             slope = np.tan(angle + np.pi / 2) 
             if slope >= max_thresh or slope <= -max_thresh: 
                 if cur_a < lines_a:
-                    a_mat[cur_a] = [angle, dist]
-                    if self.__line_intersection_check(a_mat[cur_a], a_mat, cur_a):
+                    candidate_line = np.array([angle, dist])
+                    if self.__line_intersection_check(candidate_line, a_mat, cur_a):
                         continue
+                    a_mat[cur_a] = candidate_line
                     cur_a += 1
             else:
                 if cur_b < lines_b:
-                    b_mat[cur_b] = [angle, dist]
-                    if self.__line_intersection_check(b_mat[cur_b], b_mat, cur_b):
+                    candidate_line = np.array([angle, dist])
+                    if self.__line_intersection_check(candidate_line, b_mat, cur_b):
                         continue
+                    b_mat[cur_b] = candidate_line
                     cur_b += 1
 
             if cur_a >= lines_a and cur_b >= lines_b:

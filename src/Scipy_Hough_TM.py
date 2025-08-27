@@ -180,6 +180,11 @@ class HoughTM:
 
         self.solve_bool = True
         return
+    
+
+    def sequence_solve(self, single_sequence: list, avg_sequence: list) -> None:
+        self.grid_dT.sequence_solver(single_sequence, avg_sequence)
+        self.solve()
 
 
     def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
@@ -238,13 +243,10 @@ class HoughTM:
         
         x = fields[..., 0]
         y = fields[..., 1]
-        dx = fields[..., 2]
-        dy = fields[..., 3]
         vx = fields[..., 4]
         vy = fields[..., 5]
         vort = fields[..., 6]
-
-        disp_mag = np.sqrt(dx**2 + dy**2) 
+ 
         vel_mag = np.sqrt(vx**2 + vy**2)
 
         h, w = fields.shape[:2]
@@ -254,42 +256,38 @@ class HoughTM:
         
         x_sub = x[ii, jj]
         y_sub = y[ii, jj]
-        dx_sub = dx[ii, jj]
-        dy_sub = dy[ii, jj]
         vx_sub = vx[ii, jj]
         vy_sub = vy[ii, jj]
 
-        disp_mag_sub = np.sqrt(dx_sub**2 + dy_sub**2)
-        vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)
-        
-        unit_dx_sub = np.divide(dx_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dx_sub))
-        unit_dy_sub = np.divide(dy_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dy_sub))
+        vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)        
         unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
         unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
 
         fig, axs = plt.subplots(2, 2, figsize=(12, 10))
         
         # Velocity Magnitude Plot
-        mag_plot = axs[0, 0].imshow(vel_mag, cmap='viridis', origin='lower')
+        mag_plot = axs[0, 0].imshow(vel_mag, cmap='viridis', origin='upper')
         axs[0, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='white')
         cbar0 = fig.colorbar(mag_plot, ax=axs[0, 0], format='%.1e')
         axs[0, 0].set_title("Magnitude (m/s)")
         
-        # X Component of Velocity
-        u_plot = axs[0, 1].imshow(vx, cmap='RdBu_r', origin='lower')
+        # X Component
+        u_plot = axs[0, 1].imshow(vx, cmap='RdBu_r', origin='upper')
         axs[0, 1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='black')
         cbar1 = fig.colorbar(u_plot, ax=axs[0, 1], format='%.1e')
         axs[0, 1].set_title("u (m/s)")
 
-        v_plot = axs[1, 0].imshow(vy, cmap='RdBu_r', origin='lower')
+        # Y Component
+        v_plot = axs[1, 0].imshow(vy, cmap='RdBu_r', origin='upper')
         axs[1, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
                     angles='xy', scale_units='xy', scale=0.1, color='black')
         cbar2 = fig.colorbar(v_plot, ax=axs[1, 0], format='%.1e')
         axs[1, 0].set_title("v (m/s)")
 
-        vort_plot = axs[1, 1].imshow(vort, cmap='coolwarm', origin='lower')
+        # Vorticity
+        vort_plot = axs[1, 1].imshow(vort, cmap='coolwarm', origin='upper')
         cbar3 = fig.colorbar(vort_plot, ax=axs[1, 1], format='%.1e')
         axs[1, 1].set_title("Vorticity (rad/s)")
 
@@ -329,4 +327,13 @@ class HoughTM:
         plt.tight_layout()
         plt.show()
 
+        return 
+    
+
+    def plot_lines(self) -> None:
+        """
+        Plot the Hough lines detected in the t0 grid.
+        """
+        self.grid_T0.plot_hough_lines()
+        
         return 

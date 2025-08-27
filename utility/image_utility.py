@@ -1,8 +1,8 @@
-from utility.py_import import os, cv2, np, plt, cm
-from skimage.morphology import skeletonize
+from utility.py_import import cv2, np, plt, Tuple
+from skimage.morphology import skeletonize, thin
 
 
-def save_plt(img, filename, cmap='gray'):
+def save_plt(img: np.ndarray, filename: str, cmap: str='gray') -> None:
         plt.figure()
         plt.imshow(img, cmap=cmap)
         plt.axis('off')
@@ -11,7 +11,8 @@ def save_plt(img, filename, cmap='gray'):
         plt.close()
 
 
-def skeletonize_img(image, blur_window=(5,5)):
+def skeletonize_img(image: np.ndarray, blur_window: Tuple[int, int]=(5,5), 
+                    method: str = 'thin') -> Tuple[np.ndarray, np.ndarray]:
     """
     Function takes in an image read in through cv2.imread, returns a skeletonized image of the
     grid
@@ -23,13 +24,12 @@ def skeletonize_img(image, blur_window=(5,5)):
     blur = cv2.GaussianBlur(image, blur_window, 0).astype('uint8')
 
     # Apply adaptive thresholding and Otsu's thresholding
-    adaptive_thresh = cv2.adaptiveThreshold(blur, 255, cv2.ADAPTIVE_THRESH_GAUSSIAN_C, cv2.THRESH_BINARY, 11, 2)
     _, ot = cv2.threshold(blur, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    # Apply morphological operations to Eliminate Noises
+    # Apply morphological operations to eliminate Noises
     kernel = np.ones((3, 3), np.uint8)
-    adaptive_thresh = cv2.erode(ot, kernel=kernel)
-    adaptive_thresh = cv2.dilate(ot, kernel=kernel)
+    thresh = cv2.erode(ot, kernel=kernel)
+    thresh = cv2.dilate(thresh, kernel=kernel)
 
     # Create a gradient mask to isolate specific regions
     grad_x = cv2.Sobel(ot, cv2.CV_64F, 1, 0, ksize=5)
@@ -39,8 +39,15 @@ def skeletonize_img(image, blur_window=(5,5)):
     dark_mask = (ot == 0)
     mask = gradient_mask & dark_mask
 
-    adaptive_thresh[mask] = 0
-    skeleton = skeletonize(adaptive_thresh).astype(np.uint8)
+    thresh[mask] = 0
+    if method == 'thin':
+        skeleton = thin(thresh).astype(np.uint8)
+    elif method == 'zhang':
+        skeleton = skeletonize(thresh, method="zhang").astype(np.uint8)
+    elif method == 'lee':
+        skeleton = skeletonize(thresh, method="lee").astype(np.uint8)
+    else:
+        raise ValueError(f"Unknown skeletonization method: {method}")
 
     # plt.figure(figsize=(15, 10))
     
@@ -50,7 +57,7 @@ def skeletonize_img(image, blur_window=(5,5)):
     # plt.axis('off')
     
     # plt.subplot(1, 3, 2)
-    # plt.imshow(mask, cmap='gray')
+    # plt.imshow(thresh, cmap='gray')
     # plt.title('Combined Mask')
     # plt.axis('off')
     
@@ -62,10 +69,11 @@ def skeletonize_img(image, blur_window=(5,5)):
     # plt.tight_layout()
     # plt.show()
     
-    return adaptive_thresh, skeleton
+    return thresh, skeleton
 
 
-def stereo_transform(im):
+def stereo_transform(im: np.ndarray) -> np.ndarray:
+
     """
     Manually transform image using compression on the left hand side and expansion on the
     right hand side to simulate stereoscopic effects.
@@ -90,7 +98,7 @@ def stereo_transform(im):
     ])
 
 
-    def find_mode_pixel_value(image):
+    def find_mode_pixel_value(image: np.ndarray) -> int:
         """
         Finds the pixel value with the highest frequency in a grayscale image using a histogram.
 
@@ -109,20 +117,11 @@ def stereo_transform(im):
     return transformed_image
 
 
-def transform_image(image, dx=0, dy=0):
-    """
-    Translate an image by a given displacement in x and y.
-
-    :param image: Input image (template)
-    :param dx: Displacement in x
-    :param dy: Displacement in y
-    :return: Translated image
-    """
+def transform_image(image: np.ndarray, dx: int=0, dy: int=0) -> np.ndarray:
     (h, w) = image.shape[:2]
 
     # Define the translation matrix
     M = np.float32([[1, 0, dx], [0, 1, dy]])
-
     # Apply the affine transformation (translation only)
     translated_img = cv2.warpAffine(image, M, (w, h), 
                                     flags=cv2.INTER_LINEAR, 

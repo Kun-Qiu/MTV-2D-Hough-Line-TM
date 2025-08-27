@@ -11,7 +11,7 @@ class DTGridStruct:
     avg_img_path: str
 
     win_size : Tuple[int, int] = (31, 31)
-    max_level: int = 7
+    max_level: int = 5
     iteration: int = 10
     epsilon  : float = 0.0001
 
@@ -26,31 +26,36 @@ class DTGridStruct:
 
         if self.avg_img_path is not None:
             avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
-            enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
-            self.image = enhancer_source.filter()
+            filtered_img = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+            self.image = filtered_img.filter()
 
         valid_mask = np.array([[pt is not None for pt in row] for row in self.T0_grid.grid])
         valid_indices = np.where(valid_mask)
         prev_pts = np.stack(self.T0_grid.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2)
-        
-        self._grid_LK(prev_pts, valid_indices)
-        self._dewarp_optimization(prev_pts, valid_indices, levels=0)
+
+        # Initial Frame
+        self._grid_LK(
+            prev_img=self.T0_grid.image, next_img=self.image, 
+            prev_pts=prev_pts, valid_indices=valid_indices
+            )
 
 
-    def _grid_LK(self, prev_pts: np.ndarray, valid_indices: np.ndarray) -> None:
+    def _grid_LK(self, prev_img: np.ndarray, next_img: np.ndarray, 
+                 prev_pts: np.ndarray, valid_indices: np.ndarray) -> None:
         # Perform LK optical flow to track points from T0_grid to dT_grid
-
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
+
+        # Forward Lucas Kanade
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-            prevImg=self.T0_grid.image,
-            nextImg=self.image,
+            prevImg=prev_img,
+            nextImg=next_img,
             prevPts=prev_pts,   
             nextPts=None,
             winSize=self.win_size,
             maxLevel=self.max_level,
             criteria=criteria
             )
-
+        
         tracked_idx = 0
         for i, j in zip(*valid_indices):
             if (tracked_idx < len(status) and 
@@ -62,38 +67,27 @@ class DTGridStruct:
                 self.grid[i][j] = None
             tracked_idx += 1
 
-        return 
+        return
 
 
-    def _dewarp_optimization(
-            self, prev_pts: np.ndarray, valid_indices: np.ndarray, levels: int=1
-            ) -> None:
-        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
-        dewarped_image = None
+    def sequence_solver(self, single_sequence: list, avg_sequence: list) -> None:
+        prev_img = self.image
+        next_img = None
+        for single_frame, avg_frame in zip(single_sequence, avg_sequence):
+            next_img = self.__filter_img(single_frame, avg_frame)
 
-        for _ in range(levels):
-            flow = self._interpolate_flow()
-            dewarped_image = self.__dewarp(self.image, flow)
+            valid_mask = np.array([[pt is not None for pt in row] for row in self.grid])
+            valid_indices = np.where(valid_mask)
+            prev_pts = np.stack(self.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2) 
 
-            next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-                prevImg=self.T0_grid.image,
-                nextImg=dewarped_image,
-                prevPts=prev_pts,   
-                nextPts=None,
-                winSize=self.win_size,
-                maxLevel=self.max_level,
-                criteria=criteria
-                )
+            self._grid_LK(
+                prev_img=prev_img, next_img=next_img, 
+                prev_pts=prev_pts, valid_indices=valid_indices
+            )
 
-            tracked_idx = 0
-            for i, j in zip(*valid_indices):
-                if (tracked_idx < len(status) and 
-                    status[tracked_idx] and 
-                    self.__within_bounds(next_pts[tracked_idx])
-                    ):
-                    displacement = next_pts[tracked_idx].ravel() - prev_pts[tracked_idx].ravel()
-                    self.grid[i][j] += displacement
-                tracked_idx += 1
+            prev_img = next_img
+        self.image = next_img
+        
         return
 
 
@@ -149,22 +143,6 @@ class DTGridStruct:
         plt.show()
 
 
-    def _refine_points(self, valid_indices: np.ndarray) -> None:
-        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 
-                    10*self.iteration, self.epsilon)  
-        
-        for _, (i, j) in enumerate(zip(*valid_indices)):
-            pt = self.grid[i][j].reshape(1, 1, 2)
-            refined_pt = cv2.cornerSubPix(
-                self.image,
-                pt.astype(np.float32),
-                winSize=(5, 5),
-                zeroZone=(-1, -1),
-                criteria=criteria
-            )
-            self.grid[i][j] = refined_pt.ravel()
-
-
     ########## Private Helper Functions ##########
 
     def __get_valid_cells(self) -> Tuple[np.ndarray, np.ndarray]:
@@ -187,20 +165,14 @@ class DTGridStruct:
         return 0 <= x < width and 0 <= y < height
     
 
-    @staticmethod
-    def __dewarp(img: np.ndarray, flow: np.ndarray) -> np.ndarray:
-        h, w = img.shape[:2]
-        x, y = np.meshgrid(np.arange(w), np.arange(h))
+    def __filter_img(self, img_path: str, avg_img_path: str) -> np.ndarray:
+        img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+        avg_img = cv2.imread(avg_img_path, cv2.IMREAD_GRAYSCALE)
+        enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=img)
+        filter_img = enhancer_source.filter()
 
-        remap_x = (x + flow[..., 0]).astype(np.float32)
-        remap_y = (y + flow[..., 1]).astype(np.float32)
-        dewarped_image = cv2.remap(
-            img, remap_x, remap_y,
-            interpolation=cv2.INTER_CUBIC 
-            )
-        
-        return dewarped_image
-    
+        return filter_img
+
 
     def __img_convex_hull(
             self, img: np.ndarray, 

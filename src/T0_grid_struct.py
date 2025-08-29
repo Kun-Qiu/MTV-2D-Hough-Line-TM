@@ -1,4 +1,4 @@
-from utility.py_import import np, cv2, dataclass, field, Tuple, plt
+from utility.py_import import np, dataclass, field, Tuple, plt
 from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
 from src.img_enhance import SingleShotEnhancer
@@ -10,14 +10,14 @@ def sort_lines(lines: np.ndarray) -> np.ndarray:
 
 @dataclass
 class T0GridStruct:
-    shape       : Tuple[int, int]
-    image_path  : str
-    avg_img_path: str
-    num_lines   : Tuple[int, int] 
+    shape     : Tuple[int, int]
+    image     : np.ndarray
+    num_lines : Tuple[int, int] 
     
     # Typically two of follows: 
     # [vertical lines, horizontal lines, positive sloped line, negatively sloped line]
     slope_thresh: Tuple[int, int]  
+    avg_image : np.ndarray = None
 
     threshold   : float = 0.2
     density     : int = 10
@@ -25,7 +25,6 @@ class T0GridStruct:
 
     grid        : np.ndarray = field(init=False)
     test_angles : np.ndarray = field(init=False)
-    image       : np.ndarray = field(init=False)
     image_skel  : np.ndarray = field(init=False)
     template    : np.ndarray = field(init=False)
     params      : np.ndarray = field(init=False)
@@ -46,15 +45,12 @@ class T0GridStruct:
             self.density * 360, 
             endpoint=True
             )
-        
-        self.image = cv2.imread(self.image_path, cv2.IMREAD_GRAYSCALE)
 
-        if self.avg_img_path is not None:
-            avg_img = cv2.imread(self.avg_img_path, cv2.IMREAD_GRAYSCALE)
-            enhancer_source = SingleShotEnhancer(avg_shot=avg_img, single_shot=self.image)
+        if self.avg_image is not None:
+            enhancer_source = SingleShotEnhancer(avg_shot=self.avg_image, single_shot=self.image)
             self.image = enhancer_source.filter()
 
-        _, self.image_skel  = skeletonize_img(self.image)
+        _, self.image_skel = skeletonize_img(self.image)
 
         self._populate_grid()
         # self._generate_template(scale=self.temp_scale)

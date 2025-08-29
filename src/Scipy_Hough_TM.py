@@ -8,16 +8,15 @@ from src.interpolator import dim2Interpolator
 
 @dataclass
 class HoughTM:
-    path_ref    : str
-    path_mov    : str
+    ref    : np.ndarray
+    mov    : np.ndarray
     num_lines   : Tuple[int, int]
     slope_thresh: Tuple[float, float]
     optimize : bool = False
-    verbose  : bool = False
 
     # Guided Images for Filtering
-    path_ref_avg: str = None
-    path_mov_avg: str = None
+    ref_avg: np.ndarray = None
+    mov_avg: np.ndarray = None
 
     # Template Matching Optimization Parameters
     fwhm        : float = field(init=False)
@@ -61,8 +60,8 @@ class HoughTM:
 
         self.grid_T0 = T0GridStruct(
             shape, 
-            self.path_ref, 
-            self.path_ref_avg,
+            self.ref, 
+            avg_image=self.ref_avg,
             num_lines=self.num_lines,
             slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
@@ -74,8 +73,8 @@ class HoughTM:
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
-            self.path_mov,
-            self.path_mov_avg, 
+            self.mov,
+            avg_image=self.mov_avg, 
             win_size=self.win_size,
             max_level=self.max_level,
             iteration=self.iteration,
@@ -134,7 +133,7 @@ class HoughTM:
         return
     
 
-    def _template_optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
+    def _template_optimize(self, grid_obj: np.ndarray) -> None:
         grid_valid = np.array(
             [[cell is not None for cell in row] 
             for row in grid_obj.grid]
@@ -159,13 +158,11 @@ class HoughTM:
         
             optimizer = ParameterOptimizer(
                 parametricX_obj, uncertainty=self.uncertainty, 
-                num_interval=self.num_interval, verbose=self.verbose
+                num_interval=self.num_interval
                 )
 
             # parameter_star = optimizer.quad_optimize()
             parameter_star = optimizer.quad_optimize_gradient()
-            if v:
-                optimizer.visualize()
             grid_obj.grid[i, j] = parameter_star[0:2]
         return
 
@@ -237,52 +234,38 @@ class HoughTM:
     ## Visualization Methods ##
     ###########################
 
-    def plot_fields(self, dt: float = 1.0, pix_to_world: float = 1.0, 
-                    extrapolate: bool = False, arrow_stride: int = 32) -> None:
-        fields = self.get_fields(dt, pix_to_world, extrapolate)
+    def plot_fields(self, dt: float = 1.0, pix_to_world: float = 1.0, extrapolate: bool = False) -> None:
         
-        x = fields[..., 0]
-        y = fields[..., 1]
-        vx = fields[..., 4]
-        vy = fields[..., 5]
-        vort = fields[..., 6]
- 
+        fields = self.get_fields(dt, pix_to_world, extrapolate)
+        vx, vy, vort = fields[..., 4], fields[..., 5], fields[..., 6]
         vel_mag = np.sqrt(vx**2 + vy**2)
 
-        h, w = fields.shape[:2]
-        row_idx = np.arange(0, h, arrow_stride)
-        col_idx = np.arange(0, w, arrow_stride)
-        ii, jj = np.meshgrid(row_idx, col_idx, indexing='ij')
+        valid_points = np.array([self.disp_field[i, j][:2] for i, j in self.valid_ij])
+        X = np.round(valid_points[:, 0]).astype(int)
+        Y = np.round(valid_points[:, 1]).astype(int)
         
-        x_sub = x[ii, jj]
-        y_sub = y[ii, jj]
-        vx_sub = vx[ii, jj]
-        vy_sub = vy[ii, jj]
+        Vx = vx[Y, X] 
+        Vy = vy[Y, X] 
 
-        vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)        
-        unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
-        unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
+        Vel_mag = vel_mag[Y, X]
+        unit_Vx = Vx / Vel_mag
+        unit_Vy = Vy / Vel_mag
 
-        fig, axs = plt.subplots(2, 2, figsize=(12, 10))
-        
+        fig, axs = plt.subplots(2, 2, figsize=(16, 10))
+
         # Velocity Magnitude Plot
-        mag_plot = axs[0, 0].imshow(vel_mag, cmap='viridis', origin='upper')
-        axs[0, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='white')
+        mag_plot = axs[0, 0].imshow(vel_mag, cmap='RdBu_r', origin='upper')
+        axs[0, 0].quiver(X, Y, unit_Vx, unit_Vy, color='red', scale=20)
         cbar0 = fig.colorbar(mag_plot, ax=axs[0, 0], format='%.1e')
         axs[0, 0].set_title("Magnitude (m/s)")
         
         # X Component
         u_plot = axs[0, 1].imshow(vx, cmap='RdBu_r', origin='upper')
-        axs[0, 1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='black')
         cbar1 = fig.colorbar(u_plot, ax=axs[0, 1], format='%.1e')
         axs[0, 1].set_title("u (m/s)")
 
         # Y Component
         v_plot = axs[1, 0].imshow(vy, cmap='RdBu_r', origin='upper')
-        axs[1, 0].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='black')
         cbar2 = fig.colorbar(v_plot, ax=axs[1, 0], format='%.1e')
         axs[1, 0].set_title("v (m/s)")
 

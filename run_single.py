@@ -3,6 +3,8 @@ from utility.py_import import np, plt
 from tqdm import tqdm
 import argparse
 from utility.tif_reader import tifReader
+from cython_build.PostProcessor import PostProcessor
+
 
 ##################################
 ##### USER DEFINED VARIABLES #####
@@ -73,50 +75,33 @@ if __name__ == "__main__":
     num_lines = (args.line[0], args.line[1])
     slope_thresh = (args.slope[0], args.slope[1])
     ref_avg, mov_avg = (ref_tif.average(), mov_tif.average()) if args.filter else (None, None)
+    
+    img_shape = np.shape(ref_avg)
+    processor = PostProcessor(img_shape[0], img_shape[1])
 
     print("Reference and moving image processed.")
 
+    skip = [5, 6, 10, 11, 45]
     n = 0
-    vx_sum = vx_sum_sq = None
-    vy_sum = vy_sum_sq = None
-    vort_sum = vort_sum_sq = None
-
+    means, M2s = None, None
     solver = None
-    for i in tqdm(range(10), desc="Processing images"):
+    for i in tqdm(range(3), desc="Processing images"):
         ref, mov = ref_tif.get_image(i), mov_tif.get_image(i)
         solver = solver_setup(ref, mov, num_lines, slope_thresh, ref_avg, mov_avg)
         solver.solve()
 
-        sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
-        vx = sol_field[..., 4].astype(np.float32)
-        vy = sol_field[..., 5].astype(np.float32)
-        vort = sol_field[..., 6].astype(np.float32)
+        if (i + 1) in skip:
+            continue            
 
-        if n == 0:
-            vx_sum = vx.copy()
-            vy_sum = vy.copy()
-            vort_sum = vort.copy()
-            vx_sum_sq = vx ** 2
-            vy_sum_sq = vy ** 2
-            vort_sum_sq = vort ** 2
-        else:
-            vx_sum += vx
-            vy_sum += vy
-            vort_sum += vort
-            vx_sum_sq += vx ** 2
-            vy_sum_sq += vy ** 2
-            vort_sum_sq += vort ** 2
-        n += 1
+        sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
+
+        in_x, in_y, in_w = sol_field[..., 4], sol_field[..., 5], sol_field[..., 6]
+        processor.update(in_x, in_y, in_w)
 
     print("Processing & Plotting Mean / RMS Fields")
 
-    vx_mean = vx_sum / n
-    vy_mean = vy_sum / n
-    vort_mean = vort_sum / n
-
-    vx_rms = np.sqrt(vx_sum_sq / n)
-    vy_rms = np.sqrt(vy_sum_sq / n)
-    vort_rms = np.sqrt(vort_sum_sq / n)
+    vx_mean, vy_mean, vort_mean = processor.get_mean()
+    vx_std, vy_std, vort_std = processor.get_std()
 
     # Average Magnitude
     valid_points = np.array([solver.disp_field[i, j][:2] for i, j in solver.valid_ij])
@@ -151,20 +136,20 @@ if __name__ == "__main__":
     plt.colorbar(im1, ax=axs[0, 1])
 
     im2 = axs[0, 2].imshow(vort_mean, cmap='jet')
-    axs[0, 2].set_title('Mean Vorticity (1/s)')
+    axs[0, 2].set_title('Mean ω​​ (1/s)')
     plt.colorbar(im2, ax=axs[0, 2])
 
     # RMS Velocity Plots
-    im3 = axs[1, 0].imshow(vx_rms, cmap='jet')
-    axs[1, 0].set_title('RMS U (m/s)')
+    im3 = axs[1, 0].imshow(vx_std, cmap='jet')
+    axs[1, 0].set_title('U\' (m/s)')
     plt.colorbar(im3, ax=axs[1, 0])
 
-    im4 = axs[1, 1].imshow(vy_rms, cmap='jet')
-    axs[1, 1].set_title('RMS V (m/s)')
+    im4 = axs[1, 1].imshow(vy_std, cmap='jet')
+    axs[1, 1].set_title('V\' (m/s)')
     plt.colorbar(im4, ax=axs[1, 1])
 
-    im5 = axs[1, 2].imshow(vort_rms, cmap='jet')
-    axs[1, 2].set_title('RMS Vorticity (1/s)')
+    im5 = axs[1, 2].imshow(vort_std, cmap='jet')
+    axs[1, 2].set_title('ω​​\' (1/s)')
     plt.colorbar(im5, ax=axs[1, 2])
 
     plt.tight_layout()

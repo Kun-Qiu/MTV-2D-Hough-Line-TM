@@ -206,14 +206,20 @@ class HoughTM:
         points = np.column_stack([x.ravel(), y.ravel()])
         
         disp = self.interpolator.interpolate(points)
+        convex_hull_mask = self.interpolator.is_inside_bounds(points)
+        disp[~convex_hull_mask] = np.nan
+
         vel = (disp.copy() / dt).reshape(h, w, 2)
         disp = disp.reshape(h, w, 2)
 
         vort = np.full((h, w), np.nan)
-        vort[1:-1, 1:-1] = (
-            vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
-            vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
-            ) / 2
+        dvx_dy, dvx_dx = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
+        dvy_dy, dvy_dx = np.gradient(vel[..., 1])
+        # vort[1:-1, 1:-1] = (
+        #     vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
+        #     vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
+        #     ) / 2
+        vort = dvy_dx - dvx_dy
 
         return np.dstack([
                 x * pix_to_world, 

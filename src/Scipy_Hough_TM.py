@@ -8,14 +8,15 @@ from src.interpolator import dim2Interpolator
 
 @dataclass
 class HoughTM:
-    path_ref    : str
-    path_ref_avg: str
-    path_mov    : str
-    path_mov_avg: str
+    ref    : np.ndarray
+    mov    : np.ndarray
     num_lines   : Tuple[int, int]
     slope_thresh: Tuple[float, float]
     optimize : bool = False
-    verbose  : bool = False
+
+    # Guided Images for Filtering
+    ref_avg: np.ndarray = None
+    mov_avg: np.ndarray = None
 
     # Template Matching Optimization Parameters
     fwhm        : float = field(init=False)
@@ -41,8 +42,6 @@ class HoughTM:
     interpolator: dim2Interpolator = field(init=False)
 
     def __post_init__(self):
-        shape = self.num_lines
-
         # Default values for parameters
         self.set_hough_params(density=10, threshold=0.2)
         self.set_template_params(
@@ -51,16 +50,15 @@ class HoughTM:
             )
         
         self.set_optical_flow_params(
-            win_size=(61, 61), max_level=3, 
+            win_size=(62, 62), max_level=3, 
             iteration=10, epsilon=0.001
             )
         
         self.uncertainty = self.fwhm
 
-        self.grid_T0 = T0GridStruct(
-            shape, 
-            self.path_ref, 
-            self.path_ref_avg,
+        self.grid_T0 = T0GridStruct( 
+            self.ref, 
+            avg_image=self.ref_avg,
             num_lines=self.num_lines,
             slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
@@ -68,12 +66,12 @@ class HoughTM:
             temp_scale=self.temp_scale
             )
         if self.optimize:
-            self._template_optimize(self.grid_T0, False)
+            self._template_optimize(self.grid_T0)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
-            self.path_mov,
-            self.path_mov_avg, 
+            self.mov,
+            avg_image=self.mov_avg, 
             win_size=self.win_size,
             max_level=self.max_level,
             iteration=self.iteration,
@@ -132,7 +130,7 @@ class HoughTM:
         return
     
 
-    def _template_optimize(self, grid_obj: np.ndarray, v: bool = False) -> None:
+    def _template_optimize(self, grid_obj: np.ndarray) -> None:
         grid_valid = np.array(
             [[cell is not None for cell in row] 
             for row in grid_obj.grid]
@@ -157,13 +155,11 @@ class HoughTM:
         
             optimizer = ParameterOptimizer(
                 parametricX_obj, uncertainty=self.uncertainty, 
-                num_interval=self.num_interval, verbose=self.verbose
+                num_interval=self.num_interval
                 )
 
             # parameter_star = optimizer.quad_optimize()
             parameter_star = optimizer.quad_optimize_gradient()
-            if v:
-                optimizer.visualize()
             grid_obj.grid[i, j] = parameter_star[0:2]
         return
 
@@ -178,9 +174,14 @@ class HoughTM:
 
         self.solve_bool = True
         return
+    
+
+    def sequence_solve(self, single_sequence: list, avg_sequence: list) -> None:
+        self.grid_dT.sequence_solver(single_sequence, avg_sequence)
+        self.solve()
 
 
-    def get_fields(self, dt:float=1, pix_world: float = 1, extrapolate:bool=False) -> np.ndarray:
+    def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
         if not self.solve_bool:
             raise ValueError("Call solve() before get_fields().")
         
@@ -202,81 +203,91 @@ class HoughTM:
         points = np.column_stack([x.ravel(), y.ravel()])
         
         disp = self.interpolator.interpolate(points)
+        convex_hull_mask = self.interpolator.is_inside_bounds(points)
+        disp[~convex_hull_mask] = np.nan
+
         vel = (disp.copy() / dt).reshape(h, w, 2)
         disp = disp.reshape(h, w, 2)
 
         vort = np.full((h, w), np.nan)
-        vort[1:-1, 1:-1] = (
-            vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
-            vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
-            ) / 2
+        dvx_dy, dvx_dx = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
+        dvy_dy, dvy_dx = np.gradient(vel[..., 1])
+        # vort[1:-1, 1:-1] = (
+        #     vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
+        #     vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
+        #     ) / 2
+        vort = dvy_dx - dvx_dy
 
-        return np.dstack([x, y, disp[..., 0], disp[..., 1], vel[..., 0], vel[..., 1], vort])
+        return np.dstack([
+                x * pix_to_world, 
+                y * pix_to_world, 
+                disp[..., 0] * pix_to_world, 
+                disp[..., 1] * pix_to_world, 
+                vel[..., 0] * pix_to_world, 
+                vel[..., 1] * pix_to_world, 
+                vort * pix_to_world
+                ])
 
 
     def evaluate(self, pts:np.ndarray) -> np.ndarray:
         return self.interpolator.interpolate(pts)
     
 
+    def set_ref(self, im: np.ndarray) -> None:
+        self.ref = im
+
+        return
+
+    
+    def set_mov(self, im: np.ndarray) -> None:
+        self.mov = im
+
+        return
+    
+
     ###########################
     ## Visualization Methods ##
     ###########################
 
-    def plot_fields(self, dt: float = 1.0, extrapolate: bool = False, arrow_stride: int = 32) -> None:
-        fields = self.get_fields(dt, extrapolate)
+    def plot_fields(self, dt: float = 1.0, pix_to_world: float = 1.0, extrapolate: bool = False) -> None:
         
-        x = fields[..., 0]
-        y = fields[..., 1]
-        dx = fields[..., 2]
-        dy = fields[..., 3]
-        vx = fields[..., 4]
-        vy = fields[..., 5]
-        vort = fields[..., 6]
-
-        disp_mag = np.sqrt(dx**2 + dy**2) 
+        fields = self.get_fields(dt, pix_to_world, extrapolate)
+        vx, vy, vort = fields[..., 4], fields[..., 5], fields[..., 6]
         vel_mag = np.sqrt(vx**2 + vy**2)
 
-        h, w = fields.shape[:2]
-        row_idx = np.arange(0, h, arrow_stride)
-        col_idx = np.arange(0, w, arrow_stride)
-        ii, jj = np.meshgrid(row_idx, col_idx, indexing='ij')
+        valid_points = np.array([self.disp_field[i, j][:2] for i, j in self.valid_ij])
+        X = np.round(valid_points[:, 0]).astype(int)
+        Y = np.round(valid_points[:, 1]).astype(int)
         
-        x_sub = x[ii, jj]
-        y_sub = y[ii, jj]
-        dx_sub = dx[ii, jj]
-        dy_sub = dy[ii, jj]
-        vx_sub = vx[ii, jj]
-        vy_sub = vy[ii, jj]
+        Vx = vx[Y, X] 
+        Vy = vy[Y, X] 
 
-        disp_mag_sub = np.sqrt(dx_sub**2 + dy_sub**2)
-        vel_mag_sub = np.sqrt(vx_sub**2 + vy_sub**2)
+        Vel_mag = vel_mag[Y, X]
+        unit_Vx = Vx / Vel_mag
+        unit_Vy = Vy / Vel_mag
+
+        fig, axs = plt.subplots(2, 2, figsize=(16, 10))
+
+        # Velocity Magnitude Plot
+        mag_plot = axs[0, 0].imshow(vel_mag, cmap='RdBu_r', origin='upper')
+        axs[0, 0].quiver(X, Y, unit_Vx, unit_Vy, color='red', scale=20)
+        cbar0 = fig.colorbar(mag_plot, ax=axs[0, 0], format='%.1e')
+        axs[0, 0].set_title("Magnitude (m/s)")
         
-        unit_dx_sub = np.divide(dx_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dx_sub))
-        unit_dy_sub = np.divide(dy_sub, disp_mag_sub, where=disp_mag_sub!=0, out=np.zeros_like(dy_sub))
-        unit_vx_sub = np.divide(vx_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vx_sub))
-        unit_vy_sub = np.divide(vy_sub, vel_mag_sub, where=vel_mag_sub!=0, out=np.zeros_like(vy_sub))
+        # X Component
+        u_plot = axs[0, 1].imshow(vx, cmap='RdBu_r', origin='upper')
+        cbar1 = fig.colorbar(u_plot, ax=axs[0, 1], format='%.1e')
+        axs[0, 1].set_title("u (m/s)")
 
-        fig, axs = plt.subplots(1, 3, figsize=(18, 6))
+        # Y Component
+        v_plot = axs[1, 0].imshow(vy, cmap='RdBu_r', origin='upper')
+        cbar2 = fig.colorbar(v_plot, ax=axs[1, 0], format='%.1e')
+        axs[1, 0].set_title("v (m/s)")
 
-        disp_plot = axs[0].imshow(disp_mag, cmap='viridis', origin='lower')
-        axs[0].quiver(x_sub, y_sub, unit_dx_sub, unit_dy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='black')
-        fig.colorbar(disp_plot, ax=axs[0])
-        axs[0].set_title("Displacement")
-        axs[0].set_xlabel("X")
-        axs[0].set_ylabel("Y")
-
-        vel_plot = axs[1].imshow(vel_mag, cmap='viridis', origin='lower')
-        axs[1].quiver(x_sub, y_sub, unit_vx_sub, unit_vy_sub,
-                    angles='xy', scale_units='xy', scale=0.1, color='blue')
-        fig.colorbar(vel_plot, ax=axs[1])
-        axs[1].set_title("Velocity")
-        axs[1].set_xlabel("X")
-
-        vort_plot = axs[2].imshow(vort, cmap='coolwarm', origin='lower')
-        fig.colorbar(vort_plot, ax=axs[2])
-        axs[2].set_title("Vorticity")
-        axs[2].set_xlabel("X")
+        # Vorticity
+        vort_plot = axs[1, 1].imshow(vort, cmap='coolwarm', origin='upper')
+        cbar3 = fig.colorbar(vort_plot, ax=axs[1, 1], format='%.1e')
+        axs[1, 1].set_title("Vorticity (rad/s)")
 
         plt.tight_layout()
         plt.show()
@@ -314,4 +325,13 @@ class HoughTM:
         plt.tight_layout()
         plt.show()
 
+        return 
+    
+
+    def plot_lines(self) -> None:
+        """
+        Plot the Hough lines detected in the t0 grid.
+        """
+        self.grid_T0.plot_hough_lines()
+        
         return 

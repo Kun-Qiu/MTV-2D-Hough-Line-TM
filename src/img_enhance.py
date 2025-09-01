@@ -76,30 +76,72 @@ class SingleShotEnhancer:
 
 
     def filter(self) -> np.ndarray:
-        # filtered_image = self.__frequency_filter(self.__single_shot, low_cutoff=0.2, high_cutoff=0.8)
-        # filtered_image = img_as_ubyte(filtered_image)
-        # filtered_image = self.__guided_filter(filtered_image, radius=20, eps=1e-6, strength=0.5)
         filtered_image = self.__guided_filter(self.__single_shot, radius=20, eps=1e-6, strength=0.5)
-        # filtered_image = img_as_ubyte(filtered_image)
         filtered_image = self.__frequency_filter(filtered_image, low_cutoff=0.4, high_cutoff=0.7)
         
         return img_as_ubyte(filtered_image)
 
 
+def match_histograms(src: np.ndarray, ref: np.ndarray) -> np.ndarray:
+    src_hist = cv2.calcHist([src], [0], None, [512], [0, 256])
+    ref_hist = cv2.calcHist([ref], [0], None, [512], [0, 256])
+    
+    src_hist /= src_hist.sum()
+    ref_hist /= ref_hist.sum()
+    
+    src_cdf = np.cumsum(src_hist)
+    ref_cdf = np.cumsum(ref_hist)
+    
+    # Create lookup table with interpolation for smoother matching
+    lookup_table = np.zeros(256, dtype=np.uint8)
+    
+    for i in range(256):
+        
+        cdf_val = src_cdf[i * 2] 
+        idx = np.searchsorted(ref_cdf, cdf_val)
+        if idx > 0 and idx < len(ref_cdf) - 1:
+            # Interpolate between adjacent values
+            lower_val = (idx - 1) / 2
+            upper_val = idx / 2
+            weight = (cdf_val - ref_cdf[idx-1]) / (ref_cdf[idx] - ref_cdf[idx-1] + 1e-10)
+            lookup_table[i] = np.clip(lower_val * (1 - weight) + upper_val * weight, 0, 255)
+        else:
+            lookup_table[i] = np.clip(idx / 2, 0, 255)
+    
+    # Apply the lookup table
+    matched = lookup_table[src].astype(np.uint8)
+    src_grad = cv2.Laplacian(src, cv2.CV_64F)
+    matched_grad = cv2.Laplacian(matched, cv2.CV_64F)
+    
+    # Only preserve gradients where they're strong in the original
+    grad_mask = np.abs(src_grad) > np.percentile(np.abs(src_grad), 75)
+    enhanced = matched.copy().astype(np.float64)
+    enhanced[grad_mask] = 0.7 * enhanced[grad_mask] + 0.3 * src[grad_mask].astype(np.float64)
+    
+    return np.clip(enhanced, 0, 255).astype(np.uint8)
+
+
+def blob_enhance_tophat(img, se_radius=7):
+    gray = img if img.ndim==2 else cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    se = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (2*se_radius+1, 2*se_radius+1))
+    tophat = cv2.morphologyEx(gray, cv2.MORPH_TOPHAT, se)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8,8))
+    return clahe.apply(tophat)
+
 
 if __name__ == "__main__":
-    source = "data/experimental_data/Source/RefImage4_06042025.png"
-    target = "data/experimental_data/Source/RefImage4_06042025_0000.png"
+    source = "data\experimental_data\Source\Ref1_06042025.png"
+    target = "data\experimental_data\Source\Ref1_06042025_0000.png"
 
-    source = "data/experimental_data/Target/Run19_06042025.png"
-    target = "data/experimental_data/Target/Run19_06042025_0000.png"
+    source2 = "data\experimental_data\Target\Run2_06042025.png"
+    target2 = "data\experimental_data\Target\Run2_06042025_0000.png"
 
     avg_source = cv2.imread(source, cv2.IMREAD_GRAYSCALE)
     single_source = cv2.imread(target, cv2.IMREAD_GRAYSCALE)
 
     enhancer_source = SingleShotEnhancer(avg_shot=avg_source, single_shot=single_source)
-    enhanced_source = enhancer_source.filter()
-    
+    enhanced = enhancer_source.filter()
+
     plt.figure(figsize=(18, 6))
 
     # Original Single Shot
@@ -109,7 +151,7 @@ if __name__ == "__main__":
 
     # Enhanced Image
     plt.subplot(1, 3, 2)
-    plt.imshow(enhanced_source, cmap='gray')
+    plt.imshow(enhanced, cmap='gray')
     plt.axis('off')
 
     # Averaged Reference

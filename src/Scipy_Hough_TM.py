@@ -42,8 +42,6 @@ class HoughTM:
     interpolator: dim2Interpolator = field(init=False)
 
     def __post_init__(self):
-        shape = self.num_lines
-
         # Default values for parameters
         self.set_hough_params(density=10, threshold=0.2)
         self.set_template_params(
@@ -58,8 +56,7 @@ class HoughTM:
         
         self.uncertainty = self.fwhm
 
-        self.grid_T0 = T0GridStruct(
-            shape, 
+        self.grid_T0 = T0GridStruct( 
             self.ref, 
             avg_image=self.ref_avg,
             num_lines=self.num_lines,
@@ -69,7 +66,7 @@ class HoughTM:
             temp_scale=self.temp_scale
             )
         if self.optimize:
-            self._template_optimize(self.grid_T0, False)
+            self._template_optimize(self.grid_T0)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -234,6 +231,18 @@ class HoughTM:
 
     def evaluate(self, pts:np.ndarray) -> np.ndarray:
         return self.interpolator.interpolate(pts)
+    
+
+    def set_ref(self, im: np.ndarray) -> None:
+        self.ref = im
+
+        return
+
+    
+    def set_mov(self, im: np.ndarray) -> None:
+        self.mov = im
+
+        return
     
 
     ###########################

@@ -32,7 +32,7 @@ cdef class PostProcessor:
             double current_mean_x, current_mean_y, current_mean_w
             double new_mean_x, new_mean_y, new_mean_w
             double M2_update_x, M2_update_y, M2_update_w
-            long local_count = self.count  # Cache count locally
+            long local_count = self.count
 
         for i in range(self.n_rows):
             for j in range(self.n_cols):

@@ -10,7 +10,6 @@ def sort_lines(lines: np.ndarray) -> np.ndarray:
 
 @dataclass
 class T0GridStruct:
-    shape     : Tuple[int, int]
     image     : np.ndarray
     num_lines : Tuple[int, int] 
     
@@ -32,10 +31,10 @@ class T0GridStruct:
 
 
     def __post_init__(self):
-        self.grid        = np.empty(self.shape, dtype=object)
-        self.template    = np.empty(self.shape, dtype=object)
-        self.params      = np.empty(self.shape, dtype=object)
-        self.uncertainty = np.empty(self.shape, dtype=object)
+        self.grid        = np.empty(self.num_lines, dtype=object)
+        self.template    = np.empty(self.num_lines, dtype=object)
+        self.params      = np.empty(self.num_lines, dtype=object)
+        self.uncertainty = np.empty(self.num_lines, dtype=object)
 
         self.lines_a     = np.zeros((self.num_lines[0], 2), dtype=float)
         self.lines_b     = np.zeros((self.num_lines[1], 2), dtype=float)
@@ -55,6 +54,10 @@ class T0GridStruct:
         self._populate_grid()
         # self._generate_template(scale=self.temp_scale)
     
+    # def solve(self):
+    #     _, self.image_skel = skeletonize_img(self.image)
+    #     self._populate_grid()
+
 
     def _is_within_bounds(self, x: int, y: int) -> bool:
         height, width = self.image.shape[:2]
@@ -88,10 +91,10 @@ class T0GridStruct:
         a_mat, b_mat = self._hough_line_transform()
 
         for i, a_line in enumerate(sort_lines(a_mat)):
-            if i >= self.shape[0]:
+            if i >= self.num_lines[0]:
                 continue
             for j, b_line in enumerate(sort_lines(b_mat)):
-                if j >= self.shape[1]:
+                if j >= self.num_lines[1]:
                     continue
                 intersection = self._find_intersection(a_line, b_line)
                 bounded = self._is_within_bounds(intersection[0], intersection[1])
@@ -154,7 +157,7 @@ class T0GridStruct:
     
 
     def _grid_img_bound(self, i: int, j: int) -> tuple:
-        if not (0 <= i < self.shape[0] and 0 <= j < self.shape[1]):
+        if not (0 <= i < self.num_lines[0] and 0 <= j < self.num_lines[1]):
             raise IndexError("Center index (i, j) is out of bounds.")
 
         x_c, y_c = self.grid[i, j]
@@ -170,7 +173,7 @@ class T0GridStruct:
             ]
 
         for ni, nj in directions:
-            if 0 <= ni < self.shape[0] and 0 <= nj < self.shape[1] and not np.isnan(self.grid[ni, nj]).any():
+            if 0 <= ni < self.num_lines[0] and 0 <= nj < self.num_lines[1] and not np.isnan(self.grid[ni, nj]).any():
                 x_adj, y_adj = self.grid[ni, nj]
                 dx = x_adj - x_c
                 dy = y_adj - y_c
@@ -205,8 +208,8 @@ class T0GridStruct:
     def _generate_template(self, scale: float=0.7):
         height, width = np.shape(self.image)
 
-        for i in range(self.shape[0]):
-            for j in range(self.shape[1]):
+        for i in range(self.num_lines[0]):
+            for j in range(self.num_lines[1]):
                 # Crop based on bottom right node
                 center = self.grid[i, j]
                 if (np.isnan(center).any()):

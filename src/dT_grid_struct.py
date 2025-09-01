@@ -19,7 +19,7 @@ class DTGridStruct:
     grid : np.ndarray = field(init=False)
 
     def __post_init__(self):
-        self.shape = self.T0_grid.shape
+        self.shape = self.T0_grid.num_lines
         self.grid = np.empty(self.shape, dtype=object)
 
         if self.avg_image is not None:

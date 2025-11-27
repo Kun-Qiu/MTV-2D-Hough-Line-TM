@@ -1,4 +1,8 @@
-from utility.py_import import np, dataclass, field, Tuple, plt
+from dataclasses import dataclass, field
+from typing import Tuple
+import matplotlib.pyplot as plt
+import numpy as np
+
 from utility.image_utility import skeletonize_img
 from skimage.transform import hough_line, hough_line_peaks
 from src.img_enhance import SingleShotEnhancer

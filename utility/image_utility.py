@@ -1,4 +1,7 @@
-from utility.py_import import cv2, np, plt, Tuple
+import cv2 
+import numpy as np 
+import matplotlib.pyplot as plt 
+from typing import Tuple
 from skimage.morphology import skeletonize, thin
 
 
@@ -48,26 +51,6 @@ def skeletonize_img(image: np.ndarray, blur_window: Tuple[int, int]=(5,5),
         skeleton = skeletonize(thresh, method="lee").astype(np.uint8)
     else:
         raise ValueError(f"Unknown skeletonization method: {method}")
-
-    # plt.figure(figsize=(15, 10))
-    
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(image, cmap='gray')
-    # plt.title('Original Image')
-    # plt.axis('off')
-    
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(thresh, cmap='gray')
-    # plt.title('Combined Mask')
-    # plt.axis('off')
-    
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(skeleton, cmap='gray')
-    # plt.title('Skeletonized Result')
-    # plt.axis('off')
-    
-    # plt.tight_layout()
-    # plt.show()
     
     return thresh, skeleton
 
@@ -128,3 +111,33 @@ def transform_image(image: np.ndarray, dx: int=0, dy: int=0) -> np.ndarray:
                                     borderMode=cv2.BORDER_CONSTANT, 
                                     borderValue=0)
     return translated_img
+
+
+if __name__ == "__main__":
+    img_path = r"C:\Users\Kun Qiu\Projects\MTV-2D-Hough-Line-TM\data\synthetic_data\Image\SNR_2\5\src.png"
+    img = cv2.imread(img_path, cv2.IMREAD_GRAYSCALE)
+    thresh, skeleton = skeletonize_img(img)
+
+    # Save original image
+    plt.figure(figsize=(5, 5))
+    plt.imshow(img, cmap='gray')
+    plt.axis('off')
+    plt.tight_layout(pad=0)
+    plt.savefig('original_image.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    # Save combined mask
+    plt.figure(figsize=(5, 5))
+    plt.imshow(thresh, cmap='gray')
+    plt.axis('off')
+    plt.tight_layout(pad=0)
+    plt.savefig('combined_mask.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()
+
+    # Save skeletonized result
+    plt.figure(figsize=(5, 5))
+    plt.imshow(skeleton, cmap='gray')
+    plt.axis('off')
+    plt.tight_layout(pad=0)
+    plt.savefig('skeleton_result.png', dpi=300, bbox_inches='tight', pad_inches=0)
+    plt.close()

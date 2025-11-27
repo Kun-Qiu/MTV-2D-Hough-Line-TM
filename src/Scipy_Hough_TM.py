@@ -1,4 +1,8 @@
-from utility.py_import import np, plt, dataclass, field, Tuple
+from dataclasses import dataclass, field
+from typing import Tuple
+import matplotlib.pyplot as plt
+import numpy as np
+
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
 from cython_build.ParametricX import ParametricX
@@ -177,11 +181,21 @@ class HoughTM:
     
 
     def sequence_solve(self, single_sequence: list, avg_sequence: list) -> None:
+        """
+        Solve a sequence of image pairs, typically in a time sequence.
+        """
         self.grid_dT.sequence_solver(single_sequence, avg_sequence)
         self.solve()
+        return
 
 
     def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
+        """
+        Get the interpolated displacement, velocity, and vorticity fields
+        :param dt              :   Time interval between frames
+        :param pix_to_world    :   Conversion factor from pixel units to world units
+        :param extrapolate     :   Boolean to allow extrapolation outside convex hull
+        """
         if not self.solve_bool:
             raise ValueError("Call solve() before get_fields().")
         
@@ -194,6 +208,7 @@ class HoughTM:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
                 dxy=valid_displacements,
+                method=0,
                 extrapolate=extrapolate
             )
 
@@ -209,14 +224,9 @@ class HoughTM:
         vel = (disp.copy() / dt).reshape(h, w, 2)
         disp = disp.reshape(h, w, 2)
 
-        vort = np.full((h, w), np.nan)
-        dvx_dy, dvx_dx = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
-        dvy_dy, dvy_dx = np.gradient(vel[..., 1])
-        # vort[1:-1, 1:-1] = (
-        #     vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
-        #     vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
-        #     ) / 2
-        vort = dvy_dx - dvx_dy
+        dsx_dy = np.gradient(disp[..., 0], axis=0)  # ∂v_x/∂y, ∂v_x/∂x
+        dsy_dx = np.gradient(disp[..., 1], axis=1)
+        vort_pre = dsy_dx - dsx_dy
 
         return np.dstack([
                 x * pix_to_world, 
@@ -225,24 +235,12 @@ class HoughTM:
                 disp[..., 1] * pix_to_world, 
                 vel[..., 0] * pix_to_world, 
                 vel[..., 1] * pix_to_world, 
-                vort * pix_to_world
+                vort_pre / dt
                 ])
 
 
     def evaluate(self, pts:np.ndarray) -> np.ndarray:
         return self.interpolator.interpolate(pts)
-    
-
-    def set_ref(self, im: np.ndarray) -> None:
-        self.ref = im
-
-        return
-
-    
-    def set_mov(self, im: np.ndarray) -> None:
-        self.mov = im
-
-        return
     
 
     ###########################

@@ -1,9 +1,10 @@
 from src.Scipy_Hough_TM import HoughTM
-from utility.py_import import np, plt
+import matplotlib.pyplot as plt
+import numpy as np
 from tqdm import tqdm
+from cython_build.PostProcessor import PostProcessor
 import argparse
 from utility.tif_reader import tifReader
-from cython_build.PostProcessor import PostProcessor
 
 
 ##################################
@@ -23,24 +24,24 @@ HOUGH_DENSITY = 10
 def parser_setup():
     parser = argparse.ArgumentParser(
         description="Hybrid Analysis Method for Single Time Frame",
-        epilog="Usage: python run_single.py --ref Ref1.tif --mov Run1.tif --line 9 11 --slope 10 1 --dt 1e-6 --pix_world 0.000039604 --num 3 --filter True"
+        epilog="Usage: python run_single.py Ref1.tif Run1.tif 9 11 10 1 1e-6 0.000039604 --num 3 --filter True"
     )
 
-    parser.add_argument("--ref", required=True, type=str, help="Path to the reference image")
-    parser.add_argument("--mov", required=True, type=str, help="Path to the moving image")
-    parser.add_argument("--line", nargs=2, required=True, type=int, help="Number of lines")
-    parser.add_argument("--slope", nargs=2, required=True, type=int, help="Slope of lines")
-    parser.add_argument("--dt", required=True, type=float, help="Delay time between reference and moving image")
-    parser.add_argument("--pix_world", required=True, type=float, help="Conversion factor for pixel to world coordinates")
+    parser.add_argument("ref", required=True, type=str, help="Path to the reference image")
+    parser.add_argument("mov", required=True, type=str, help="Path to the moving image")
+    parser.add_argument("line", nargs=2, required=True, type=int, help="Number of lines")
+    parser.add_argument("slope", nargs=2, required=True, type=int, help="Slope of lines")
+    parser.add_argument("dt", required=True, type=float, help="Delay time between reference and moving image")
+    parser.add_argument("pix_world", required=True, type=float, help="Conversion factor for pixel to world coordinates")
     parser.add_argument("--num", default=0, type=int, help="Number of images to process")
     parser.add_argument("--filter", default=False, type=bool, help="Boolean to filter single shot")
-
     return parser
 
 
 def solver_setup(ref, mov, num_lines, slope_thresh, ref_avg=None, mov_avg=None):
-    # Parameter setup for the solver 
- 
+    """
+    Parameter setup for the solver
+    """ 
     solver = HoughTM(
         ref=ref,
         ref_avg=ref_avg,
@@ -93,6 +94,7 @@ if __name__ == "__main__":
             slope_thresh, ref_avg, mov_avg
             )
         solver.solve()
+        solver.plot_fields(dt=args.dt, pix_to_world=args.pix_world)
 
         if (i + 1) in skip:
             continue            

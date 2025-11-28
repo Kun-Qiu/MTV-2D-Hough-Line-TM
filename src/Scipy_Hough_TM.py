@@ -1,8 +1,8 @@
 from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
-from cython_build.ParametricX import ParametricX
-from src.parametric_opt import ParameterOptimizer
+# from cython_build.ParametricX import ParametricX
+# from src.parametric_opt import ParameterOptimizer
 from src.interpolator import dim2Interpolator
 
 
@@ -12,18 +12,18 @@ class HoughTM:
     mov    : np.ndarray
     num_lines   : Tuple[int, int]
     slope_thresh: Tuple[float, float]
-    optimize : bool = False
+    # optimize : bool = False
 
     # Guided Images for Filtering
     ref_avg: np.ndarray = None
     mov_avg: np.ndarray = None
 
     # Template Matching Optimization Parameters
-    fwhm        : float = field(init=False)
-    uncertainty : float = field(init=False)
-    num_interval: int = field(init=False)
-    intensity   : float = field(init=False)
-    temp_scale  : float = field(init=False)
+    # fwhm        : float = field(init=False)
+    # uncertainty : float = field(init=False)
+    # num_interval: int = field(init=False)
+    # intensity   : float = field(init=False)
+    # temp_scale  : float = field(init=False)
 
     # Hough Line Transform Parameters
     density  : int = field(init=False)
@@ -44,17 +44,17 @@ class HoughTM:
     def __post_init__(self):
         # Default values for parameters
         self.set_hough_params(density=10, threshold=0.2)
-        self.set_template_params(
-            fwhm=3, uncertainty=1, num_interval=30, 
-            intensity=0.5, temp_scale=0.67
-            )
+        # self.set_template_params(
+        #     fwhm=3, uncertainty=1, num_interval=30, 
+        #     intensity=0.5, temp_scale=0.67
+        #     )
         
         self.set_optical_flow_params(
             win_size=(62, 62), max_level=3, 
             iteration=10, epsilon=0.001
             )
         
-        self.uncertainty = self.fwhm
+        # self.uncertainty = self.fwhm
 
         self.grid_T0 = T0GridStruct( 
             self.ref, 
@@ -62,11 +62,11 @@ class HoughTM:
             num_lines=self.num_lines,
             slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
-            density=self.density,
-            temp_scale=self.temp_scale
+            density=self.density
+            # temp_scale=self.temp_scale
             )
-        if self.optimize:
-            self._template_optimize(self.grid_T0)
+        # if self.optimize:
+        #     self._template_optimize(self.grid_T0)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -93,18 +93,17 @@ class HoughTM:
         self.solve_bool = False
 
 
-    def set_template_params(
-            self, fwhm: float, uncertainty: float, num_interval: int, 
-            intensity: float, temp_scale: float
-            ) -> None:
+    # def set_template_params(
+    #         self, fwhm: float, uncertainty: float, num_interval: int, 
+    #         intensity: float, temp_scale: float
+    #         ) -> None:
         
-        self.fwhm = fwhm
-        self.uncertainty = uncertainty
-        self.num_interval = num_interval
-        self.intensity = intensity
-        self.temp_scale = temp_scale
-       
-        return 
+    #     self.fwhm = fwhm
+    #     self.uncertainty = uncertainty
+    #     self.num_interval = num_interval
+    #     self.intensity = intensity
+    #     self.temp_scale = temp_scale
+    #     return 
     
 
     def set_hough_params(
@@ -130,38 +129,38 @@ class HoughTM:
         return
     
 
-    def _template_optimize(self, grid_obj: np.ndarray) -> None:
-        grid_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.grid]
-            )
-        params_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.params]
-            )
+    # def _template_optimize(self, grid_obj: np.ndarray) -> None:
+    #     grid_valid = np.array(
+    #         [[cell is not None for cell in row] 
+    #         for row in grid_obj.grid]
+    #         )
+    #     params_valid = np.array(
+    #         [[cell is not None for cell in row] 
+    #         for row in grid_obj.params]
+    #         )
     
-        valid_mask = grid_valid & params_valid
-        valid_indices = np.argwhere(valid_mask)
+    #     valid_mask = grid_valid & params_valid
+    #     valid_indices = np.argwhere(valid_mask)
 
-        for i, j in valid_indices:
-            x, y  = grid_obj.grid[i, j]
-            ang1, ang2, leg_len = grid_obj.params[i, j]
+    #     for i, j in valid_indices:
+    #         x, y  = grid_obj.grid[i, j]
+    #         ang1, ang2, leg_len = grid_obj.params[i, j]
 
-            parametricX_obj = ParametricX(
-                center=(x, y), 
-                shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
-                image=grid_obj.image
-                )
+    #         parametricX_obj = ParametricX(
+    #             center=(x, y), 
+    #             shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
+    #             image=grid_obj.image
+    #             )
         
-            optimizer = ParameterOptimizer(
-                parametricX_obj, uncertainty=self.uncertainty, 
-                num_interval=self.num_interval
-                )
+    #         optimizer = ParameterOptimizer(
+    #             parametricX_obj, uncertainty=self.uncertainty, 
+    #             num_interval=self.num_interval
+    #             )
 
-            # parameter_star = optimizer.quad_optimize()
-            parameter_star = optimizer.quad_optimize_gradient()
-            grid_obj.grid[i, j] = parameter_star[0:2]
-        return
+    #         # parameter_star = optimizer.quad_optimize()
+    #         parameter_star = optimizer.quad_optimize_gradient()
+    #         grid_obj.grid[i, j] = parameter_star[0:2]
+    #     return
 
 
     def solve(self) -> None:
@@ -194,6 +193,8 @@ class HoughTM:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
                 dxy=valid_displacements,
+                method=1,
+                radius=15,
                 extrapolate=extrapolate
             )
 
@@ -210,8 +211,8 @@ class HoughTM:
         disp = disp.reshape(h, w, 2)
 
         vort = np.full((h, w), np.nan)
-        dvx_dy, dvx_dx = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
-        dvy_dy, dvy_dx = np.gradient(vel[..., 1])
+        dvx_dy, _ = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
+        _, dvy_dx = np.gradient(vel[..., 1])
         # vort[1:-1, 1:-1] = (
         #     vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
         #     vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
@@ -235,13 +236,11 @@ class HoughTM:
 
     def set_ref(self, im: np.ndarray) -> None:
         self.ref = im
-
         return
 
     
     def set_mov(self, im: np.ndarray) -> None:
         self.mov = im
-
         return
     
 

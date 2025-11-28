@@ -19,13 +19,13 @@ cdef class ParameterOptimizer:
     @staticmethod
     cdef str format_verbose(np.ndarray arr)
 
-    cdef double[::1] linspace(self, double start, double stop, int num) nogil
+    cdef double[::1] linspace(self, double start, double stop, int num)
 
-    cdef double correlate(self, double* params, ParametricX X_obj) nogil
+    cdef double correlate(self, double* params, ParametricX X_obj)
 
-    cdef void quad_fit_1D(self, double[::1] values, double[::1] corrs, double* opt_x, double* a_coeff) nogil
+    cdef void quad_fit_1D(self, double[::1] values, double[::1] corrs, double* opt_x, double* a_coeff)
 
-    cdef void quad_fit_2D(self, double[::1] x_vals, double[::1] y_vals, double[:, ::1] corr_matrix, double* opt_x, double* opt_y) nogil
+    cdef void quad_fit_2D(self, double[::1] x_vals, double[::1] y_vals, double[:, ::1] corr_matrix, double* opt_x, double* opt_y)
 
     # Python functions
 

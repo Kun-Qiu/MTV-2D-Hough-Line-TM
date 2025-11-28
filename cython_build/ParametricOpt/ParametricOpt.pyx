@@ -62,15 +62,13 @@ cdef class ParameterOptimizer:
         return ', '.join([f'{x:.2f}' for x in arr])
 
 
-    cdef double[::1] linspace(self, double start, double stop, int num) nogil:
+    cdef double[::1] linspace(self, double start, double stop, int num):
         cdef: 
             double[::1] arr
             double step
             Py_ssize_t i
         
-        with gil:
-            arr = np.empty(num, dtype=np.float64)
-
+        arr = np.empty(num, dtype=np.float64)
         if num == 1:
             arr[0] = start
             return arr
@@ -81,16 +79,14 @@ cdef class ParameterOptimizer:
         return arr
     
 
-    cdef double correlate(self, double* param, ParametricX X_obj) nogil:
+    cdef double correlate(self, double* param, ParametricX X_obj):
         cdef:
             Py_ssize_t i, n = params.shape[0]
             double[::1] corrs
             double* params_ptr
             double corr = -1.0
         
-        with gil:
-            corrs = np.empty(n, dtype=np.float64)
-
+        corrs = np.empty(n, dtype=np.float64)
         for i in range(n):
             params_ptr = &params[i, 0]
             temp_opt._correlate(params_ptr, &corr)
@@ -98,15 +94,15 @@ cdef class ParameterOptimizer:
         return corrs
 
 
-    cdef void quad_fit_1D(self, double[::1] values, double[::1] corrs, double* opt_x, double* a_coeff) nogil:
-    cdef:
-        Py_ssize_t i, max_idx = 0
-        bint homogeneous = True
-        double first_val = values[0]
-        double x, y, x2, x3, x4
-        double sum_x4 = 0.0, sum_x3 = 0.0, sum_x2 = 0.0, sum_x = 0.0, sum_1 = 0.0
-        double sum_x2y = 0.0, sum_xy = 0.0, sum_y = 0.0
-        double det, det_a, det_b, det_c, a, b, c, optimal
+    cdef void quad_fit_1D(self, double[::1] values, double[::1] corrs, double* opt_x, double* a_coeff):
+        cdef:
+            Py_ssize_t i, max_idx = 0
+            bint homogeneous = True
+            double first_val = values[0]
+            double x, y, x2, x3, x4
+            double sum_x4 = 0.0, sum_x3 = 0.0, sum_x2 = 0.0, sum_x = 0.0, sum_1 = 0.0
+            double sum_x2y = 0.0, sum_xy = 0.0, sum_y = 0.0
+            double det, det_a, det_b, det_c, a, b, c, optimal
 
         # Check homogeneity
         for i in range(1, values.shape[0]):
@@ -187,7 +183,7 @@ cdef class ParameterOptimizer:
             a_coeff[0] = a
 
     
-    cdef void quad_fit_2D(self, double[::1] x_vals, double[::1] y_vals, double[:, ::1] corr_matrix, double* opt_x, double* opt_y) nogil:
+    cdef void quad_fit_2D(self, double[::1] x_vals, double[::1] y_vals, double[:, ::1] corr_matrix, double* opt_x, double* opt_y):
         cdef:
             Py_ssize_t i, j, max_i = 0, max_j = 0
             double max_val = -INFINITY

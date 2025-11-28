@@ -1,3 +1,4 @@
+from networkx import sigma
 from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
@@ -193,8 +194,7 @@ class HoughTM:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
                 dxy=valid_displacements,
-                method=1,
-                radius=15,
+                method=0,
                 extrapolate=extrapolate
             )
 
@@ -213,10 +213,6 @@ class HoughTM:
         vort = np.full((h, w), np.nan)
         dvx_dy, _ = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
         _, dvy_dx = np.gradient(vel[..., 1])
-        # vort[1:-1, 1:-1] = (
-        #     vel[:-2, 1:-1, 0] - vel[2:, 1:-1, 0] +   # -vx[i+1, j]
-        #     vel[1:-1, 2:, 1] - vel[1:-1, :-2, 1]     # -vy[i, j-1]
-        #     ) / 2
         vort = dvy_dx - dvx_dy
 
         return np.dstack([

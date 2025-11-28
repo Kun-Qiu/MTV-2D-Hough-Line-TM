@@ -27,12 +27,12 @@ def parser_setup():
         epilog="Usage: python run_single.py Ref1.tif Run1.tif 9 11 10 1 1e-6 0.000039604 --num 3 --filter True"
     )
 
-    parser.add_argument("ref", required=True, type=str, help="Path to the reference image")
-    parser.add_argument("mov", required=True, type=str, help="Path to the moving image")
-    parser.add_argument("line", nargs=2, required=True, type=int, help="Number of lines")
-    parser.add_argument("slope", nargs=2, required=True, type=int, help="Slope of lines")
-    parser.add_argument("dt", required=True, type=float, help="Delay time between reference and moving image")
-    parser.add_argument("pix_world", required=True, type=float, help="Conversion factor for pixel to world coordinates")
+    parser.add_argument("ref", type=str, help="Path to the reference image")
+    parser.add_argument("mov",  type=str, help="Path to the moving image")
+    parser.add_argument("line", nargs=2, type=int, help="Number of lines")
+    parser.add_argument("slope", nargs=2, type=int, help="Slope of lines")
+    parser.add_argument("dt", type=float, help="Delay time between reference and moving image")
+    parser.add_argument("pix_world", type=float, help="Conversion factor for pixel to world coordinates")
     parser.add_argument("--num", default=0, type=int, help="Number of images to process")
     parser.add_argument("--filter", default=False, type=bool, help="Boolean to filter single shot")
     return parser
@@ -94,8 +94,6 @@ if __name__ == "__main__":
             slope_thresh, ref_avg, mov_avg
             )
         solver.solve()
-        solver.plot_fields(dt=args.dt, pix_to_world=args.pix_world)
-
         if (i + 1) in skip:
             continue            
 
@@ -103,7 +101,6 @@ if __name__ == "__main__":
         processor.update(sol_field[..., 4], sol_field[..., 5], sol_field[..., 6])
 
     print("Processing & Plotting Mean / RMS Fields")
-
     vx_mean, vy_mean, vort_mean = processor.get_mean()
     vx_std, vy_std, vort_std = processor.get_std()
 
@@ -128,33 +125,42 @@ if __name__ == "__main__":
     ax.set_title("Magnitude (m/s)")
 
 
-    fig, axs = plt.subplots(2, 3, figsize=(18, 10))
+    fig_avg, axs_avg = plt.subplots(1, 3, figsize=(18, 6))
+    # Mean U with vectors
+    im0 = axs_avg[0].imshow(vx_mean, cmap='jet')
+    axs_avg[0].quiver(X, Y, unit_Vx, unit_Vy, color='red', scale=20)
+    axs_avg[0].set_title('Mean U (m/s)')
+    plt.colorbar(im0, ax=axs_avg[0])
 
-    # Mean Velocity Plots
-    im0 = axs[0, 0].imshow(vx_mean, cmap='jet')
-    axs[0, 0].set_title('Mean U (m/s)')
-    plt.colorbar(im0, ax=axs[0, 0])
+    # Mean V with vectors
+    im1 = axs_avg[1].imshow(vy_mean, cmap='jet')
+    axs_avg[1].quiver(X, Y, unit_Vx, unit_Vy, color='red', scale=20)
+    axs_avg[1].set_title('Mean V (m/s)')
+    plt.colorbar(im1, ax=axs_avg[1])
 
-    im1 = axs[0, 1].imshow(vy_mean, cmap='jet')
-    axs[0, 1].set_title('Mean V (m/s)')
-    plt.colorbar(im1, ax=axs[0, 1])
+    # Mean Vorticity with vectors
+    im2 = axs_avg[2].imshow(vort_mean, cmap='jet')
+    axs_avg[2].quiver(X, Y, unit_Vx, unit_Vy, color='red', scale=20)
+    axs_avg[2].set_title('Mean ω (1/s)')
+    plt.colorbar(im2, ax=axs_avg[2])
 
-    im2 = axs[0, 2].imshow(vort_mean, cmap='jet')
-    axs[0, 2].set_title('Mean ω​​ (1/s)')
-    plt.colorbar(im2, ax=axs[0, 2])
+    plt.tight_layout()
 
-    # RMS Velocity Plots
-    im3 = axs[1, 0].imshow(vx_std, cmap='jet')
-    axs[1, 0].set_title('U\' (m/s)')
-    plt.colorbar(im3, ax=axs[1, 0])
+    fig_rms, axs_rms = plt.subplots(1, 3, figsize=(18, 6))
+    # RMS U
+    im3 = axs_rms[0].imshow(vx_std, cmap='jet')
+    axs_rms[0].set_title('U\' (m/s)')
+    plt.colorbar(im3, ax=axs_rms[0])
 
-    im4 = axs[1, 1].imshow(vy_std, cmap='jet')
-    axs[1, 1].set_title('V\' (m/s)')
-    plt.colorbar(im4, ax=axs[1, 1])
+    # RMS V
+    im4 = axs_rms[1].imshow(vy_std, cmap='jet')
+    axs_rms[1].set_title('V\' (m/s)')
+    plt.colorbar(im4, ax=axs_rms[1])
 
-    im5 = axs[1, 2].imshow(vort_std, cmap='jet')
-    axs[1, 2].set_title('ω​​\' (1/s)')
-    plt.colorbar(im5, ax=axs[1, 2])
+    # RMS Vorticity
+    im5 = axs_rms[2].imshow(vort_std, cmap='jet')
+    axs_rms[2].set_title('ω\' (1/s)')
+    plt.colorbar(im5, ax=axs_rms[2])
 
     plt.tight_layout()
     plt.show()

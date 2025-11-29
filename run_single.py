@@ -24,21 +24,21 @@ HOUGH_DENSITY = 10
 def parser_setup():
     parser = argparse.ArgumentParser(
         description="Hybrid Analysis Method for Single Time Frame",
-        epilog="Usage: python run_single.py Ref1.tif Run1.tif 9 11 10 1 1e-6 0.000039604 --num 3 --filter True"
+        epilog="Usage: python run_single.py Ref1.tif Run1.tif 9 11 1e-6 0.000039604 --interp 2 --num 3 --filter True"
     )
 
     parser.add_argument("ref", type=str, help="Path to the reference image")
     parser.add_argument("mov",  type=str, help="Path to the moving image")
     parser.add_argument("line", nargs=2, type=int, help="Number of lines")
-    parser.add_argument("slope", nargs=2, type=int, help="Slope of lines")
     parser.add_argument("dt", type=float, help="Delay time between reference and moving image")
     parser.add_argument("pix_world", type=float, help="Conversion factor for pixel to world coordinates")
+    parser.add_argument("--interp", type=int, default=2, help="Interpolation method")
     parser.add_argument("--num", default=0, type=int, help="Number of images to process")
     parser.add_argument("--filter", default=False, type=bool, help="Boolean to filter single shot")
     return parser
 
 
-def solver_setup(ref, mov, num_lines, slope_thresh, ref_avg=None, mov_avg=None):
+def solver_setup(ref, mov, num_lines, interp, ref_avg=None, mov_avg=None):
     """
     Parameter setup for the solver
     """ 
@@ -48,7 +48,7 @@ def solver_setup(ref, mov, num_lines, slope_thresh, ref_avg=None, mov_avg=None):
         mov=mov,
         mov_avg=mov_avg,
         num_lines=num_lines,
-        slope_thresh=slope_thresh
+        interp=interp
     )
 
     solver.set_optical_flow_params(
@@ -76,7 +76,6 @@ if __name__ == "__main__":
 
     min_length = min(ref_tif.length, mov_tif.length)
     num_lines = (args.line[0], args.line[1])
-    slope_thresh = (args.slope[0], args.slope[1])
     ref_avg, mov_avg = (ref_tif.average(), mov_tif.average()) if args.filter else (None, None)
     
     img_shape = np.shape(ref_avg)
@@ -86,12 +85,13 @@ if __name__ == "__main__":
 
     skip = [5, 6, 10, 11, 45]
     num = (min_length if args.num==0 else args.num)
+    interpolation = args.interp
 
     for i in tqdm(range(num), desc="Processing images"):
         ref, mov = ref_tif.get_image(i), mov_tif.get_image(i)
         solver = solver_setup(
             ref, mov, num_lines, 
-            slope_thresh, ref_avg, mov_avg
+            interpolation, ref_avg, mov_avg
             )
         solver.solve()
         if (i + 1) in skip:

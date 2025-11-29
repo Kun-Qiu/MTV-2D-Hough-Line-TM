@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 import numpy as np
-from scipy.interpolate import CloughTocher2DInterpolator, RBFInterpolator, LinearNDInterpolator
+from scipy.interpolate import CloughTocher2DInterpolator, RBFInterpolator
 from scipy.spatial import Delaunay
 
 
@@ -44,20 +44,10 @@ class dim2Interpolator:
                     )
                 for i in range(self.dxy.shape[1])
                 ]
-        elif self.method == 2:
-            self.__interpolator = [
-                LinearNDInterpolator(
-                    self.xy,
-                    self.dxy[:, i],
-                    fill_value=np.nan
-                )
-                for i in range(self.dxy.shape[1])
-            ]
             
 
     def interpolate(self, xy: np.ndarray) -> np.ndarray:
         # Stack results from both interpolators dx, dy
-            
         return np.column_stack([
             interpolator(xy)
             for interpolator in self.__interpolator

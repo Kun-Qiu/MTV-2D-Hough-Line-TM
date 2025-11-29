@@ -12,8 +12,8 @@ class HoughTM:
     ref    : np.ndarray
     mov    : np.ndarray
     num_lines   : Tuple[int, int]
-    slope_thresh: Tuple[float, float]
     # optimize : bool = False
+    interp: int = 0
 
     # Guided Images for Filtering
     ref_avg: np.ndarray = None
@@ -61,7 +61,6 @@ class HoughTM:
             self.ref, 
             avg_image=self.ref_avg,
             num_lines=self.num_lines,
-            slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
             density=self.density
             # temp_scale=self.temp_scale
@@ -113,7 +112,6 @@ class HoughTM:
 
         self.density = density
         self.threshold = threshold
-
         return
     
 
@@ -194,9 +192,11 @@ class HoughTM:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
                 dxy=valid_displacements,
-                method=0,
+                method=self.interp,
                 extrapolate=extrapolate
             )
+        else:
+            raise ValueError("No valid displacement points available for interpolation.")
 
         # Interpolate the fields
         h, w = self.grid_T0.image.shape[:2]

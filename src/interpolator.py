@@ -10,7 +10,7 @@ class dim2Interpolator:
     dxy: np.ndarray
     
     method: int = 0
-    radius: int = None
+    radius: int = 20
     extrapolate: bool = False 
 
     def __post_init__(self):

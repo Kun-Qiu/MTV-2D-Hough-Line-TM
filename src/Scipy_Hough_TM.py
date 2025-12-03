@@ -12,6 +12,7 @@ class HoughTM:
     ref    : np.ndarray
     mov    : np.ndarray
     num_lines   : Tuple[int, int]
+    slope_thresh: Tuple[int, int]
     # optimize : bool = False
     interp: int = 0
 
@@ -49,18 +50,17 @@ class HoughTM:
         #     fwhm=3, uncertainty=1, num_interval=30, 
         #     intensity=0.5, temp_scale=0.67
         #     )
-        
         self.set_optical_flow_params(
-            win_size=(62, 62), max_level=3, 
+            win_size=(31, 31), max_level=3, 
             iteration=10, epsilon=0.001
             )
-        
         # self.uncertainty = self.fwhm
 
         self.grid_T0 = T0GridStruct( 
             self.ref, 
             avg_image=self.ref_avg,
             num_lines=self.num_lines,
+            slope_thresh=self.slope_thresh,
             threshold=self.threshold, 
             density=self.density
             # temp_scale=self.temp_scale
@@ -124,7 +124,6 @@ class HoughTM:
         self.max_level = max_level
         self.iteration = iteration
         self.epsilon = epsilon
-
         return
     
 
@@ -174,12 +173,18 @@ class HoughTM:
         return
     
 
-    def sequence_solve(self, single_sequence: list, avg_sequence: list) -> None:
+    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray]) -> None:
+        """
+        Solve a sequence of images to update the displacement grid over time.
+        """
         self.grid_dT.sequence_solver(single_sequence, avg_sequence)
-        self.solve()
+        return 
 
 
     def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
+        """
+        Get the interpolated displacement, velocity, and vorticity fields.
+        """
         if not self.solve_bool:
             raise ValueError("Call solve() before get_fields().")
         
@@ -191,7 +196,7 @@ class HoughTM:
         if valid_points.size > 0:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
-                dxy=valid_displacements,
+                dxy=valid_displacements, 
                 method=self.interp,
                 extrapolate=extrapolate
             )

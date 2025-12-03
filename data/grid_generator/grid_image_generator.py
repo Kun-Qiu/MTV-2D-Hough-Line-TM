@@ -119,7 +119,7 @@ if __name__ == "__main__":
 
     fwhm        = 4            # Full width at half maximum for the Gaussian lines
     spacing     = 10           # Reduced spacing for denser lines
-    angle       = 120          # Angle for intersecting lines
+    angle       = 150          # Angle for intersecting lines
     image_size  = (256, 256)   # Size of the image
     num_lines   = 5            # Number of lines
     snr         = 8            # SNR value

@@ -38,10 +38,11 @@ class DTGridStruct:
 
     def _grid_LK(self, prev_img: np.ndarray, next_img: np.ndarray, 
                  prev_pts: np.ndarray, valid_indices: np.ndarray) -> None:
+        """
+        Perform Lucas-Kanade optical flow tracking on the grid points.
+        """
         # Perform LK optical flow to track points from T0_grid to dT_grid
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
-
-        # Forward Lucas Kanade
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
             prevImg=prev_img,
             nextImg=next_img,
@@ -62,16 +63,15 @@ class DTGridStruct:
             else:
                 self.grid[i][j] = None
             tracked_idx += 1
-
         return
 
 
-    def sequence_solver(self, single_sequence: list, avg_sequence: list = None) -> None:
+    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray]) -> None:
+        """
+        Solve a sequence of images to update the dT_grid structure over time.
+        """
         prev_img = self.image
         next_img = None
-
-        if avg_sequence is None:
-            avg_sequence = [None] * len(single_sequence)
 
         for single_frame, avg_frame in zip(single_sequence, avg_sequence):
             if avg_frame is not None:
@@ -80,18 +80,19 @@ class DTGridStruct:
             valid_mask = np.array([[pt is not None for pt in row] for row in self.grid])
             valid_indices = np.where(valid_mask)
             prev_pts = np.stack(self.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2) 
-
             self._grid_LK(
                 prev_img=prev_img, next_img=next_img, 
                 prev_pts=prev_pts, valid_indices=valid_indices
                 )
             prev_img = next_img
-
         self.image = next_img
         return
 
 
     def visualize(self) -> None:
+        """
+        Visualize the displacement grid on the image.
+        """
         fig, ax = plt.subplots(figsize=(10, 10))
         ax.imshow(self.image, cmap='gray')
         
@@ -106,6 +107,9 @@ class DTGridStruct:
     
 
     def _interpolate_flow(self) -> np.ndarray:
+        """
+        Interpolate the sparse flow vectors to a dense flow field.
+        """
         h, w = self.image.shape[:2]
 
         valid_grid, valid_T0_grid = self.__get_valid_cells()

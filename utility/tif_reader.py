@@ -1,6 +1,5 @@
-from utility.py_import import np, dataclass, os, cv2, plt
+from utility.py_import import np, dataclass, os, cv2
 import tifffile
-from skimage import img_as_ubyte
 from matplotlib.pyplot import imsave
 
 
@@ -19,8 +18,9 @@ class tifReader:
 
 
     def __read_images(self) -> None:
-        # Access the image in tif and store in an array of grayscale images     
-
+        """
+        Read all images from the TIFF file and store them as grayscale images.
+        """   
         try:
             tiff_data = tifffile.imread(self.img_path)
             self.__tif_images = [
@@ -37,8 +37,9 @@ class tifReader:
         
 
     def average(self, save_path:str=None) -> np.ndarray:
-        # Obtain an average image of all input images #
-
+        """
+        Obtain an average image of all images in the TIFF file.
+        """
         if self.length <= 0:
             raise Exception("No images found.")
 
@@ -53,8 +54,9 @@ class tifReader:
 
 
     def average_indicies(self, index1:int, index2:int, save_path:str=None):
-        # Obtain an average image of selected indicies
-
+        """
+        Obtain an average image of selected indicies
+        """
         if self.length <= 0:
             raise Exception("No images found.")
 
@@ -74,8 +76,10 @@ class tifReader:
 
 
     def get_image(self, index: int):
-        # Get the image at the specified index
-         
+        """
+        Get the image at the specified index
+        """
+    
         if index < 0 or index >= self.length:
             raise Exception(f"Out of Bound Error, {index}. Valid range: 0 to {self.length - 1}")
         return self.__tif_images[index]

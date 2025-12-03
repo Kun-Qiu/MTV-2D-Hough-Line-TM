@@ -11,7 +11,11 @@ def sort_lines(lines: np.ndarray) -> np.ndarray:
 @dataclass
 class T0GridStruct:
     image     : np.ndarray
-    num_lines : Tuple[int, int] 
+    num_lines : Tuple[int, int]
+    
+    # Typically two of follows: 
+    # [vertical lines (10), horizontal lines (0), positive sloped line (2), negatively sloped line (-2)]
+    slope_thresh: Tuple[int, int]  
     avg_image : np.ndarray = None
 
     threshold   : float = 0.2
@@ -131,20 +135,20 @@ class T0GridStruct:
         b_mat = np.zeros((lines_b, 2), dtype=float)  
 
         cur_a, cur_b = 0, 0
+        max_thresh = np.max(self.slope_thresh)
         h, theta, d = hough_line(self.image_skel, theta=self.test_angles)
         for _, angle, dist in zip(*hough_line_peaks(h, theta, d, threshold=self.threshold*h.max())):
-            normalized_angle = angle % np.pi
+            slope = np.tan(angle + np.pi / 2) 
             candidate_line = np.array([angle, dist])
-            if (abs(normalized_angle - np.pi/2) < np.pi/6 or      # Near vertical (±30°)
-                normalized_angle < np.pi/2):                       # Positive slope (0° to 90°)
-                # Group 1: Near-vertical and positive slopes
+            if slope >= max_thresh or slope <= -max_thresh:    
+                # Group 1: slope = max thresh
                 if cur_a < lines_a:
                     if self.__line_intersection_check(candidate_line, a_mat, cur_a):
                         continue
                     a_mat[cur_a] = candidate_line
                     cur_a += 1
             else:
-                # Group 2: Negative slopes and near-horizontal
+                # Group 2: Second threshold
                 if cur_b < lines_b:
                     if self.__line_intersection_check(candidate_line, b_mat, cur_b):
                         continue
@@ -152,7 +156,6 @@ class T0GridStruct:
                     cur_b += 1
 
             if cur_a >= lines_a and cur_b >= lines_b:
-                # print("Detected required number of lines for both groups.")
                 break
         return a_mat, b_mat
     

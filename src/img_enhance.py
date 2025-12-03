@@ -51,7 +51,20 @@ class SingleShotEnhancer:
     def __guided_filter(self, img:np.ndarray, radius:int=15, 
                         eps:float=1e-6, strength:float=1.0
                         ) -> np.ndarray:
-        
+        """
+        Apply guided filter to the input image using the average shot as guidance.
+
+        :param img: Description
+        :type img: np.ndarray
+        :param radius: Description
+        :type radius: int
+        :param eps: Description
+        :type eps: float
+        :param strength: Description
+        :type strength: float
+        :return: Description
+        :rtype: ndarray
+        """
         # Apply guided filter
         if len(self.__avg_shot.shape) == 2: 
             filtered = cv2.ximgproc.guidedFilter(
@@ -76,13 +89,19 @@ class SingleShotEnhancer:
 
 
     def filter(self) -> np.ndarray:
+        """
+        Enhance the single shot image using guided filtering and frequency domain filtering.
+        """
+
         filtered_image = self.__guided_filter(self.__single_shot, radius=20, eps=1e-6, strength=0.5)
         filtered_image = self.__frequency_filter(filtered_image, low_cutoff=0.4, high_cutoff=0.7)
-        
         return img_as_ubyte(filtered_image)
 
 
 def match_histograms(src: np.ndarray, ref: np.ndarray) -> np.ndarray:
+    """
+    Match the histogram of the source image to that of the reference image.
+    """
     src_hist = cv2.calcHist([src], [0], None, [512], [0, 256])
     ref_hist = cv2.calcHist([ref], [0], None, [512], [0, 256])
     
@@ -117,7 +136,6 @@ def match_histograms(src: np.ndarray, ref: np.ndarray) -> np.ndarray:
     grad_mask = np.abs(src_grad) > np.percentile(np.abs(src_grad), 75)
     enhanced = matched.copy().astype(np.float64)
     enhanced[grad_mask] = 0.7 * enhanced[grad_mask] + 0.3 * src[grad_mask].astype(np.float64)
-    
     return np.clip(enhanced, 0, 255).astype(np.uint8)
 
 

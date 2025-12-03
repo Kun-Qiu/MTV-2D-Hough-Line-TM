@@ -51,7 +51,7 @@ def stereo_transform(im):
     return transformed_image
 
 
-def displace_image(image, flow_field):
+def displace_image(image, flow_field, contrast=None):
     """
     Displace an image based on the provided flow field while retaining its original shape.
 
@@ -69,26 +69,27 @@ def displace_image(image, flow_field):
         interpolation=cv2.INTER_CUBIC, 
         borderMode=cv2.BORDER_CONSTANT
         )
-
+    if contrast is not None:
+        reduction = 1.0 - contrast
+        return cv2.convertScaleAbs(displaced_image, alpha=reduction)
     return displaced_image
 
 
 if __name__ == "__main__":
-    fwhm       = 5              # Full width at half maximum for the Gaussian lines
-    spacing    = 20             # Reduced spacing for denser lines
-    angle      = 45             # Angle for intersecting lines
-    image_size = (256, 256)     # Size of the image
-    num_lines  = 3              # Number of lines
-    # snrs       = [1, 2, 4, 8, 16]  # SNR value
-    snrs       = [3] 
-    num_sets   = 1
+    fwhm       = 3              # Full width at half maximum for the Gaussian lines
+    spacing    = 30             # Reduced spacing for denser lines
+    angle      = 90             # Angle for intersecting lines
+    image_size = (512, 512)     # Size of the image
+    num_lines  = 10              # Number of lines
+    snrs       = [4] 
+    num_sets   = 20
 
     pwd = os.path.dirname(os.path.abspath(__file__))
     base_dir = os.path.join(pwd, "Image")
     os.makedirs(base_dir, exist_ok=True)
 
     for snr in snrs:
-        snr_dir = os.path.join(base_dir, f"SNR_{snr}")
+        snr_dir = os.path.join(base_dir, f"SNR_{fwhm}")
         os.makedirs(snr_dir, exist_ok=True)
         
         for i in range(num_sets):
@@ -98,7 +99,7 @@ if __name__ == "__main__":
             src = create_centered_grid(
                 image_size, fwhm, spacing, angle, 
                 line_intensity=0.5, num_lines=num_lines, 
-                snr=snr
+                snr=snrs[0]
             )
 
             src_path = os.path.join(iter_dir, "src.png")

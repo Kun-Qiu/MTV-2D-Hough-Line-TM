@@ -41,11 +41,20 @@ class DTGridStruct:
         """
         Perform Lucas-Kanade optical flow tracking on the grid points.
         """
+        def rescale(img, contrast_alpha=1.3, clip_limit=2.0, grid_size=(8,8)):
+            """
+            Rescale the image using CLAHE for better contrast and local histogram equalization.
+            """
+            clahe = cv2.createCLAHE(clipLimit=clip_limit, tileGridSize=grid_size)
+            img_clahe = clahe.apply(img)
+            img_return = cv2.convertScaleAbs(img_clahe, alpha=contrast_alpha, beta=0) 
+            return img_return
+        
         # Perform LK optical flow to track points from T0_grid to dT_grid
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-            prevImg=prev_img,
-            nextImg=next_img,
+            prevImg=rescale(prev_img),
+            nextImg=rescale(next_img),
             prevPts=prev_pts,   
             nextPts=None,
             winSize=self.win_size,
@@ -70,13 +79,24 @@ class DTGridStruct:
         """
         Solve a sequence of images to update the dT_grid structure over time.
         """
+
+        # plot_data = {
+        #     'frames': [],  # Will store (t0_image, current_image) pairs
+        #     't0_points': [],  # T0 grid points at each step
+        #     'dt_points': []   # dT grid points at each step
+        #     }
+
+        # t0_initial = np.array([p for row in self.T0_grid.grid for p in row if p is not None])
+        # dt_initial = np.array([p for row in self.grid for p in row if p is not None])
+        # plot_data['frames'].append((self.T0_grid.image.copy(), self.image.copy()))
+        # plot_data['t0_points'].append(t0_initial)
+        # plot_data['dt_points'].append(dt_initial)
+
         prev_img = self.image
         next_img = None
 
         for single_frame, avg_frame in zip(single_sequence, avg_sequence):
-            if avg_frame is not None:
-                next_img = self.__filter_img(single_frame, avg_frame)
-
+            next_img = self.__filter_img(single_frame, avg_frame)
             valid_mask = np.array([[pt is not None for pt in row] for row in self.grid])
             valid_indices = np.where(valid_mask)
             prev_pts = np.stack(self.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2) 
@@ -84,8 +104,16 @@ class DTGridStruct:
                 prev_img=prev_img, next_img=next_img, 
                 prev_pts=prev_pts, valid_indices=valid_indices
                 )
+            
+            # t0_current = np.array([p for row in prev_pts for p in row if p is not None])
+            # dt_current = np.array([p for row in self.grid for p in row if p is not None])
+            # plot_data['frames'].append((prev_img.copy(), next_img.copy()))
+            # plot_data['t0_points'].append(t0_current)
+            # plot_data['dt_points'].append(dt_current)
+
             prev_img = next_img
         self.image = next_img
+        # self.plot_sequence_intersections(plot_data)
         return
 
 
@@ -170,7 +198,50 @@ class DTGridStruct:
     
 
     def __filter_img(self, image: np.ndarray, avg_image: np.ndarray) -> np.ndarray:
+        """
+        Apply image enhancement filtering to the input image.
+        """
         enhancer_source = SingleShotEnhancer(avg_shot=avg_image, single_shot=image)
         filter_img = enhancer_source.filter()
 
         return filter_img
+    
+
+    def plot_sequence_intersections(self, plot_data):
+        """
+        Plot frames in a single row with alternating t0/dt columns.
+        """
+        num_frames = len(plot_data['frames'])
+        
+        fig, axes = plt.subplots(2, num_frames, figsize=(6 * num_frames, 8))
+        
+        if num_frames == 1:
+            axes = axes.reshape(-1, 1)
+        
+        for i in range(num_frames):
+            t0_image, dt_image = plot_data['frames'][i]
+            t0_points = plot_data['t0_points'][i]
+            dt_points = plot_data['dt_points'][i]
+            
+            # Top row: t0 images
+            axes[0, i].imshow(t0_image, cmap='gray')
+            if t0_points.size > 0 and len(t0_points) > 0:
+                axes[0, i].scatter(
+                    t0_points[:, 0], t0_points[:, 1], color='blue',
+                    marker='o', s=30, alpha=0.7
+                )
+            axes[0, i].set_title(f"t0 Frame {i+1}")
+            axes[0, i].grid(False)
+            
+            # Bottom row: dt images
+            axes[1, i].imshow(dt_image, cmap='gray')
+            if dt_points.size > 0 and len(dt_points) > 0:
+                axes[1, i].scatter(
+                    dt_points[:, 0], dt_points[:, 1], color='red',
+                    marker='x', s=30, alpha=0.7
+                )
+            axes[1, i].set_title(f"dt Frame {i+1}")
+            axes[1, i].grid(False)
+        
+        plt.tight_layout()
+        plt.show()

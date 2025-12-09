@@ -109,7 +109,9 @@ class HoughTM:
     def set_hough_params(
             self, density: int, threshold: float
             ) -> None:
-
+        """
+        Set parameters for Hough Transform.
+        """
         self.density = density
         self.threshold = threshold
         return
@@ -119,7 +121,9 @@ class HoughTM:
             self, win_size: Tuple[int, int], max_level: int,
             iteration: int, epsilon: float
             ) -> None:
-
+        """
+        Set parameters for Lucas-Kanade Optical Flow.
+        """
         self.win_size = win_size
         self.max_level = max_level
         self.iteration = iteration
@@ -162,7 +166,12 @@ class HoughTM:
 
 
     def solve(self) -> None:
+        """
+        Solve for the displacement field between reference and moving images.
+        """
         for i, j in self.valid_ij:
+            if (self.grid_T0.grid[i, j] is None or self.grid_dT.grid[i, j] is None):
+                continue
             x0, y0 = self.grid_T0.grid[i, j]
             x1, y1 = self.grid_dT.grid[i, j]
 
@@ -232,6 +241,9 @@ class HoughTM:
 
 
     def evaluate(self, pts:np.ndarray) -> np.ndarray:
+        """
+        Evaluate the interpolated displacement at given points.
+        """
         return self.interpolator.interpolate(pts)
     
 
@@ -250,7 +262,9 @@ class HoughTM:
     ###########################
 
     def plot_fields(self, dt: float = 1.0, pix_to_world: float = 1.0, extrapolate: bool = False) -> None:
-        
+        """
+        Plot the interpolated velocity and vorticity fields.
+        """
         fields = self.get_fields(dt, pix_to_world, extrapolate)
         vx, vy, vort = fields[..., 4], fields[..., 5], fields[..., 6]
         vel_mag = np.sqrt(vx**2 + vy**2)
@@ -295,11 +309,24 @@ class HoughTM:
         return
 
 
-    def plot_intersections(self) -> None:
+    def plot_intersections(self, conversion_factor=None) -> None:
+        """
+        Plot the grid intersections for both t0 and dt grids.
+        """
         fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
         t0_points = np.array([p for row in self.grid_T0.grid for p in row if p is not None])
         dt_points = np.array([p for row in self.grid_dT.grid for p in row if p is not None])
+        
+        if conversion_factor is not None:
+            """
+            Display the dimension of the grid (x, y)
+            """
+            dimension = t0_points * conversion_factor
+            print(
+                np.max(dimension[:, 0])-np.min(dimension[:, 0]), 
+                np.max(dimension[:, 1])-np.min(dimension[:, 1])
+                )
 
         axes[0].imshow(self.grid_T0.image, cmap='gray')  
         if t0_points.size > 0:
@@ -333,5 +360,4 @@ class HoughTM:
         Plot the Hough lines detected in the t0 grid.
         """
         self.grid_T0.plot_hough_lines()
-        
         return 

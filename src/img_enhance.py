@@ -53,17 +53,6 @@ class SingleShotEnhancer:
                         ) -> np.ndarray:
         """
         Apply guided filter to the input image using the average shot as guidance.
-
-        :param img: Description
-        :type img: np.ndarray
-        :param radius: Description
-        :type radius: int
-        :param eps: Description
-        :type eps: float
-        :param strength: Description
-        :type strength: float
-        :return: Description
-        :rtype: ndarray
         """
         # Apply guided filter
         if len(self.__avg_shot.shape) == 2: 

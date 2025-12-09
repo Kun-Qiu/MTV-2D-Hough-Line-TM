@@ -13,7 +13,7 @@ from utility.tif_reader import tifReader
 
 WIN_SIZE = (61, 61)
 MAX_LEVEL = 3
-EPSILON = 0.001
+EPSILON = 0.01
 ITERATION = 100
 HOUGH_THRESHOLD = 0.2
 HOUGH_DENSITY = 10
@@ -84,7 +84,8 @@ if __name__ == "__main__":
 
     print("Reference and moving image processed.")
 
-    skip = [5, 6, 10, 11, 14, 45, 47, 68, 69, 71, 72, 74]
+    # skip = [5, 6, 10, 11, 14, 45, 47, 68, 69, 71, 72, 74]
+    skip = []
     num = (min_length if args.num==0 else args.num)
     interpolation = args.interp
     slope_thresh = args.thresh if args.thresh else (10, 1)  
@@ -95,8 +96,9 @@ if __name__ == "__main__":
             ref, mov, num_lines, slope_thresh,
             interpolation, ref_avg, mov_avg
             )
-        solver.solve()
         
+        # solver.plot_intersections(args.pix_world)
+        solver.solve()
         if (i + 1) in skip:
             print(f"Skipping frame {i + 1} due to known issues.")
             continue            

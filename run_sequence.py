@@ -1,5 +1,5 @@
 from src.Scipy_Hough_TM import HoughTM
-from utility.py_import import np, plt, os
+from utility.py_import import np, plt
 from tqdm import tqdm
 import argparse
 from utility.tif_reader import tifReader
@@ -11,11 +11,12 @@ from cython_build.PostProcessor import PostProcessor
 ##################################
 
 WIN_SIZE = (61, 61)
-MAX_LEVEL = 5
-EPSILON = 0.001
+MAX_LEVEL = 3
+EPSILON = 0.01
 ITERATION = 100
 HOUGH_THRESHOLD = 0.2
 HOUGH_DENSITY = 10
+X_ORIGIN, Y_ORIGIN = 289, 709
 
 ##################################
 
@@ -23,7 +24,7 @@ HOUGH_DENSITY = 10
 def parser_setup():
     parser = argparse.ArgumentParser(
         description="Hybrid Analysis Method for Single Time Frame",
-        epilog="Usage: python run_sequence.py Ref1.tif 1us.tif 2us.tif 9 11 2e-6 0.000039604 --thresh 10 1 --interp 0 --num 3 --filter True"
+        epilog="Usage: python run_sequence.py Ref1.tif 1us.tif 2us.tif 9 11 2e-6 0.0000380204 --thresh 10 1 --interp 0 --num 3 --filter True"
     )
 
     parser.add_argument("ref", type=str, help="Path to the reference image")
@@ -92,9 +93,14 @@ if __name__ == "__main__":
 
     print("Reference and moving image processed.")
 
-    skip = [5, 6, 10, 11, 14, 45, 47, 68, 69, 71, 72, 74]
+    # skip = [5, 6, 10, 11, 14, 45, 47, 68, 69, 71, 72, 74]
+    skip = []
     num = (min_length if args.num==0 else args.num)
     for i in tqdm(range(num), desc="Processing images"):
+        if (i + 1) in skip:
+            print(f"Skipping frame {i + 1} due to known issues.")
+            continue
+
         ref, mov = ref_tif.get_image(i), mov_tif_mat[0].get_image(i)
         solver = solver_setup(
             ref, mov, num_lines, slope_thresh, 
@@ -104,12 +110,9 @@ if __name__ == "__main__":
         mov_sequence = []
         for mov_tif in mov_tif_mat[1:]:
             mov_sequence.append(mov_tif.get_image(i))
-
         solver.sequence_solver(mov_sequence, mov_avg_mat[1:])
-        solver.solve()
-        if (i + 1) in skip:
-            print(f"Skipping frame {i + 1} due to known issues.")
-            continue            
+        # solver.plot_intersections()   
+        solver.solve()      
 
         sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
         processor.update(sol_field[..., 4], sol_field[..., 5], sol_field[..., 6])
@@ -126,16 +129,21 @@ if __name__ == "__main__":
 
     vel_mean_mag = np.sqrt(vx_mean**2 + vy_mean**2)
     Vx = vx_mean[Y, X]
-    Vy = vy_mean[Y, X]
+    Vy = -vy_mean[Y, X]
 
     Vel_mag = vel_mean_mag[Y, X]
     Vel_max_mag = np.nanmax(Vel_mag) if len(Vel_mag) > 0 else 1.0
     unit_Vx = Vx / Vel_max_mag
-    unit_Vy = -Vy / Vel_max_mag
+    unit_Vy = Vy / Vel_max_mag
+     
+    # In term of physical coordinates
+    X = (X-X_ORIGIN) * args.pix_world
+    Y = (Y-Y_ORIGIN) * args.pix_world
+    extent = [X.min(), X.max(), Y.min(), Y.max()]
 
     # Velocity Magnitude Plot
     fig, ax = plt.subplots(figsize=(8, 6))
-    mag_plot = ax.imshow(vel_mean_mag, cmap='RdBu_r', origin='upper')
+    mag_plot = ax.imshow(vel_mean_mag, cmap='RdBu_r', origin='upper', extent=extent)
     ax.quiver(X, Y, unit_Vx, unit_Vy, color='black', scale=20)
     cbar = fig.colorbar(mag_plot, ax=ax, format='%.1e', )
     ax.set_title("Magnitude (m/s)")
@@ -143,17 +151,17 @@ if __name__ == "__main__":
 
     fig_avg, axs_avg = plt.subplots(1, 3, figsize=(18, 6))
     # Mean U with vectors
-    im0 = axs_avg[0].imshow(vx_mean, cmap='jet')
+    im0 = axs_avg[0].imshow(vx_mean, cmap='jet', extent=extent)
     axs_avg[0].set_title('Mean U (m/s)')
     plt.colorbar(im0, ax=axs_avg[0], shrink=0.5)
 
     # Mean V with vectors
-    im1 = axs_avg[1].imshow(vy_mean, cmap='jet')
+    im1 = axs_avg[1].imshow(vy_mean, cmap='jet', extent=extent)
     axs_avg[1].set_title('Mean V (m/s)')
     plt.colorbar(im1, ax=axs_avg[1], shrink=0.5)
 
     # Mean Vorticity with vectors
-    im2 = axs_avg[2].imshow(vort_mean, cmap='jet')
+    im2 = axs_avg[2].imshow(vort_mean, cmap='jet', extent=extent)
     axs_avg[2].set_title('Mean ω (1/s)')
     plt.colorbar(im2, ax=axs_avg[2], shrink=0.5)
 
@@ -161,17 +169,17 @@ if __name__ == "__main__":
 
     fig_rms, axs_rms = plt.subplots(1, 3, figsize=(18, 6))
     # RMS U
-    im3 = axs_rms[0].imshow(vx_std, cmap='jet')
+    im3 = axs_rms[0].imshow(vx_std, cmap='jet', extent=extent)
     axs_rms[0].set_title('U\' (m/s)')
     plt.colorbar(im3, ax=axs_rms[0], shrink=0.5)
 
     # RMS V
-    im4 = axs_rms[1].imshow(vy_std, cmap='jet')
+    im4 = axs_rms[1].imshow(vy_std, cmap='jet', extent=extent)
     axs_rms[1].set_title('V\' (m/s)')
     plt.colorbar(im4, ax=axs_rms[1], shrink=0.5)
 
     # RMS Vorticity
-    im5 = axs_rms[2].imshow(vort_std, cmap='jet')
+    im5 = axs_rms[2].imshow(vort_std, cmap='jet', extent=extent)
     axs_rms[2].set_title('ω\' (1/s)')
     plt.colorbar(im5, ax=axs_rms[2], shrink=0.5)
 

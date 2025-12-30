@@ -236,7 +236,9 @@ class HoughTM:
                 disp[..., 1] * pix_to_world, 
                 vel[..., 0] * pix_to_world, 
                 vel[..., 1] * pix_to_world, 
-                vort * pix_to_world
+                
+                # Reverse magnitude direction for correct vorticity sign
+                -vort * pix_to_world
                 ])
 
 

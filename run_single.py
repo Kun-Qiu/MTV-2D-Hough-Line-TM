@@ -1,6 +1,7 @@
 from src.Scipy_Hough_TM import HoughTM
 import matplotlib.pyplot as plt
 import numpy as np
+import os 
 from tqdm import tqdm
 from cython_build.PostProcessor import PostProcessor
 import argparse
@@ -17,6 +18,9 @@ EPSILON = 0.01
 ITERATION = 100
 HOUGH_THRESHOLD = 0.2
 HOUGH_DENSITY = 10
+X_ORIGIN, Y_ORIGIN = 0, 0
+X_SHIFT, Y_SHIFT = 50, 0
+OUTPUT_FOLDER = "plots"
 ##################################
 
 
@@ -84,8 +88,6 @@ if __name__ == "__main__":
 
     print("Reference and moving image processed.")
 
-    # skip = [5, 6, 10, 11, 14, 45, 47, 68, 69, 71, 72, 74]
-    skip = []
     num = (min_length if args.num==0 else args.num)
     interpolation = args.interp
     slope_thresh = args.thresh if args.thresh else (10, 1)  
@@ -97,22 +99,48 @@ if __name__ == "__main__":
             interpolation, ref_avg, mov_avg
             )
         
-        # solver.plot_intersections(args.pix_world)
-        solver.solve()
-        if (i + 1) in skip:
-            print(f"Skipping frame {i + 1} due to known issues.")
-            continue            
+        solver.solve()   
+        solver.disp_field[:, :, 2:4] += np.array([X_SHIFT, Y_SHIFT])   
         sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
         processor.update(sol_field[..., 4], sol_field[..., 5], sol_field[..., 6])
 
     print("Processing & Plotting Mean / RMS Fields")
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
     vx_mean, vy_mean, vort_mean = processor.get_mean()
     vx_std, vy_std, vort_std = processor.get_std()
-
+    height, width = vx_mean.shape
+    
     # Average Magnitude
     valid_points = np.array([solver.disp_field[i, j][:2] for i, j in solver.valid_ij])
-    X = np.round(valid_points[:, 0]).astype(int)
-    Y = np.round(valid_points[:, 1]).astype(int)
+    X = np.round(valid_points[:, 0])
+    Y = np.round(valid_points[:, 1])
+
+    within_bounds_mask = (
+        (X >= 0) & (X < width) & 
+        (Y >= 0) & (Y < height) &
+        np.isfinite(X) & np.isfinite(Y)
+        )
+    
+    valid_points = valid_points[within_bounds_mask]
+    X = X[within_bounds_mask].astype(int)
+    Y = Y[within_bounds_mask].astype(int)
+    
+    # Create mask
+    X_full, Y_full = np.meshgrid(np.arange(vx_mean.shape[1]), np.arange(vx_mean.shape[0]))
+    if X_ORIGIN != 0 and Y_ORIGIN != 0:
+        X_shift_full = X_full - X_ORIGIN
+        Y_shift_full = Y_full - Y_ORIGIN
+        X_shift = X - X_ORIGIN
+        Y_shift = Y - Y_ORIGIN
+    else:
+        X_shift_full = X_full
+        Y_shift_full = Y_full
+        X_shift = X
+        Y_shift = Y
+
+    mask = np.zeros_like(vx_mean, dtype=bool)
+    mask[Y, X] = True
 
     vel_mean_mag = np.sqrt(vx_mean**2 + vy_mean**2)
     Vx = vx_mean[Y, X]
@@ -122,48 +150,163 @@ if __name__ == "__main__":
     Vel_max_mag = np.nanmax(Vel_mag) if len(Vel_mag) > 0 else 1.0
     unit_Vx = Vx / Vel_max_mag
     unit_Vy = Vy / Vel_max_mag
+     
+    # In term of physical coordinates # Convert the x, y to mm 
+    X_shift_full_physical = X_shift_full * args.pix_world 
+    Y_shift_full_physical = Y_shift_full * args.pix_world 
+    X_shift_physical = X_shift * args.pix_world 
+    Y_shift_physical = Y_shift * args.pix_world 
 
-    # Velocity Magnitude Plot
-    fig, ax = plt.subplots(figsize=(8, 6))
-    mag_plot = ax.imshow(vel_mean_mag, cmap='RdBu_r', origin='upper')
-    ax.quiver(X, Y, unit_Vx, unit_Vy, color='black', scale=20)
-    cbar = fig.colorbar(mag_plot, ax=ax, format='%.1e', )
-    ax.set_title("Magnitude (m/s)")
+    # Calculate extent in physical coordinates
+    extent_physical = [
+        np.min(X_shift_full_physical),
+        np.max(X_shift_full_physical),  
+        np.max(Y_shift_full_physical),  
+        np.min(Y_shift_full_physical)   
+        ]
 
+    # List to store all figures for displaying at the end
+    figures = []
+    fig_titles = []
 
-    fig_avg, axs_avg = plt.subplots(1, 3, figsize=(18, 6))
-    # Mean U with vectors
-    im0 = axs_avg[0].imshow(vx_mean, cmap='jet')
-    axs_avg[0].set_title('Mean U (m/s)')
-    plt.colorbar(im0, ax=axs_avg[0], shrink=0.5)
+    # 1. Velocity Magnitude Plot
+    fig1, ax = plt.subplots(figsize=(8, 6))
+    mag_plot = ax.imshow(
+        vel_mean_mag, 
+        cmap='RdBu_r', 
+        origin='upper',
+        extent=extent_physical
+        )
+    ax.quiver(X_shift_physical, Y_shift_physical, unit_Vx, unit_Vy, color='black', scale=20)
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    cbar = fig1.colorbar(mag_plot, ax=ax, format='%.1e')
+    ax.set_title("Velocity Magnitude (m/s)")
 
-    # Mean V with vectors
-    im1 = axs_avg[1].imshow(vy_mean, cmap='jet')
-    axs_avg[1].set_title('Mean V (m/s)')
-    plt.colorbar(im1, ax=axs_avg[1], shrink=0.5)
-
-    # Mean Vorticity with vectors
-    im2 = axs_avg[2].imshow(vort_mean, cmap='jet')
-    axs_avg[2].set_title('Mean ω (1/s)')
-    plt.colorbar(im2, ax=axs_avg[2], shrink=0.5)
-
-    plt.tight_layout()
-
-    fig_rms, axs_rms = plt.subplots(1, 3, figsize=(18, 6))
-    # RMS U
-    im3 = axs_rms[0].imshow(vx_std, cmap='jet')
-    axs_rms[0].set_title('U\' (m/s)')
-    plt.colorbar(im3, ax=axs_rms[0], shrink=0.5)
-
-    # RMS V
-    im4 = axs_rms[1].imshow(vy_std, cmap='jet')
-    axs_rms[1].set_title('V\' (m/s)')
-    plt.colorbar(im4, ax=axs_rms[1], shrink=0.5)
-
-    # RMS Vorticity
-    im5 = axs_rms[2].imshow(vort_std, cmap='jet')
-    axs_rms[2].set_title('ω\' (1/s)')
-    plt.colorbar(im5, ax=axs_rms[2], shrink=0.5)
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
 
     plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'velocity_magnitude.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig1)
+    fig_titles.append("Velocity Magnitude")
+
+    # 2. Mean U Plot
+    fig2, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im0 = ax.imshow(vx_mean, cmap='jet', extent=extent_physical)
+    ax.set_title('Mean U (m/s)')
+    plt.colorbar(im0, ax=ax, shrink=0.8)
+
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_u.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig2)
+    fig_titles.append("Mean U")
+
+    # 3. Mean V Plot
+    fig3, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im1 = ax.imshow(vy_mean, cmap='jet', extent=extent_physical)
+    ax.set_title('Mean V (m/s)')
+    plt.colorbar(im1, ax=ax, shrink=0.8)
+    
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_v.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig3)
+    fig_titles.append("Mean V")
+
+    # 4. Mean Vorticity Plot
+    fig4, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im2 = ax.imshow(vort_mean, cmap='jet', extent=extent_physical)
+    ax.set_title('Mean ω (1/s)')
+    plt.colorbar(im2, ax=ax, shrink=0.8)
+    
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")   
+    
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_vorticity.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig4)
+    fig_titles.append("Mean Vorticity")
+
+    # 5. RMS U Plot
+    fig5, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im3 = ax.imshow(vx_std, cmap='jet', extent=extent_physical)
+    ax.set_title('RMS U\' (m/s)')
+    plt.colorbar(im3, ax=ax, shrink=0.8)
+
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_u.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig5)
+    fig_titles.append("RMS U")
+
+    # 6. RMS V Plot
+    fig6, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im4 = ax.imshow(vy_std, cmap='jet', extent=extent_physical)
+    ax.set_title('RMS V\' (m/s)')
+    plt.colorbar(im4, ax=ax, shrink=0.8)
+
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_v.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig6)
+    fig_titles.append("RMS V")
+
+    # 7. RMS Vorticity Plot
+    fig7, ax = plt.subplots(figsize=(6, 5))
+    ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
+    im5 = ax.imshow(vort_std, cmap='jet', extent=extent_physical)
+    ax.set_title('RMS ω\' (1/s)')
+    plt.colorbar(im5, ax=ax, shrink=0.8)
+
+    ax.set_xticks(ax.get_xticks())
+    ax.set_yticks(ax.get_yticks())
+    ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
+    ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
+    ax.set_xlabel("Streamwise Direction (mm)")
+    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+
+    plt.tight_layout()
+    plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_vorticity.png'), dpi=300, bbox_inches='tight')
+    figures.append(fig7)
+    fig_titles.append("RMS Vorticity")
+
+    print(f"All plots have been saved to '{OUTPUT_FOLDER}' folder")
     plt.show()

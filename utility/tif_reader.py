@@ -31,8 +31,7 @@ class tifReader:
         except IOError:
             raise Exception("Could not open or read the image file.")
         except Exception as e:
-            raise Exception(f"An error occurred: {str(e)}")
-        
+            raise Exception(f"An error occurred: {str(e)}")   
         return
         
 
@@ -46,11 +45,11 @@ class tifReader:
         images = [img_tuple for img_tuple in self.__tif_images]
         averaged_img = np.mean(images, axis=0)
 
+        img_uint8 = cv2.normalize(averaged_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
         if save_path:
             filename = f"{self.__base_name}.png"
             imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
-
-        return averaged_img
+        return img_uint8
 
 
     def average_indicies(self, index1:int, index2:int, save_path:str=None):
@@ -67,12 +66,12 @@ class tifReader:
         initial = min(index1, index2)
         end = max(index1, index2) + 1
         averaged_img = np.mean(self.__tif_images[initial:end], axis=0)
+        img_uint8 = cv2.normalize(averaged_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
 
         if save_path:
             filename = f"{self.__base_name}.png"
             imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
-
-        return averaged_img
+        return img_uint8
 
 
     def get_image(self, index: int):

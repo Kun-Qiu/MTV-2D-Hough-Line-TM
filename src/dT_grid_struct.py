@@ -52,9 +52,15 @@ class DTGridStruct:
         
         # Perform LK optical flow to track points from T0_grid to dT_grid
         criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
+        try:
+            prev_img = rescale(prev_img)
+            next_img = rescale(next_img)
+        except Exception as e:
+            pass
+
         next_pts, status, _ = cv2.calcOpticalFlowPyrLK(
-            prevImg=rescale(prev_img),
-            nextImg=rescale(next_img),
+            prevImg=prev_img,
+            nextImg=next_img,
             prevPts=prev_pts,   
             nextPts=None,
             winSize=self.win_size,
@@ -75,28 +81,18 @@ class DTGridStruct:
         return
 
 
-    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray]) -> None:
+    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray], filter_bool: bool) -> None:
         """
         Solve a sequence of images to update the dT_grid structure over time.
         """
-
-        # plot_data = {
-        #     'frames': [],  # Will store (t0_image, current_image) pairs
-        #     't0_points': [],  # T0 grid points at each step
-        #     'dt_points': []   # dT grid points at each step
-        #     }
-
-        # t0_initial = np.array([p for row in self.T0_grid.grid for p in row if p is not None])
-        # dt_initial = np.array([p for row in self.grid for p in row if p is not None])
-        # plot_data['frames'].append((self.T0_grid.image.copy(), self.image.copy()))
-        # plot_data['t0_points'].append(t0_initial)
-        # plot_data['dt_points'].append(dt_initial)
-
         prev_img = self.image
         next_img = None
 
         for single_frame, avg_frame in zip(single_sequence, avg_sequence):
-            next_img = self.__filter_img(single_frame, avg_frame)
+            if filter_bool:
+                next_img = self.__filter_img(single_frame, avg_frame)
+            else:
+                next_img = single_frame
             valid_mask = np.array([[pt is not None for pt in row] for row in self.grid])
             valid_indices = np.where(valid_mask)
             prev_pts = np.stack(self.grid[valid_mask]).astype(np.float32).reshape(-1, 1, 2) 
@@ -104,16 +100,9 @@ class DTGridStruct:
                 prev_img=prev_img, next_img=next_img, 
                 prev_pts=prev_pts, valid_indices=valid_indices
                 )
-            
-            # t0_current = np.array([p for row in prev_pts for p in row if p is not None])
-            # dt_current = np.array([p for row in self.grid for p in row if p is not None])
-            # plot_data['frames'].append((prev_img.copy(), next_img.copy()))
-            # plot_data['t0_points'].append(t0_current)
-            # plot_data['dt_points'].append(dt_current)
 
             prev_img = next_img
         self.image = next_img
-        # self.plot_sequence_intersections(plot_data)
         return
 
 

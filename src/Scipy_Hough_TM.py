@@ -182,11 +182,11 @@ class HoughTM:
         return
     
 
-    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray]) -> None:
+    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray], filter_bool: bool) -> None:
         """
         Solve a sequence of images to update the displacement grid over time.
         """
-        self.grid_dT.sequence_solver(single_sequence, avg_sequence)
+        self.grid_dT.sequence_solver(single_sequence, avg_sequence, filter_bool)
         return 
 
 

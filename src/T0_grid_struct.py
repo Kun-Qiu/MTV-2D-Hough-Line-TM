@@ -54,15 +54,20 @@ class T0GridStruct:
 
 
     def _is_within_bounds(self, x: int, y: int) -> bool:
+        """
+        Check if a point (x, y) is within the image bounds.
+        """
         height, width = self.image.shape[:2]
-        if 0 <= x <= width and 0 <= y <= height:
+        if 0.025*width <= x <= 0.975*width and 0.025*height <= y <= 0.975*height:
             return True
-
         return False
 
 
     @staticmethod
     def _find_intersection(line1: np.ndarray, line2: np.ndarray) -> Tuple[float, float]:
+        """
+        Find the intersection point of two lines given in Hough parameters (angle, distance).
+        """
         theta1, rho1 = line1
         theta2, rho2 = line2
 
@@ -72,7 +77,6 @@ class T0GridStruct:
             [np.cos(theta2), np.sin(theta2)]
             ])
         b = np.array([rho1, rho2])
-
         try:
             x, y = np.linalg.solve(A, b)
             return (x, y)
@@ -83,8 +87,6 @@ class T0GridStruct:
     def _populate_grid(self) -> None:
         """
         Populate grid with intersection points of detected Hough lines.
-
-        :returns: None
         """
         a_mat, b_mat = self._hough_line_transform()
         for i, a_line in enumerate(sort_lines(a_mat)):
@@ -97,9 +99,7 @@ class T0GridStruct:
                 bounded = self._is_within_bounds(intersection[0], intersection[1])
                 if intersection is not None and bounded:
                     self.grid[i, j] = intersection
-        
-        self.lines_a = a_mat
-        self.lines_b = b_mat
+        self.lines_a, self.lines_b = a_mat, b_mat
         return
 
 
@@ -125,9 +125,7 @@ class T0GridStruct:
 
     def _hough_line_transform(self) -> Tuple[np.ndarray, np.ndarray]:
         """
-        Perform Hough Line Transform to detect lines in the image skeleton.
-
-        :returns: Tuple of two numpy arrays containing Hough parameters (angle, distance)
+        Perform Hough Line Transform to detect lines in the image skeleton (angle, distance).
         """
         # Lines in group a and group b
         lines_a, lines_b = self.num_lines
@@ -138,19 +136,23 @@ class T0GridStruct:
         max_thresh = np.max(self.slope_thresh)
         h, theta, d = hough_line(self.image_skel, theta=self.test_angles)
         for _, angle, dist in zip(*hough_line_peaks(h, theta, d, threshold=self.threshold*h.max())):
+
             slope = np.tan(angle + np.pi / 2) 
             candidate_line = np.array([angle, dist])
+
             if slope >= max_thresh or slope <= -max_thresh:    
-                # Group 1: slope = max thresh
+                # Group 1: First threshold
                 if cur_a < lines_a:
-                    if self.__line_intersection_check(candidate_line, a_mat, cur_a):
+                    if self.__line_intersection_check(candidate_line, a_mat, cur_a) or \
+                    self.__is_collinear(candidate_line, a_mat, cur_a):
                         continue
                     a_mat[cur_a] = candidate_line
                     cur_a += 1
             else:
                 # Group 2: Second threshold
                 if cur_b < lines_b:
-                    if self.__line_intersection_check(candidate_line, b_mat, cur_b):
+                    if self.__line_intersection_check(candidate_line, b_mat, cur_b) or \
+                    self.__is_collinear(candidate_line, a_mat, cur_a):
                         continue
                     b_mat[cur_b] = candidate_line
                     cur_b += 1
@@ -158,6 +160,29 @@ class T0GridStruct:
             if cur_a >= lines_a and cur_b >= lines_b:
                 break
         return a_mat, b_mat
+
+
+    def __is_collinear(self, 
+        candidate_line: np.ndarray, existing_lines: np.ndarray, num_existing: int, 
+        angle_tol: float = 0.05, dist_tol: float = 10.0
+        ) -> bool:
+        """
+        Check if candidate line is almost collinear with any existing line.
+        """
+        candidate_angle, candidate_dist = candidate_line
+        
+        for i in range(num_existing):
+            existing_angle, existing_dist = existing_lines[i]
+            
+            # Check if angles are similar (parallel)
+            angle_diff = abs(candidate_angle - existing_angle)
+            angle_diff = min(angle_diff, np.pi - angle_diff)  # Handle angular wrap-around
+            if angle_diff < angle_tol:
+                # Check if distances are similar (collinear)
+                dist_diff = abs(candidate_dist - existing_dist)
+                if dist_diff < dist_tol:
+                    return True
+        return False
     
 
 #### DESIGN FOR TEMPLATE GENERATION AND BOUNDING BOXES (NOT USED CURRENTLY) ####

@@ -242,8 +242,6 @@ class T0GridStruct:
         cos_angles = np.clip(np.abs(dirs @ mean_dir), -1.0, 1.0)
         angle_deviation = np.arccos(cos_angles)
         bad_idx = np.where(angle_deviation > angle_tol)[0]
-        print(angle_deviation * (180/np.pi), len(line_mat), bad_idx)
-
         if len(bad_idx) > 0:
             return False, bad_idx.tolist()
         return True, []

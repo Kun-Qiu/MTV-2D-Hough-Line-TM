@@ -53,12 +53,18 @@ class T0GridStruct:
         # self._generate_template(scale=self.temp_scale)
 
 
-    def _is_within_bounds(self, x: int, y: int) -> bool:
+    def _is_within_bounds(self, x: int, y: int, check_edge: bool=False) -> bool:
         """
         Check if a point (x, y) is within the image bounds.
         """
         height, width = self.image.shape[:2]
-        if 0.025*width <= x <= 0.975*width and 0.025*height <= y <= 0.975*height:
+        bound_condition = None
+        if check_edge:
+            bound_condition = (0 <= x < width) and (0 <= y < height)
+        else:
+            bound_condition = 0.05*width <= x <= 0.95*width and 0.05*height <= y <= 0.95*height
+        
+        if bound_condition:
             return True
         return False
 
@@ -77,6 +83,7 @@ class T0GridStruct:
             [np.cos(theta2), np.sin(theta2)]
             ])
         b = np.array([rho1, rho2])
+
         try:
             x, y = np.linalg.solve(A, b)
             return (x, y)
@@ -96,7 +103,7 @@ class T0GridStruct:
                 if j >= self.num_lines[1]:
                     continue
                 intersection = self._find_intersection(a_line, b_line)
-                bounded = self._is_within_bounds(intersection[0], intersection[1])
+                bounded = self._is_within_bounds(intersection[0], intersection[1], check_edge=False)
                 if intersection is not None and bounded:
                     self.grid[i, j] = intersection
         self.lines_a, self.lines_b = a_mat, b_mat
@@ -105,21 +112,37 @@ class T0GridStruct:
 
     def __line_intersection_check(self, candidate: np.ndarray, mat: np.ndarray, num_lines:int) -> bool:
         """
-        Enforce that the lines in the same group do not intersect within the image bounds. 
-
-        :param candidate: Hough parameters (angle, distance) of the candidate line.
-        :param mat: Matrix of existing lines in the same group.
-        :param num_lines: Number of lines in the group.
-        :returns: True if intersection occurs within image bounds, False otherwise.
+        Enforce that the lines in the same group do not intersect within the bounds of the image.
+        ****
+        This is a requirement for systematic, redundant detection of grid structures
+        ****
         """
+        def line_dist_center(candidate: np.ndarray, frac: float = 0.25) -> bool:
+            """
+            Ensure the point on the line closest to the image center does not deviate too far from the image center.
+            """
+            theta, rho = candidate
+            H, W = self.image.shape
+            xc, yc = W / 2, H / 2
+
+            # Signed distance from image center to line and closest point on the line to image center
+            d = abs(xc * np.cos(theta) + yc * np.sin(theta) - rho)
+            diag = np.hypot(W, H)
+            return (d < frac * diag)
+
         for idx in range(num_lines):
             line = mat[idx]
+            # check that the line is not too far from the image center
+            if not line_dist_center(candidate):
+                return True
             
             intersection = self._find_intersection(line, candidate)
-            if intersection is not None:
-                x, y = intersection
-                if self._is_within_bounds(x, y):
-                    return True
+            if intersection is None:
+                continue
+            
+            x, y = intersection
+            if self._is_within_bounds(x, y, check_edge=True):
+                return True
         return False
 
 
@@ -148,6 +171,14 @@ class T0GridStruct:
                         continue
                     a_mat[cur_a] = candidate_line
                     cur_a += 1
+
+                    # Once enough lines are populated test for slope deviations
+                    if cur_a >= lines_a:
+                        line_bool, indices = self.__slope_deviation_check(a_mat)
+                        if not line_bool:
+                            a_mat[indices] = np.zeros((len(indices), 2), dtype=float)
+                            cur_a -= len(indices)
+
             else:
                 # Group 2: Second threshold
                 if cur_b < lines_b:
@@ -156,6 +187,13 @@ class T0GridStruct:
                         continue
                     b_mat[cur_b] = candidate_line
                     cur_b += 1
+                    
+                    # Once enough lines are populated test for slope deviations
+                    if cur_b >= lines_b:
+                        line_bool, indices = self.__slope_deviation_check(b_mat)
+                        if not line_bool:
+                            a_mat[indices] = np.zeros((len(indices), 2), dtype=float)
+                            cur_b -= len(indices)
 
             if cur_a >= lines_a and cur_b >= lines_b:
                 break
@@ -164,16 +202,18 @@ class T0GridStruct:
 
     def __is_collinear(self, 
         candidate_line: np.ndarray, existing_lines: np.ndarray, num_existing: int, 
-        angle_tol: float = 0.05, dist_tol: float = 10.0
+        angle_tol: float = 0.05, dist_tol: float = 20.0
         ) -> bool:
         """
         Check if candidate line is almost collinear with any existing line.
+        ****
+        Check is a line is within a certain angular and distance tolerance of existing lines
+        ****
         """
         candidate_angle, candidate_dist = candidate_line
         
         for i in range(num_existing):
             existing_angle, existing_dist = existing_lines[i]
-            
             # Check if angles are similar (parallel)
             angle_diff = abs(candidate_angle - existing_angle)
             angle_diff = min(angle_diff, np.pi - angle_diff)  # Handle angular wrap-around
@@ -183,6 +223,30 @@ class T0GridStruct:
                 if dist_diff < dist_tol:
                     return True
         return False
+    
+
+    def __slope_deviation_check(self, line_mat: np.ndarray, angle_tol: float = np.deg2rad(1))->Tuple[bool, list]:
+        """
+        Check whether lines in the same group deviate excessively in orientation.
+        """
+        # Line normal is (cosθ, sinθ); direction is perpendicular
+        dirs = np.column_stack([
+            -np.sin(line_mat[:, 0]),
+            np.cos(line_mat[:, 0])
+            ])
+        dirs /= np.linalg.norm(dirs, axis=1, keepdims=True) # Normalize magnitude
+        mean_dir = np.mean(dirs, axis=0) 
+        mean_dir /= np.linalg.norm(mean_dir) # Dominate direction
+
+        # Angular deviation from dominant direction
+        cos_angles = np.clip(np.abs(dirs @ mean_dir), -1.0, 1.0)
+        angle_deviation = np.arccos(cos_angles)
+        bad_idx = np.where(angle_deviation > angle_tol)[0]
+        print(angle_deviation * (180/np.pi), len(line_mat), bad_idx)
+
+        if len(bad_idx) > 0:
+            return False, bad_idx.tolist()
+        return True, []
     
 
 #### DESIGN FOR TEMPLATE GENERATION AND BOUNDING BOXES (NOT USED CURRENTLY) ####

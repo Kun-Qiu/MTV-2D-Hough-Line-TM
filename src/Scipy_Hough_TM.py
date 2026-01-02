@@ -1,4 +1,3 @@
-from networkx import sigma
 from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
@@ -19,6 +18,9 @@ class HoughTM:
     # Guided Images for Filtering
     ref_avg: np.ndarray = None
     mov_avg: np.ndarray = None
+
+    # Verbose Mode for Manual Correction
+    verbose: bool = False
 
     # Template Matching Optimization Parameters
     # fwhm        : float = field(init=False)
@@ -169,9 +171,19 @@ class HoughTM:
         """
         Solve for the displacement field between reference and moving images.
         """
+        if self.verbose:
+            self.interactive_point_editor(
+                self.ref,
+                self.mov,
+                self.grid_T0.grid,
+                self.grid_dT.grid,
+                self.valid_ij
+            )
+
         for i, j in self.valid_ij:
             if (self.grid_T0.grid[i, j] is None or self.grid_dT.grid[i, j] is None):
                 continue
+                
             x0, y0 = self.grid_T0.grid[i, j]
             x1, y1 = self.grid_dT.grid[i, j]
 
@@ -235,10 +247,8 @@ class HoughTM:
                 disp[..., 0] * pix_to_world, 
                 disp[..., 1] * pix_to_world, 
                 vel[..., 0] * pix_to_world, 
-                vel[..., 1] * pix_to_world, 
-                
-                # Reverse magnitude direction for correct vorticity sign
-                -vort * pix_to_world
+                vel[..., 1] * pix_to_world,
+                -vort * pix_to_world        
                 ])
 
 
@@ -363,3 +373,186 @@ class HoughTM:
         """
         self.grid_T0.plot_hough_lines()
         return 
+    
+
+    def interactive_point_editor(self, ref, mov, grid_ref, grid_mov, valid_ij):
+        """
+        Manual correction for MTV grid points.
+
+        - Reference grid points are immutable
+        - Moving grid supports:
+            * single-click selection
+            * lasso multi-selection
+            * drag to move selected points
+        - Reference points are highlighted but never moved
+        """
+
+        import numpy as np
+        import matplotlib.pyplot as plt
+        from matplotlib.widgets import LassoSelector
+        from matplotlib.path import Path
+
+        # -------------------------------------------------
+        # Figure setup
+        fig, (ax0, ax1) = plt.subplots(1, 2, figsize=(12, 6))
+        ax0.imshow(ref, cmap="gray")
+        ax1.imshow(mov, cmap="gray")
+        ax0.set_title("Reference Image (locked)")
+        ax1.set_title("Moving Image (editable)")
+
+        # -------------------------------------------------
+        # Gather valid points
+        ij_list = []
+        xs0, ys0 = [], []
+        xs1, ys1 = [], []
+
+        for i, j in valid_ij:
+            if grid_ref[i, j] is None or grid_mov[i, j] is None:
+                continue
+            ij_list.append((i, j))
+            xs0.append(grid_ref[i, j][0])
+            ys0.append(grid_ref[i, j][1])
+            xs1.append(grid_mov[i, j][0])
+            ys1.append(grid_mov[i, j][1])
+
+        xs0, ys0 = np.asarray(xs0), np.asarray(ys0)
+        xs1, ys1 = np.asarray(xs1), np.asarray(ys1)
+
+        # -------------------------------------------------
+        # Plot points
+        ax0.scatter(xs0, ys0, c="r", s=40, alpha=0.7)
+        scat1 = ax1.scatter(xs1, ys1, c="b", s=40, alpha=0.7)
+
+        # Highlight scatters
+        hl0 = ax0.scatter([], [], s=90, facecolors="none",
+                        edgecolors="y", linewidths=2)
+        hl1 = ax1.scatter([], [], s=90, facecolors="none",
+                        edgecolors="y", linewidths=2)
+
+        # -------------------------------------------------
+        # State
+        selected_inds = []
+        dragging = False
+        last_xy = None
+
+        # -------------------------------------------------
+        # Utilities
+        def set_highlight(indices):
+            if not indices:
+                hl0.set_offsets(np.empty((0, 2)))
+                hl1.set_offsets(np.empty((0, 2)))
+                return
+
+            hl0.set_offsets(np.column_stack([xs0[indices], ys0[indices]]))
+            hl1.set_offsets(np.column_stack([xs1[indices], ys1[indices]]))
+
+        def clear_selection():
+            nonlocal selected_inds
+            selected_inds = []
+            set_highlight([])
+            fig.canvas.draw_idle()
+
+        def pick_point(x, y, radius=5):
+            d2 = (xs1 - x) ** 2 + (ys1 - y) ** 2
+            idx = np.nanargmin(d2)
+            return idx if d2[idx] <= radius ** 2 else None
+
+        # -------------------------------------------------
+        # Lasso selection (moving image only)
+        def on_lasso(verts):
+            nonlocal selected_inds
+            path = Path(verts)
+            pts = np.column_stack([xs1, ys1])
+            selected_inds = np.nonzero(path.contains_points(pts))[0].tolist()
+            set_highlight(selected_inds)
+            fig.canvas.draw_idle()
+            if len(selected_inds) > 0:
+                print(f"Lasso selected {len(selected_inds)} points")
+
+        lasso = LassoSelector(ax1, on_lasso)
+
+        # -------------------------------------------------
+        # Mouse press
+        def on_press(event):
+            nonlocal dragging, last_xy, selected_inds
+
+            if event.inaxes != ax1 or event.xdata is None:
+                return
+
+            idx = pick_point(event.xdata, event.ydata)
+
+            if idx is None:
+                clear_selection()
+                return
+
+            if idx not in selected_inds:
+                selected_inds = [idx]
+                set_highlight(selected_inds)
+
+            dragging = True
+            last_xy = (event.xdata, event.ydata)
+            lasso.set_active(False)
+            fig.canvas.draw_idle()
+
+        # -------------------------------------------------
+        # Mouse motion (drag)
+        def on_motion(event):
+            nonlocal last_xy
+            if not dragging or event.inaxes != ax1 or event.xdata is None:
+                return
+
+            dx = event.xdata - last_xy[0]
+            dy = event.ydata - last_xy[1]
+
+            for idx in selected_inds:
+                xs1[idx] += dx
+                ys1[idx] += dy
+                i, j = ij_list[idx]
+                grid_mov[i, j] = (xs1[idx], ys1[idx])
+
+            scat1.set_offsets(np.column_stack([xs1, ys1]))
+            set_highlight(selected_inds)
+            last_xy = (event.xdata, event.ydata)
+            fig.canvas.draw_idle()
+
+        # -------------------------------------------------
+        # Mouse release
+        def on_release(event):
+            nonlocal dragging
+            dragging = False
+            lasso.set_active(True)
+
+        # -------------------------------------------------
+        # Delete key
+        def on_key(event):
+            nonlocal selected_inds
+            if event.key in ("delete", "backspace") and selected_inds:
+                for idx in selected_inds:
+                    i, j = ij_list[idx]
+                    xs1[idx] = np.nan
+                    ys1[idx] = np.nan
+                    grid_mov[i, j] = None
+
+                scat1.set_offsets(np.column_stack([xs1, ys1]))
+                clear_selection()
+                print(f"Deleted {len(selected_inds)} points")
+
+        # -------------------------------------------------
+        # Connect events
+        fig.canvas.mpl_connect("button_press_event", on_press)
+        fig.canvas.mpl_connect("motion_notify_event", on_motion)
+        fig.canvas.mpl_connect("button_release_event", on_release)
+        fig.canvas.mpl_connect("key_press_event", on_key)
+
+        # -------------------------------------------------
+        # UI instructions
+        plt.figtext(
+            0.5, 0.01,
+            "Click = select | Lasso = multi-select | Drag = move | Delete = remove | Ref points locked",
+            ha="center", fontsize=10
+        )
+
+        plt.tight_layout(rect=[0, 0.03, 1, 0.97])
+        plt.show()
+
+        return grid_ref, grid_mov

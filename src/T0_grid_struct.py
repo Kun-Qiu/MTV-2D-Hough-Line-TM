@@ -153,7 +153,11 @@ class T0GridStruct:
         # Lines in group a and group b
         lines_a, lines_b = self.num_lines
         a_mat = np.zeros((lines_a, 2), dtype=float)  
-        b_mat = np.zeros((lines_b, 2), dtype=float)  
+        b_mat = np.zeros((lines_b, 2), dtype=float)
+        
+        # Used to track slope deviation checks
+        indices_a = np.arange(lines_a)
+        indices_b = np.arange(lines_b)
 
         cur_a, cur_b = 0, 0
         max_thresh = np.max(self.slope_thresh)
@@ -174,11 +178,10 @@ class T0GridStruct:
 
                     # Once enough lines are populated test for slope deviations
                     if cur_a >= lines_a:
-                        line_bool, indices = self.__slope_deviation_check(a_mat)
+                        line_bool, indices_a = self.__slope_deviation_check(a_mat, indices_a)
                         if not line_bool:
-                            a_mat[indices] = np.zeros((len(indices), 2), dtype=float)
-                            cur_a -= len(indices)
-
+                            a_mat[indices_a] = np.zeros((len(indices_a), 2), dtype=float)
+                            cur_a -= len(indices_a)
             else:
                 # Group 2: Second threshold
                 if cur_b < lines_b:
@@ -190,10 +193,10 @@ class T0GridStruct:
                     
                     # Once enough lines are populated test for slope deviations
                     if cur_b >= lines_b:
-                        line_bool, indices = self.__slope_deviation_check(b_mat)
+                        line_bool, indices_b = self.__slope_deviation_check(b_mat, indices_b)
                         if not line_bool:
-                            a_mat[indices] = np.zeros((len(indices), 2), dtype=float)
-                            cur_b -= len(indices)
+                            b_mat[indices_b] = np.zeros((len(indices_b), 2), dtype=float)
+                            cur_b -= len(indices_b)
 
             if cur_a >= lines_a and cur_b >= lines_b:
                 break
@@ -225,7 +228,10 @@ class T0GridStruct:
         return False
     
 
-    def __slope_deviation_check(self, line_mat: np.ndarray, angle_tol: float = np.deg2rad(1))->Tuple[bool, list]:
+    def __slope_deviation_check(self, 
+            line_mat: np.ndarray, indices: list, 
+            angle_tol: float = np.deg2rad(1.5)
+            )->Tuple[bool, list]:
         """
         Check whether lines in the same group deviate excessively in orientation.
         """
@@ -235,13 +241,18 @@ class T0GridStruct:
             np.cos(line_mat[:, 0])
             ])
         dirs /= np.linalg.norm(dirs, axis=1, keepdims=True) # Normalize magnitude
-        mean_dir = np.mean(dirs, axis=0) 
-        mean_dir /= np.linalg.norm(mean_dir) # Dominate direction
+        median_dir = np.median(dirs, axis=0)
+        median_dir /= np.linalg.norm(median_dir) # Change from Mean to Median for robust against outliers
 
         # Angular deviation from dominant direction
-        cos_angles = np.clip(np.abs(dirs @ mean_dir), -1.0, 1.0)
+        cos_angles = np.clip(np.abs(dirs @ median_dir), -1.0, 1.0)
         angle_deviation = np.arccos(cos_angles)
-        bad_idx = np.where(angle_deviation > angle_tol)[0]
+        if len(indices) > 0:
+            indices = np.array(indices)
+            bad_idx = indices[np.where(angle_deviation[indices] > angle_tol)[0]]
+        else:
+            bad_idx = np.where(angle_deviation > angle_tol)[0]
+        
         if len(bad_idx) > 0:
             return False, bad_idx.tolist()
         return True, []

@@ -363,7 +363,6 @@ class HoughTM:
 
         plt.tight_layout()
         plt.show()
-
         return 
     
 
@@ -554,5 +553,4 @@ class HoughTM:
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.show()
-
         return grid_ref, grid_mov

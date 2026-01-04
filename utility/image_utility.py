@@ -3,12 +3,15 @@ from skimage.morphology import skeletonize, thin
 
 
 def save_plt(img: np.ndarray, filename: str, cmap: str='gray') -> None:
-        plt.figure()
-        plt.imshow(img, cmap=cmap)
-        plt.axis('off')
-        plt.savefig(filename, 
-                   bbox_inches='tight', pad_inches=0, dpi=300)
-        plt.close()
+    """
+    Save a matplotlib image to a file without axes.
+    """
+    plt.figure()
+    plt.imshow(img, cmap=cmap)
+    plt.axis('off')
+    plt.savefig(filename, 
+                bbox_inches='tight', pad_inches=0, dpi=300)
+    plt.close()
 
 
 def skeletonize_img(image: np.ndarray, blur_window: Tuple[int, int]=(5,5), 
@@ -48,27 +51,6 @@ def skeletonize_img(image: np.ndarray, blur_window: Tuple[int, int]=(5,5),
         skeleton = skeletonize(thresh, method="lee").astype(np.uint8)
     else:
         raise ValueError(f"Unknown skeletonization method: {method}")
-
-    # plt.figure(figsize=(15, 10))
-    
-    # plt.subplot(1, 3, 1)
-    # plt.imshow(image, cmap='gray')
-    # plt.title('Original Image')
-    # plt.axis('off')
-    
-    # plt.subplot(1, 3, 2)
-    # plt.imshow(thresh, cmap='gray')
-    # plt.title('Combined Mask')
-    # plt.axis('off')
-    
-    # plt.subplot(1, 3, 3)
-    # plt.imshow(skeleton, cmap='gray')
-    # plt.title('Skeletonized Result')
-    # plt.axis('off')
-    
-    # plt.tight_layout()
-    # plt.show()
-    
     return thresh, skeleton
 
 
@@ -118,6 +100,9 @@ def stereo_transform(im: np.ndarray) -> np.ndarray:
 
 
 def transform_image(image: np.ndarray, dx: int=0, dy: int=0) -> np.ndarray:
+    """
+    Translate the image by dx and dy.
+    """
     (h, w) = image.shape[:2]
 
     # Define the translation matrix
@@ -128,3 +113,27 @@ def transform_image(image: np.ndarray, dx: int=0, dy: int=0) -> np.ndarray:
                                     borderMode=cv2.BORDER_CONSTANT, 
                                     borderValue=0)
     return translated_img
+
+
+def estimate_snr(image_array: np.ndarray, smooth_image:np.ndarray|None=None):
+    """
+    Estimate SNR of an image using a reference smooth image.
+    Ensure that both images are of the same type and shape!!
+    
+    image_array : 2D numpy array (float32) - the noisy image
+    smooth_image: 2D numpy array (float32) - reference clean/smooth image
+                  if None, will fallback to median filter
+    """
+    sp = np.max(image_array)
+    
+    if smooth_image is not None:
+        noise = image_array - smooth_image
+        sigma = np.std(noise)
+    else:
+        from scipy.ndimage import median_filter
+        smooth = median_filter(image_array, size=5)
+        noise = image_array - smooth
+        sigma = np.std(noise)
+        
+    snr = sp / (4 * sigma)
+    return snr

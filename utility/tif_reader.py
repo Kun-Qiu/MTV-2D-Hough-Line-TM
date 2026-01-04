@@ -20,6 +20,9 @@ class tifReader:
     def __read_images(self) -> None:
         """
         Read all images from the TIFF file and store them as grayscale images.
+        ### 
+        Normalize to 8 bit images
+        ###
         """   
         try:
             tiff_data = tifffile.imread(self.img_path)
@@ -31,13 +34,16 @@ class tifReader:
         except IOError:
             raise Exception("Could not open or read the image file.")
         except Exception as e:
-            raise Exception(f"An error occurred: {str(e)}")   
+            raise Exception(f"An error occurred: {str(e)}")
         return
         
 
     def average(self, save_path:str=None) -> np.ndarray:
         """
         Obtain an average image of all images in the TIFF file.
+        ### 
+        Normalize to 8 bit images
+        ###
         """
         if self.length <= 0:
             raise Exception("No images found.")
@@ -48,13 +54,16 @@ class tifReader:
         img_uint8 = cv2.normalize(averaged_img, None, 0, 255, cv2.NORM_MINMAX).astype(np.uint8)
         if save_path:
             filename = f"{self.__base_name}.png"
-            imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
+            imsave(os.path.join(save_path, filename), img_uint8)
         return img_uint8
 
 
     def average_indicies(self, index1:int, index2:int, save_path:str=None):
         """
         Obtain an average image of selected indicies
+        ### 
+        Normalize to 8 bit images
+        ###
         """
         if self.length <= 0:
             raise Exception("No images found.")
@@ -70,7 +79,7 @@ class tifReader:
 
         if save_path:
             filename = f"{self.__base_name}.png"
-            imsave(os.path.join(save_path, filename), averaged_img.astype(np.float32))
+            imsave(os.path.join(save_path, filename), img_uint8)
         return img_uint8
 
 

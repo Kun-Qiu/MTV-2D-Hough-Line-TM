@@ -36,8 +36,10 @@ class DTGridStruct:
             )
 
 
-    def _grid_LK(self, prev_img: np.ndarray, next_img: np.ndarray, 
-                 prev_pts: np.ndarray, valid_indices: np.ndarray) -> None:
+    def _grid_LK(self, 
+        prev_img: np.ndarray, next_img: np.ndarray, 
+        prev_pts: np.ndarray, valid_indices: np.ndarray
+        ) -> None:
         """
         Perform Lucas-Kanade optical flow tracking on the grid points.
         """
@@ -79,7 +81,7 @@ class DTGridStruct:
                 self.grid[i][j] = None
             tracked_idx += 1
         return
-
+    
 
     def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray], filter_bool: bool) -> None:
         """

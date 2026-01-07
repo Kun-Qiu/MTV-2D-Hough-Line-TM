@@ -176,17 +176,30 @@ class HoughTM:
     def solve(self) -> None:
         """
         Solve for the displacement field between reference and moving images.
+        Populate the displacement field array with [x0, y0, dx, dy] at valid grid points.
         """
         if self.verbose:
-            self.interactive_point_editor(
+            # Launch interactive point editor for manual correction
+            self.grid_T0.grid, self.grid_dT.grid, self.valid_ij = self.interactive_point_editor(
                 self.ref,
                 self.mov,
                 self.grid_T0.grid,
-                self.grid_dT.grid,
+                self.grid_dT.grid,  
                 self.valid_ij
-            )
+                )
 
-        for i, j in self.valid_ij:
+        self.common_ij = self.valid_ij
+        if hasattr(self, 'prev_model_ij'):
+            # Find intersection of current valid ij and previous model ij
+            cur_set = set(tuple(idx) for idx in self.valid_ij)
+            prev_set = set(tuple(idx) for idx in self.prev_model_ij)
+
+            intersection_set = cur_set.intersection(prev_set)
+            if intersection_set:
+                self.common_ij = np.array(list(intersection_set))
+
+        # Populate displacement field
+        for i, j in self.common_ij:
             if (self.grid_T0.grid[i, j] is None or self.grid_dT.grid[i, j] is None):
                 continue
                 
@@ -197,7 +210,7 @@ class HoughTM:
             self.disp_field[i, j] = [x0, y0, dx, dy]
 
         self.solve_bool = True
-        return
+        return 
     
 
     def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray], filter_bool: bool) -> None:
@@ -254,7 +267,7 @@ class HoughTM:
                 disp[..., 1] * pix_to_world, 
                 vel[..., 0] * pix_to_world, 
                 vel[..., 1] * pix_to_world,
-                -vort * pix_to_world        
+                vort * pix_to_world        
                 ])
 
 
@@ -265,14 +278,20 @@ class HoughTM:
         return self.interpolator.interpolate(pts)
     
 
-    def set_ref(self, im: np.ndarray) -> None:
-        self.ref = im
-        return
+    def get_valid_ij(self) -> np.ndarray:
+        """
+        Get the valid grid indices used in the last solve.
+        """
+        return self.valid_ij
 
     
-    def set_mov(self, im: np.ndarray) -> None:
-        self.mov = im
-        return
+    def set_valid_ij(self, prev_ij: np.ndarray) -> None:
+        """
+        Set the valid grid indices if using manual correction --> Propogate this ij index
+        forward.
+        """
+        self.prev_model_ij = prev_ij
+        return 
     
 
     ###########################
@@ -333,8 +352,18 @@ class HoughTM:
         """
         fig, axes = plt.subplots(1, 2, figsize=(12, 6))
 
-        t0_points = np.array([p for row in self.grid_T0.grid for p in row if p is not None])
-        dt_points = np.array([p for row in self.grid_dT.grid for p in row if p is not None])
+        if hasattr(self, 'common_ij'):
+            plot_indices = self.common_ij
+        else:
+            plot_indices = self.valid_ij
+        
+        t0_points, dt_points = [], []
+        for i, j in plot_indices:
+            t0_points.append(self.grid_T0.grid[i, j])
+            dt_points.append(self.grid_dT.grid[i, j])
+        
+        t0_points = np.array(t0_points) if t0_points else np.array([])
+        dt_points = np.array(dt_points) if dt_points else np.array([])
         
         if conversion_factor is not None:
             """
@@ -357,7 +386,7 @@ class HoughTM:
         axes[0].set_ylabel("Y")
         axes[0].grid(False)
 
-        axes[1].imshow(self.grid_dT.image, cmap='gray')  # Display reference image
+        axes[1].imshow(self.grid_dT.image, cmap='gray') 
         if dt_points.size > 0:
             axes[1].scatter(
                 dt_points[:, 0], dt_points[:, 1], color='red', 
@@ -369,6 +398,7 @@ class HoughTM:
 
         plt.tight_layout()
         plt.show()
+
         return 
     
 
@@ -380,7 +410,7 @@ class HoughTM:
         return 
     
 
-    def interactive_point_editor(self, ref, mov, grid_ref, grid_mov, valid_ij):
+    def interactive_point_editor(self, ref, mov, grid_ref, grid_mov, valid_ij) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
         """
         Manual correction for MTV grid points.
 
@@ -471,8 +501,6 @@ class HoughTM:
             selected_inds = np.nonzero(path.contains_points(pts))[0].tolist()
             set_highlight(selected_inds)
             fig.canvas.draw_idle()
-            if len(selected_inds) > 0:
-                print(f"Lasso selected {len(selected_inds)} points")
 
         lasso = LassoSelector(ax1, on_lasso)
 
@@ -530,17 +558,28 @@ class HoughTM:
         # -------------------------------------------------
         # Delete key
         def on_key(event):
-            nonlocal selected_inds
+            nonlocal selected_inds, valid_ij
             if event.key in ("delete", "backspace") and selected_inds:
+                to_remove = []
                 for idx in selected_inds:
                     i, j = ij_list[idx]
+
+                    grid_mov[i, j] = None
+                    grid_ref[i, j] = None
+                    to_remove.append((i, j))
+                    
                     xs1[idx] = np.nan
                     ys1[idx] = np.nan
-                    grid_mov[i, j] = None
 
+                to_remove = np.asarray(to_remove)
+                mask = ~np.any(
+                    (valid_ij[:, None, :] == to_remove[None, :, :]).all(axis=2),
+                    axis=1
+                )
+                valid_ij = valid_ij[mask]
+        
                 scat1.set_offsets(np.column_stack([xs1, ys1]))
                 clear_selection()
-                print(f"Deleted {len(selected_inds)} points")
 
         # -------------------------------------------------
         # Connect events
@@ -559,4 +598,5 @@ class HoughTM:
 
         plt.tight_layout(rect=[0, 0.03, 1, 0.97])
         plt.show()
-        return grid_ref, grid_mov
+
+        return grid_ref, grid_mov, valid_ij

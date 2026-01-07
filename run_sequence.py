@@ -1,33 +1,33 @@
 from src.Scipy_Hough_TM import HoughTM
-from utility.py_import import np, plt
+from utility.py_import import np, plt, os
 from tqdm import tqdm
+import argparse
 from utility.tif_reader import tifReader
 from cython_build.PostProcessor import PostProcessor
-import argparse
-import os
 
 
 ##################################
 ##### USER DEFINED VARIABLES #####
 ##################################
 
-WIN_SIZE = (61, 61)
+WIN_SIZE = (31, 31)
 MAX_LEVEL = 3
 EPSILON = 0.01
 ITERATION = 100
 HOUGH_THRESHOLD = 0.2
 HOUGH_DENSITY = 10
-X_ORIGIN, Y_ORIGIN = 289, 709
-X_ORIGIN, Y_ORIGIN = 0, 0
-X_SHIFT, Y_SHIFT = 50, 0
-OUTPUT_FOLDER = "plots"
+X_ORIGIN, Y_ORIGIN = 235, 690
+X_SHIFT, Y_SHIFT = 0, 0
+OUTPUT_FOLDER = r"plots"
 ##################################
 
-
 def parser_setup():
+    """
+    Argument parser setup
+    """
     parser = argparse.ArgumentParser(
         description="Hybrid Analysis Method for Single Time Frame",
-        epilog="Usage: python run_sequence.py Ref1.tif 1us.tif 2us.tif 9 11 2e-6 0.0000380204 --thresh 10 1 --interp 0 --num 3 --filter True"
+        epilog="Usage: python run_sequence.py HTV_Data/x=0/Ref1.tif HTV_Data/x=0/Run6.tif HTV_Data/x=0/Run5.tif 9 11 2e-6 0.0000380204 --thresh 10 1 --interp 0 --num 3 --filter"
     )
 
     parser.add_argument("ref", type=str, help="Path to the reference image")
@@ -38,11 +38,12 @@ def parser_setup():
     parser.add_argument("--thresh", nargs=2, type=int, help="Slope threshold for Hough transform")
     parser.add_argument("--interp", type=int, default=0, help="Interpolation method")
     parser.add_argument("--num", default=0, type=int, help="Number of images to process")
-    parser.add_argument("--filter", default=False, type=bool, help="Boolean to filter single shot")
+    parser.add_argument("--filter", action="store_true", help="Boolean to filter single shot")
+    parser.add_argument("--m", action="store_true", help="Manual correction")
     return parser
 
 
-def solver_setup(ref, mov, num_lines, slope_thresh, interp, ref_avg=None, mov_avg=None):
+def solver_setup(ref, mov, num_lines, slope_thresh, interp, verbose, ref_avg=None, mov_avg=None):
     """
     Parameter setup for the solver
     """ 
@@ -53,7 +54,8 @@ def solver_setup(ref, mov, num_lines, slope_thresh, interp, ref_avg=None, mov_av
         mov_avg=mov_avg,
         num_lines=num_lines,
         interp=interp,
-        slope_thresh=slope_thresh
+        slope_thresh=slope_thresh,
+        verbose=verbose
     )
 
     solver.set_optical_flow_params(
@@ -82,6 +84,7 @@ if __name__ == "__main__":
 
     mov_tif_mat, mov_avg_mat = [], []    
     for mov_tif in args.mov:
+        # Read moving image(s)
         mov_tif_obj = tifReader(mov_tif)
         mov_tif_mat.append(mov_tif_obj)
         mov_avg_mat.append(mov_tif_obj.average() if args.filter != None else None) 
@@ -97,23 +100,43 @@ if __name__ == "__main__":
     print("Reference and moving image processed.")
 
     num = (min_length if args.num==0 else args.num)
+    verbose = args.m
+    prev_ij = None
+
     for i in tqdm(range(num), desc="Processing images"):
         ref, mov = ref_tif.get_image(i), mov_tif_mat[0].get_image(i)
+        # Setup solver for each image pair
         solver = solver_setup(
             ref, mov, num_lines, slope_thresh, 
-            interpolation, ref_avg, mov_avg_mat[0]
+            interpolation, verbose, ref_avg, mov_avg_mat[0]
             )
         
-        mov_sequence = [mov_tif.get_image(i) for mov_tif in mov_tif_mat[1:]]
-        solver.sequence_solver(mov_sequence, mov_avg_mat[1:], args.filter) 
+        if len(mov_tif_mat) > 1:
+            # Handle sequence of moving images
+            mov_sequence = [mov_tif.get_image(i) for mov_tif in mov_tif_mat[1:]]
+            solver.sequence_solver(mov_sequence, mov_avg_mat[1:], args.filter) 
+        
+        if prev_ij is not None:
+            # Propogate the valid ij from previous manual correction
+            solver.set_valid_ij(prev_ij)
+        
+        # Solve for displacement field
         solver.solve()
+
+        if verbose and prev_ij is None:
+            # After first manual correction, set verbose to False for next iterations
+            verbose = False
+            prev_ij = solver.get_valid_ij()
+            print("Propagating valid ij from first manual correction to subsequent images...")
+            
+        solver.plot_intersections()
         solver.disp_field[:, :, 2:4] += np.array([X_SHIFT, Y_SHIFT])
-    
         sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
+
+        # Update post-processor with current solution field
         processor.update(sol_field[..., 4], sol_field[..., 5], sol_field[..., 6])
 
     print("Processing & Plotting Mean / RMS Fields")
-    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
     vx_mean, vy_mean, vort_mean = processor.get_mean()
     vx_std, vy_std, vort_std = processor.get_std()
@@ -136,16 +159,10 @@ if __name__ == "__main__":
     
     # Create mask
     X_full, Y_full = np.meshgrid(np.arange(vx_mean.shape[1]), np.arange(vx_mean.shape[0]))
-    if X_ORIGIN != 0 and Y_ORIGIN != 0:
-        X_shift_full = X_full - X_ORIGIN
-        Y_shift_full = Y_full - Y_ORIGIN
-        X_shift = X - X_ORIGIN
-        Y_shift = Y - Y_ORIGIN
-    else:
-        X_shift_full = X_full
-        Y_shift_full = Y_full
-        X_shift = X
-        Y_shift = Y
+    X_shift_full = X_full - X_ORIGIN
+    Y_shift_full = Y_full - Y_ORIGIN
+    X_shift = X - X_ORIGIN
+    Y_shift = Y - Y_ORIGIN
 
     mask = np.zeros_like(vx_mean, dtype=bool)
     mask[Y, X] = True
@@ -173,6 +190,7 @@ if __name__ == "__main__":
         np.min(Y_shift_full_physical)   
         ]
 
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
     # List to store all figures for displaying at the end
     figures = []
     fig_titles = []

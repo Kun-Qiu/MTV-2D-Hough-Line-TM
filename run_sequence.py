@@ -1,9 +1,10 @@
 from src.Scipy_Hough_TM import HoughTM
 from utility.py_import import np, plt, os
-from tqdm import tqdm
-import argparse
 from utility.tif_reader import tifReader
 from cython_build.PostProcessor import PostProcessor
+from tqdm import tqdm
+import argparse
+import csv
 
 
 ##################################
@@ -12,13 +13,13 @@ from cython_build.PostProcessor import PostProcessor
 
 WIN_SIZE = (31, 31)
 MAX_LEVEL = 3
-EPSILON = 0.01
+EPSILON = 0.001
 ITERATION = 100
 HOUGH_THRESHOLD = 0.2
 HOUGH_DENSITY = 10
-X_ORIGIN, Y_ORIGIN = 235, 690
+X_ORIGIN, Y_ORIGIN = 302, 690
 X_SHIFT, Y_SHIFT = 0, 0
-OUTPUT_FOLDER = r"plots"
+OUTPUT_FOLDER = r"HTV_Data\Anomaly\Run2\0_20"
 ##################################
 
 def parser_setup():
@@ -26,8 +27,8 @@ def parser_setup():
     Argument parser setup
     """
     parser = argparse.ArgumentParser(
-        description="Hybrid Analysis Method for Single Time Frame",
-        epilog="Usage: python run_sequence.py HTV_Data/x=0/Ref1.tif HTV_Data/x=0/Run6.tif HTV_Data/x=0/Run5.tif 9 11 2e-6 0.0000380204 --thresh 10 1 --interp 0 --num 3 --filter"
+        description="Hybrid Analysis Method",
+        epilog="Usage: python run_sequence.py HTV_Data/x=0/Ref1.tif HTV_Data/x=0/Run6.tif HTV_Data/x=0/Run5.tif 9 11 2e-6 0.00003963 --thresh 10 1 --interp 0 --num 3 --filter"
     )
 
     parser.add_argument("ref", type=str, help="Path to the reference image")
@@ -82,20 +83,25 @@ if __name__ == "__main__":
     ref_tif = tifReader(args.ref)
     ref_avg = ref_tif.average() if args.filter else None
 
-    mov_tif_mat, mov_avg_mat = [], []    
+    mov_tif_mat, mov_avg_mat = [], []  
     for mov_tif in args.mov:
         # Read moving image(s)
         mov_tif_obj = tifReader(mov_tif)
         mov_tif_mat.append(mov_tif_obj)
         mov_avg_mat.append(mov_tif_obj.average() if args.filter != None else None) 
 
-    min_length = min(ref_tif.length, mov_tif_mat[0].length)
+    min_length = min(
+        ref_tif.length,
+        *(mov.length for mov in mov_tif_mat)
+        )
+    
     num_lines = (args.line[0], args.line[1])
     interpolation = args.interp
     slope_thresh = args.thresh if args.thresh else (10, 1)
     
     img_shape = np.shape(ref_avg)
     processor = PostProcessor(img_shape[0], img_shape[1])
+    intersection_processor = PostProcessor(args.line[0], args.line[1])
 
     print("Reference and moving image processed.")
 
@@ -103,8 +109,13 @@ if __name__ == "__main__":
     verbose = args.m
     prev_ij = None
 
-    for i in tqdm(range(num), desc="Processing images"):
+    # idx_range = range(num)
+    idx_range = range(0, 20)
+    assert max(idx_range) < min_length, f"Range of index is out of bound {min_length}."
+    
+    for i in tqdm(idx_range, desc="Processing images"):
         ref, mov = ref_tif.get_image(i), mov_tif_mat[0].get_image(i)
+
         # Setup solver for each image pair
         solver = solver_setup(
             ref, mov, num_lines, slope_thresh, 
@@ -114,48 +125,66 @@ if __name__ == "__main__":
         if len(mov_tif_mat) > 1:
             # Handle sequence of moving images
             mov_sequence = [mov_tif.get_image(i) for mov_tif in mov_tif_mat[1:]]
-            solver.sequence_solver(mov_sequence, mov_avg_mat[1:], args.filter) 
-        
+            solver.sequence_solver(mov_sequence, mov_avg_mat[1:], args.filter)
+
         if prev_ij is not None:
             # Propogate the valid ij from previous manual correction
             solver.set_valid_ij(prev_ij)
-        
+
         # Solve for displacement field
         solver.solve()
+        # solver.plot_intersections() 
 
         if verbose and prev_ij is None:
             # After first manual correction, set verbose to False for next iterations
             verbose = False
             prev_ij = solver.get_valid_ij()
-            print("Propagating valid ij from first manual correction to subsequent images...")
-            
-        solver.plot_intersections()
-        solver.disp_field[:, :, 2:4] += np.array([X_SHIFT, Y_SHIFT])
+
+        solver.disp_field[..., 2:4] += np.array([X_SHIFT, Y_SHIFT])
         sol_field = solver.get_fields(dt=args.dt, pix_to_world=args.pix_world)
 
         # Update post-processor with current solution field
+        intersection_fields = (solver.disp_field[..., 2:4] * args.pix_world) / args.dt
+        intersection_processor.update(
+            intersection_fields[..., 0], 
+            intersection_fields[..., 1],
+            np.zeros_like(intersection_fields[..., 0])
+            )
         processor.update(sol_field[..., 4], sol_field[..., 5], sol_field[..., 6])
 
     print("Processing & Plotting Mean / RMS Fields")
 
+    # Fields for non-interpolated fields
+    vx_mean_int, vy_mean_int, _ = intersection_processor.get_mean()
+    vx_std_int, vy_std_int, _ = intersection_processor.get_std() 
+
+    # Fields for interpolated fields
     vx_mean, vy_mean, vort_mean = processor.get_mean()
     vx_std, vy_std, vort_std = processor.get_std()
     height, width = vx_mean.shape
     
     # Average Magnitude
-    valid_points = np.array([solver.disp_field[i, j][:2] for i, j in solver.valid_ij])
-    X = np.round(valid_points[:, 0])
-    Y = np.round(valid_points[:, 1])
+    valid_points = np.array([
+        solver.disp_field[i, j][:2] for i, j in solver.valid_ij
+        ])
 
-    within_bounds_mask = (
-        (X >= 0) & (X < width) & 
-        (Y >= 0) & (Y < height) &
-        np.isfinite(X) & np.isfinite(Y)
-        )
-    
-    valid_points = valid_points[within_bounds_mask]
-    X = X[within_bounds_mask].astype(int)
-    Y = Y[within_bounds_mask].astype(int)
+    os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+    csv_path = os.path.join(OUTPUT_FOLDER, "intersection_measurement.csv")
+    with open(csv_path, mode="w", newline="") as f:
+        writer = csv.writer(f)
+        writer.writerow(["x (m)", "y (m)", "u (m/s)", "v (m/s)", "u_rms (m/s)", "v_rms (m/s)"])
+        
+        x_intersection = (valid_points[:, 0] - X_ORIGIN) * args.pix_world
+        y_intersection = -(valid_points[:, 1] - Y_ORIGIN) * args.pix_world
+        for x, y, u, v, ur, vr in zip(
+            x_intersection, y_intersection, 
+            vx_mean_int[tuple(zip(*solver.valid_ij))], vy_mean_int[tuple(zip(*solver.valid_ij))], 
+            vx_std_int[tuple(zip(*solver.valid_ij))], vy_std_int[tuple(zip(*solver.valid_ij))]
+            ):
+            writer.writerow([x, y, u, v, ur, vr])
+
+    X = np.round(valid_points[:, 0]).astype(int)
+    Y = np.round(valid_points[:, 1]).astype(int)
     
     # Create mask
     X_full, Y_full = np.meshgrid(np.arange(vx_mean.shape[1]), np.arange(vx_mean.shape[0]))
@@ -169,7 +198,7 @@ if __name__ == "__main__":
 
     vel_mean_mag = np.sqrt(vx_mean**2 + vy_mean**2)
     Vx = vx_mean[Y, X]
-    Vy = -vy_mean[Y, X]
+    Vy = vy_mean[Y, X]
 
     Vel_mag = vel_mean_mag[Y, X]
     Vel_max_mag = np.nanmax(Vel_mag) if len(Vel_mag) > 0 else 1.0
@@ -177,17 +206,44 @@ if __name__ == "__main__":
     unit_Vy = Vy / Vel_max_mag
      
     # In term of physical coordinates # Convert the x, y to mm 
+    # Need to invert the y_shift_full physical for image coordinate
     X_shift_full_physical = X_shift_full * args.pix_world 
-    Y_shift_full_physical = Y_shift_full * args.pix_world 
+    Y_shift_full_physical = -Y_shift_full * args.pix_world 
     X_shift_physical = X_shift * args.pix_world 
-    Y_shift_physical = Y_shift * args.pix_world 
+    Y_shift_physical = -Y_shift * args.pix_world 
+
+    # # Negate the vorticity because the y axis is inverted in image coordinates
+    # vort_mean = -vort_mean
+    
+    #########################################################
+    # Save interpolated field
+    npy_header = [
+        "x (m)", "y (m)", "u (m/s)", "v (m/s)", "vort (1/s)", 
+        "u_rms (m/s)", "v_rms (m/s)", "vort_rms (1/s)"
+        ]
+    
+    data_to_save = np.zeros((height, width, 8), dtype=np.float32)
+    data_to_save[..., 0] = X_shift_full_physical       # x (m)
+    data_to_save[..., 1] = Y_shift_full_physical       # y (m)
+    data_to_save[..., 2] = vx_mean                     # u (m/s)
+    data_to_save[..., 3] = vy_mean                     # v (m/s)
+    data_to_save[..., 4] = vort_mean                   # vort (1/s)
+    data_to_save[..., 5] = vx_std                      # u_rms (m/s)
+    data_to_save[..., 6] = vy_std                      # v_rms (m/s)
+    data_to_save[..., 7] = vort_std
+
+    np.save(
+        os.path.join(OUTPUT_FOLDER, "intp_fields.npy"), 
+        {"header": npy_header, "data": data_to_save}
+        )
+    #########################################################
 
     # Calculate extent in physical coordinates
     extent_physical = [
         np.min(X_shift_full_physical),
-        np.max(X_shift_full_physical),  
-        np.max(Y_shift_full_physical),  
-        np.min(Y_shift_full_physical)   
+        np.max(X_shift_full_physical),    
+        np.min(Y_shift_full_physical),
+        np.max(Y_shift_full_physical)   
         ]
 
     os.makedirs(OUTPUT_FOLDER, exist_ok=True)
@@ -205,7 +261,7 @@ if __name__ == "__main__":
         )
     ax.quiver(X_shift_physical, Y_shift_physical, unit_Vx, unit_Vy, color='black', scale=20)
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
-    cbar = fig1.colorbar(mag_plot, ax=ax, format='%.1e')
+    cbar = fig1.colorbar(mag_plot, ax=ax)
     ax.set_title("Velocity Magnitude (m/s)")
 
     ax.set_xticks(ax.get_xticks())
@@ -224,15 +280,15 @@ if __name__ == "__main__":
     fig2, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im0 = ax.imshow(vx_mean, cmap='jet', extent=extent_physical)
-    ax.set_title('Mean U (m/s)')
+    ax.set_title('Mean U (m/s)', fontsize=14)
     plt.colorbar(im0, ax=ax, shrink=0.8)
 
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_u.png'), dpi=300, bbox_inches='tight')
@@ -243,15 +299,15 @@ if __name__ == "__main__":
     fig3, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im1 = ax.imshow(vy_mean, cmap='jet', extent=extent_physical)
-    ax.set_title('Mean V (m/s)')
+    ax.set_title('Mean V (m/s)', fontsize=14)
     plt.colorbar(im1, ax=ax, shrink=0.8)
     
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_v.png'), dpi=300, bbox_inches='tight')
@@ -262,15 +318,15 @@ if __name__ == "__main__":
     fig4, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im2 = ax.imshow(vort_mean, cmap='jet', extent=extent_physical)
-    ax.set_title('Mean ω (1/s)')
+    ax.set_title('Mean ω (1/s)', fontsize=14)
     plt.colorbar(im2, ax=ax, shrink=0.8)
     
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")   
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)   
     
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'mean_vorticity.png'), dpi=300, bbox_inches='tight')
@@ -281,15 +337,15 @@ if __name__ == "__main__":
     fig5, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im3 = ax.imshow(vx_std, cmap='jet', extent=extent_physical)
-    ax.set_title('RMS U\' (m/s)')
+    ax.set_title('RMS U\' (m/s)', fontsize=14)
     plt.colorbar(im3, ax=ax, shrink=0.8)
 
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_u.png'), dpi=300, bbox_inches='tight')
@@ -300,15 +356,15 @@ if __name__ == "__main__":
     fig6, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im4 = ax.imshow(vy_std, cmap='jet', extent=extent_physical)
-    ax.set_title('RMS V\' (m/s)')
+    ax.set_title('RMS V\' (m/s)', fontsize=14)
     plt.colorbar(im4, ax=ax, shrink=0.8)
 
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_v.png'), dpi=300, bbox_inches='tight')
@@ -319,15 +375,15 @@ if __name__ == "__main__":
     fig7, ax = plt.subplots(figsize=(6, 5))
     ax.axhline(y=0, color='black', linewidth=1, linestyle='-', alpha=0.8)
     im5 = ax.imshow(vort_std, cmap='jet', extent=extent_physical)
-    ax.set_title('RMS ω\' (1/s)')
+    ax.set_title('RMS ω\' (1/s)', fontsize=14)
     plt.colorbar(im5, ax=ax, shrink=0.8)
 
     ax.set_xticks(ax.get_xticks())
     ax.set_yticks(ax.get_yticks())
     ax.set_xticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_xticks()])
     ax.set_yticklabels([f'{float(tick)*1000:.1f}' for tick in ax.get_yticks()])
-    ax.set_xlabel("Streamwise Direction (mm)")
-    ax.set_ylabel("Spanwise Direction from Jet (mm)")
+    ax.set_xlabel("Streamwise Direction (mm)", fontsize=14)
+    ax.set_ylabel("Spanwise Direction from Jet (mm)", fontsize=14)
 
     plt.tight_layout()
     plt.savefig(os.path.join(OUTPUT_FOLDER, 'rms_vorticity.png'), dpi=300, bbox_inches='tight')

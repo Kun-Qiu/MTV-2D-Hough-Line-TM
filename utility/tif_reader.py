@@ -83,7 +83,7 @@ class tifReader:
         return img_uint8
 
 
-    def get_image(self, index: int):
+    def get_image(self, index) -> np.ndarray:
         """
         Get the image at the specified index
         """
@@ -91,3 +91,10 @@ class tifReader:
         if index < 0 or index >= self.length:
             raise Exception(f"Out of Bound Error, {index}. Valid range: 0 to {self.length - 1}")
         return self.__tif_images[index]
+    
+    
+    def get_img_mat(self) -> list:
+        """
+        Get the list of all images in the TIFF file
+        """
+        return self.__tif_images

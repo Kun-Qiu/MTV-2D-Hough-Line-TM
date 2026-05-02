@@ -1,8 +1,8 @@
 from utility.py_import import np, plt, dataclass, field, Tuple
 from src.T0_grid_struct import T0GridStruct
 from src.dT_grid_struct import DTGridStruct
-from cython_build.ParametricX import ParametricX
-from src.parametric_opt import ParameterOptimizer
+# from cython_build.ParametricX import ParametricX
+# from src.parametric_opt import ParameterOptimizer
 from src.interpolator import dim2Interpolator
 
 
@@ -12,7 +12,7 @@ class HoughTM:
     mov    : np.ndarray
     num_lines   : Tuple[int, int]
     slope_thresh: Tuple[int, int]
-    tm_optimize : bool = False
+    # optimize : bool = False
     interp: int = 0
 
     # Guided Images for Filtering
@@ -23,11 +23,11 @@ class HoughTM:
     verbose: bool = False
 
     # Template Matching Optimization Parameters
-    fwhm        : float = field(init=False)
-    uncertainty : float = field(init=False)
-    num_interval: int = field(init=False)
-    intensity   : float = field(init=False)
-    temp_scale  : float = field(init=False)
+    # fwhm        : float = field(init=False)
+    # uncertainty : float = field(init=False)
+    # num_interval: int = field(init=False)
+    # intensity   : float = field(init=False)
+    # temp_scale  : float = field(init=False)
 
     # Hough Line Transform Parameters
     density  : int = field(init=False)
@@ -41,6 +41,7 @@ class HoughTM:
 
     solve_bool  : bool = field(init=False)
     valid_ij    : np.ndarray = field(init=False) 
+    prev_model_ij : np.ndarray = field(init=False)
     grid_T0     : T0GridStruct = field(init=False)
     grid_dT     : DTGridStruct = field(init=False)
     interpolator: dim2Interpolator = field(init=False)
@@ -48,29 +49,34 @@ class HoughTM:
     def __post_init__(self):
         # Default values for parameters
         self.set_hough_params(density=10, threshold=0.2)
+        # self.set_template_params(
+        #     fwhm=3, uncertainty=1, num_interval=30, 
+        #     intensity=0.5, temp_scale=0.67
+        #     )
         self.set_optical_flow_params(
             win_size=(31, 31), max_level=3, 
             iteration=10, epsilon=0.001
             )
-        
-        if self.tm_optimize:
-            self.set_template_params(
-                fwhm=3, uncertainty=1, num_interval=30, 
-                intensity=0.5, temp_scale=0.67
-                )
-            self.uncertainty = self.fwhm
+        # self.uncertainty = self.fwhm
+        self.__initialize = False
 
+
+    def __solver_initialize(self) -> None:
+        """
+        Main solve function to compute the displacement field 
+        between reference and moving images.
+        """
         self.grid_T0 = T0GridStruct( 
-            self.ref, 
-            avg_image=self.ref_avg,
+            self.ref,
             num_lines=self.num_lines,
             slope_thresh=self.slope_thresh,
+            avg_image=self.ref_avg,
             threshold=self.threshold, 
-            density=self.density,
-            temp_scale=self.temp_scale
+            density=self.density
+            # temp_scale=self.temp_scale
             )
-        if self.tm_optimize:
-            self._template_optimize(self.grid_T0)
+        # if self.optimize:
+        #     self._template_optimize(self.grid_T0)
 
         self.grid_dT = DTGridStruct(
             self.grid_T0, 
@@ -81,7 +87,7 @@ class HoughTM:
             iteration=self.iteration,
             epsilon=self.epsilon
             )
-
+        
         grid_T0_valid = np.array(
             [[cell is not None for cell in row] 
             for row in self.grid_T0.grid]
@@ -95,19 +101,21 @@ class HoughTM:
         lines_a, lines_b = self.num_lines
         self.disp_field = np.full((lines_a, lines_b, 4), np.nan)
         self.solve_bool = False
-
-
-    def set_template_params(
-            self, fwhm: float, uncertainty: float, num_interval: int, 
-            intensity: float, temp_scale: float
-            ) -> None:
-        
-        self.fwhm = fwhm
-        self.uncertainty = uncertainty
-        self.num_interval = num_interval
-        self.intensity = intensity
-        self.temp_scale = temp_scale
+        self.__initialize = True
         return 
+
+
+    # def set_template_params(
+    #         self, fwhm: float, uncertainty: float, num_interval: int, 
+    #         intensity: float, temp_scale: float
+    #         ) -> None:
+        
+    #     self.fwhm = fwhm
+    #     self.uncertainty = uncertainty
+    #     self.num_interval = num_interval
+    #     self.intensity = intensity
+    #     self.temp_scale = temp_scale
+    #     return 
     
 
     def set_hough_params(
@@ -135,42 +143,38 @@ class HoughTM:
         return
     
 
-    def _template_optimize(self, grid_obj: np.ndarray) -> None:
-        """
-        Optimize grid points using template matching.
-        """
-        grid_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.grid]
-            )
-        params_valid = np.array(
-            [[cell is not None for cell in row] 
-            for row in grid_obj.params]
-            )
+    # def _template_optimize(self, grid_obj: np.ndarray) -> None:
+    #     grid_valid = np.array(
+    #         [[cell is not None for cell in row] 
+    #         for row in grid_obj.grid]
+    #         )
+    #     params_valid = np.array(
+    #         [[cell is not None for cell in row] 
+    #         for row in grid_obj.params]
+    #         )
     
-        valid_mask = grid_valid & params_valid
-        valid_indices = np.argwhere(valid_mask)
+    #     valid_mask = grid_valid & params_valid
+    #     valid_indices = np.argwhere(valid_mask)
 
-        for i, j in valid_indices:
-            x, y  = grid_obj.grid[i, j]
-            _, params = grid_obj.generate_template(self.temp_scale)
-            ang1, ang2, leg_len = params[i, j]
+    #     for i, j in valid_indices:
+    #         x, y  = grid_obj.grid[i, j]
+    #         ang1, ang2, leg_len = grid_obj.params[i, j]
 
-            parametricX_obj = ParametricX(
-                center=(x, y), 
-                shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
-                image=grid_obj.image
-                )
+    #         parametricX_obj = ParametricX(
+    #             center=(x, y), 
+    #             shape=(ang1, ang2, self.intensity, self.fwhm, leg_len),
+    #             image=grid_obj.image
+    #             )
         
-            optimizer = ParameterOptimizer(
-                parametricX_obj, uncertainty=self.uncertainty, 
-                num_interval=self.num_interval
-                )
+    #         optimizer = ParameterOptimizer(
+    #             parametricX_obj, uncertainty=self.uncertainty, 
+    #             num_interval=self.num_interval
+    #             )
 
-            # parameter_star = optimizer.quad_optimize()
-            parameter_star = optimizer.quad_optimize_gradient()
-            grid_obj.grid[i, j] = parameter_star[0:2]
-        return
+    #         # parameter_star = optimizer.quad_optimize()
+    #         parameter_star = optimizer.quad_optimize_gradient()
+    #         grid_obj.grid[i, j] = parameter_star[0:2]
+    #     return
 
 
     def solve(self) -> None:
@@ -178,6 +182,9 @@ class HoughTM:
         Solve for the displacement field between reference and moving images.
         Populate the displacement field array with [x0, y0, dx, dy] at valid grid points.
         """
+        if not self.__initialize:
+            self.__solver_initialize()
+
         if self.verbose:
             # Launch interactive point editor for manual correction
             self.grid_T0.grid, self.grid_dT.grid, self.valid_ij = self.interactive_point_editor(
@@ -217,11 +224,14 @@ class HoughTM:
         """
         Solve a sequence of images to update the displacement grid over time.
         """
+        if not self.__initialize:
+            self.__solver_initialize()
+
         self.grid_dT.sequence_solver(single_sequence, avg_sequence, filter_bool)
         return 
 
 
-    def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate:bool=False) -> np.ndarray:
+    def get_fields(self, dt:float=1, pix_to_world: float = 1, extrapolate=False) -> np.ndarray:
         """
         Get the interpolated displacement, velocity, and vorticity fields.
         """
@@ -231,8 +241,10 @@ class HoughTM:
         # Set up interpolator for displacement field
         valid_mask = ~np.isnan(self.disp_field).any(axis=2)
         valid_points = self.disp_field[valid_mask][:, :2] 
-        valid_displacements = self.disp_field[valid_mask][:, 2:] 
-        
+        valid_displacements = self.disp_field[valid_mask][:, 2:]
+        # Need to flip direction because +vel in image is -vel in world coordinates
+        valid_displacements[:, 1] *= -1
+
         if valid_points.size > 0:
             self.interpolator = dim2Interpolator(
                 xy=valid_points,
@@ -258,6 +270,9 @@ class HoughTM:
         vort = np.full((h, w), np.nan)
         dvx_dy, _ = np.gradient(vel[..., 0])  # ∂v_x/∂y, ∂v_x/∂x
         _, dvy_dx = np.gradient(vel[..., 1])
+
+        # Flip the velocity direction for vorticity calculation to match world coordinates
+        dvx_dy *= -1 
         vort = dvy_dx - dvx_dy
 
         return np.dstack([
@@ -359,8 +374,13 @@ class HoughTM:
         
         t0_points, dt_points = [], []
         for i, j in plot_indices:
-            t0_points.append(self.grid_T0.grid[i, j])
-            dt_points.append(self.grid_dT.grid[i, j])
+            p0 = self.grid_T0.grid[i, j]
+            p1 = self.grid_dT.grid[i, j]
+
+            if p0 is not None and p1 is not None:
+                t0_points.append(p0)
+                dt_points.append(p1)
+
         
         t0_points = np.array(t0_points) if t0_points else np.array([])
         dt_points = np.array(dt_points) if dt_points else np.array([])
@@ -373,7 +393,7 @@ class HoughTM:
             print(
                 np.max(dimension[:, 0])-np.min(dimension[:, 0]), 
                 np.max(dimension[:, 1])-np.min(dimension[:, 1])
-                )
+                )   
 
         axes[0].imshow(self.grid_T0.image, cmap='gray')  
         if t0_points.size > 0:

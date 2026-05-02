@@ -19,6 +19,9 @@ class DTGridStruct:
     grid : np.ndarray = field(init=False)
 
     def __post_init__(self):
+        """
+        Initialize the dT_grid structure
+        """
         self.shape = self.T0_grid.num_lines
         self.grid = np.empty(self.shape, dtype=object)
 
@@ -38,7 +41,7 @@ class DTGridStruct:
 
     def _grid_LK(self, 
         prev_img: np.ndarray, next_img: np.ndarray, 
-        prev_pts: np.ndarray, valid_indices: np.ndarray
+        prev_pts: np.ndarray, valid_indices: np.ndarray, next_pts: np.ndarray|None=None
         ) -> None:
         """
         Perform Lucas-Kanade optical flow tracking on the grid points.
@@ -53,7 +56,11 @@ class DTGridStruct:
             return img_return
         
         # Perform LK optical flow to track points from T0_grid to dT_grid
-        criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, self.iteration, self.epsilon)
+        criteria = (
+            cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 
+            self.iteration, 
+            self.epsilon
+            )
         try:
             prev_img = rescale(prev_img)
             next_img = rescale(next_img)
@@ -64,12 +71,12 @@ class DTGridStruct:
             prevImg=prev_img,
             nextImg=next_img,
             prevPts=prev_pts,   
-            nextPts=None,
+            nextPts=next_pts,
             winSize=self.win_size,
             maxLevel=self.max_level,
             criteria=criteria
             )
-        
+
         tracked_idx = 0
         for i, j in zip(*valid_indices):
             if (tracked_idx < len(status) and 
@@ -81,12 +88,17 @@ class DTGridStruct:
                 self.grid[i][j] = None
             tracked_idx += 1
         return
-    
 
-    def sequence_solver(self, single_sequence: list[np.ndarray], avg_sequence: list[np.ndarray], filter_bool: bool) -> None:
+
+    def sequence_solver(self, 
+        single_sequence: list[np.ndarray], 
+        avg_sequence: list[np.ndarray], 
+        filter_bool: bool
+        ) -> None:
         """
         Solve a sequence of images to update the dT_grid structure over time.
         """
+
         prev_img = self.image
         next_img = None
 
@@ -102,7 +114,6 @@ class DTGridStruct:
                 prev_img=prev_img, next_img=next_img, 
                 prev_pts=prev_pts, valid_indices=valid_indices
                 )
-
             prev_img = next_img
         self.image = next_img
         return
@@ -169,6 +180,9 @@ class DTGridStruct:
     ########## Private Helper Functions ##########
 
     def __get_valid_cells(self) -> Tuple[np.ndarray, np.ndarray]:
+        """
+        Get boolean masks of valid cells in T0_grid and dT_grid.
+        """
         T0_grid_valid = np.array(
             [[cell is not None for cell in row] 
             for row in self.T0_grid.grid]
@@ -183,6 +197,9 @@ class DTGridStruct:
     
     
     def __within_bounds(self, pt: np.ndarray) -> bool:
+        """
+        Check if a point is within the image bounds.
+        """
         x, y = pt.ravel()
         height, width = self.image.shape[:2]
         return 0 <= x < width and 0 <= y < height

@@ -2,13 +2,17 @@ import numpy as np
 import matplotlib.pyplot as plt
 import cv2
 
-def save_file(field, base_filename):
-    """Save displacement field in both .npy and OpenCV .yml formats"""
+def save_file(field, base_filename, yml_save=False):
+    """
+    Save displacement field in numpy .npy file
+    Optional: OpenCV .yml formats
+    """
     np.save(base_filename + ".npy", field)
-    
-    # fs = cv2.FileStorage(base_filename + ".yml", cv2.FILE_STORAGE_WRITE)
-    # fs.write("displacement_field", field)
-    # fs.release()
+
+    if yml_save:
+        fs = cv2.FileStorage(base_filename + ".yml", cv2.FILE_STORAGE_WRITE)
+        fs.write("displacement_field", field)
+        fs.release()
     return 
 
 
@@ -24,11 +28,11 @@ def poiseuille_flow(U, shape=(256, 256), filename=None, show=False):
     """
 
     h, w = shape
-    h_half = h // 2
+    h_half = (h - 1) / 2
 
-    # Generate displacement field using Poiseuille flow profile
-    y = np.linspace(-h_half, h_half, h)
-    u_x = U * (1 - (y**2 / h_half**2)) 
+    # Generate displacement field using Poiseuille flow profile (zero at first and last rows)
+    y = np.arange(h) - h_half
+    u_x = U * (1 - (y**2 / h_half**2))
 
     displacement_x = np.tile(u_x[:, np.newaxis], (1, w)).astype(np.float32)
     displacement_y = np.zeros_like(displacement_x, dtype=np.float32)
@@ -52,7 +56,7 @@ def poiseuille_flow(U, shape=(256, 256), filename=None, show=False):
         plt.grid(False)
         plt.show()
 
-    if filename != None:
+    if filename is not None:
         save_file(field, filename)
 
     return field
@@ -68,7 +72,7 @@ def lamb_oseen_vortex(shape=(256, 256), gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=2
     :scale          :   Scaling factor of rotation
     :filename       :   If filename is not none, save the displacement to local directory
     :show           :   Boolean to show the displacement field using matplotlib
-    :return         :   Array where each element is [u_r, u_theta]
+    :return         :   Displacement field (dx, dy) in pixels
     """
     nu_t = (sqrt_4_nu_t ** 2) / 4  # Derived value 4νt = (1/6)^2
 
@@ -107,8 +111,8 @@ def lamb_oseen_vortex(shape=(256, 256), gamma=0.05, sqrt_4_nu_t = 1 / 6, scale=2
         plt.grid(False)
         plt.show()
 
-    field = np.stack((u_x, u_y), axis=-1)
-    if filename != None:
+    field = np.stack((u_x, u_y), axis=-1).astype(np.float32)
+    if filename is not None:
         save_file(field, filename)
 
     return field
@@ -129,7 +133,7 @@ def uniform_flow(x_translate, y_translate, shape=(256, 256), filename=None, show
     h, w = shape
 
     # Displacement Field
-    field = np.zeros((h, w, 2))
+    field = np.zeros((h, w, 2), dtype=np.float32)
     field[..., 0] = x_translate
     field[..., 1] = y_translate
 
@@ -153,9 +157,9 @@ def uniform_flow(x_translate, y_translate, shape=(256, 256), filename=None, show
         plt.gca().invert_yaxis()
         plt.show()
     
-    if filename != None:
+    if filename is not None:
         save_file(field, filename)
-    
+
     return field
 
 
